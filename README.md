@@ -226,11 +226,9 @@ The PostgreSQL database uses three core relational tables defined via **Drizzle 
 
 ##  Features Not Completed
 
-- [ ] **Real-time Audio/Video Transcription**: Live speech-to-text recording directly in the browser during an ongoing meeting.
-- [ ] **Third-party Calendar Integration**: Syncing meetings directly with Google Calendar or Microsoft Outlook.
-- [ ] **Email Notifications**: Automated notification emails sent to assignees when an action item is created or updated.
+- [ ] **Duplicate Task Handling / Deduplication**: Detecting and preventing duplicate action item assignments for a user across multiple meetings or transcript summaries.
+- [ ] **Instant Summary Preview on File/Text Upload**: Displaying an immediate AI summary preview directly upon uploading a transcript file or pasting text prior to final database submission.
 
----
 
 ##  Known Limitations
 
