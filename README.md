@@ -291,10 +291,7 @@ CRITICAL RULES:
 1. **Implicit `any` Recursive Initializer Error (TS7022)**:
    - *Issue*: AI-generated arrow function variables (`export const generateFallbackSummary = (...) => ...`) caused TypeScript circular type inference errors when referenced recursively or within sibling functions.
    - *Resolution*: Converted arrow functions into standard hoisted `function` declarations with explicit return types (`export function generateFallbackSummary(...): MeetingSummary`).
-2. **SDK Deprecation Warning (`ts(6387)`)**:
-   - *Issue*: Initial AI code used `generateObject({ model, schema, prompt })`, which is marked as deprecated in newer Vercel AI SDK versions.
-   - *Resolution*: Updated to `generateText({ model, output: Output.object({ schema }), prompt })`.
-3. **Zod Optional Field Mismatch with OpenAI Structured Outputs**:
+2. **Zod Optional Field Mismatch with OpenAI Structured Outputs**:
    - *Issue*: OpenAI's strict JSON schema mode rejected schemas with optional fields (`context?: string`) lacking explicit required declarations.
    - *Resolution*: Adjusted schema definitions and fallback default logic in `cleanSummary()`.
 
