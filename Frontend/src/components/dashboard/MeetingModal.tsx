@@ -416,22 +416,21 @@ export function MeetingModal({
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
-                      isDragging
-                        ? "border-blue-500 bg-blue-50/50 dark:bg-blue-950/30"
-                        : "border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900"
-                    }`}
+                    className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${isDragging
+                      ? "border-blue-500 bg-blue-50/50 dark:bg-blue-950/30"
+                      : "border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                      }`}
                   >
                     <FileUp className="mx-auto h-8 w-8 text-zinc-400 mb-2" />
                     <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                       Drag & drop your transcript file here, or click to browse
                     </p>
                     <p className="text-xs text-zinc-500 mb-3">
-                      Supports plain text, markdown, log, CSV, and JSON files (.txt, .md, .log, .csv, .json)
+                      Supports plain text, markdown, log, CSV, and JSON files (.txt, .md)
                     </p>
                     <Input
                       type="file"
-                      accept=".txt,.md,.text,.log,.csv,.json"
+                      accept=".txt,.md"
                       onChange={handleFileUpload}
                       className="max-w-xs mx-auto cursor-pointer"
                     />
