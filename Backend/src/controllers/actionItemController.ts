@@ -6,7 +6,13 @@ import { AuthenticatedRequest } from "../middleware/authMiddleware";
 
 /**
  * GET /api/action-items
- * View action items accessible to the currently authenticated user
+ * Retrieves a filtered and paginated list of action items accessible to the authenticated user.
+ * Access is granted if the user is a participant in the meeting or explicitly assigned to the task.
+ * 
+ * @param req - Authenticated Express request object containing user session info and query parameters:
+ *              `meetingId`, `userId`, `status`, `priority`, `page`, `limit`.
+ * @param res - Express response object for returning JSON payload of action items or paginated items object.
+ * @returns Promise<void>
  */
 export const getActionItems = async (
   req: AuthenticatedRequest,
@@ -97,7 +103,11 @@ export const getActionItems = async (
 
 /**
  * GET /api/action-items/meeting/:meetingId
- * View action items for a specific meeting
+ * Retrieves all action items associated with a specific meeting by meeting ID.
+ * 
+ * @param req - Authenticated Express request object containing route parameter `meetingId`.
+ * @param res - Express response object returning array of action items for the meeting.
+ * @returns Promise<void>
  */
 export const getActionItemsByMeeting = async (
   req: AuthenticatedRequest,
@@ -120,7 +130,11 @@ export const getActionItemsByMeeting = async (
 
 /**
  * GET /api/action-items/:id
- * View single action item by ID
+ * Retrieves details of a single action item by its unique ID.
+ * 
+ * @param req - Authenticated Express request object containing route parameter `id`.
+ * @param res - Express response object returning action item JSON object or 404 error.
+ * @returns Promise<void>
  */
 export const getActionItemById = async (
   req: AuthenticatedRequest,
@@ -148,7 +162,13 @@ export const getActionItemById = async (
 
 /**
  * POST /api/action-items
- * Add an action item manually
+ * Manually creates a new action item associated with an existing meeting.
+ * Automatically attempts user ID matching if an owner email is specified.
+ * 
+ * @param req - Authenticated Express request object containing request body:
+ *              `meetingId`, `task`, `owner`, `userId`, `dueDate`, `priority`, `status`.
+ * @param res - Express response object returning HTTP 201 with created action item JSON.
+ * @returns Promise<void>
  */
 export const createActionItem = async (
   req: AuthenticatedRequest,
@@ -214,7 +234,13 @@ export const createActionItem = async (
 
 /**
  * PUT /api/action-items/:id
- * Edit an action item (assign owner, due date, priority, status, task description)
+ * Updates an existing action item's task description, owner, assignee, due date, priority, or status.
+ * Re-evaluates user ID mapping if the owner email changes.
+ * 
+ * @param req - Authenticated Express request object with route parameter `id` and body updates:
+ *              `task`, `owner`, `userId`, `dueDate`, `priority`, `status`.
+ * @param res - Express response object returning updated action item JSON.
+ * @returns Promise<void>
  */
 export const updateActionItem = async (
   req: AuthenticatedRequest,
@@ -270,7 +296,11 @@ export const updateActionItem = async (
 
 /**
  * DELETE /api/action-items/:id
- * Delete an action item
+ * Permanently removes an action item from the database.
+ * 
+ * @param req - Authenticated Express request object containing route parameter `id`.
+ * @param res - Express response object returning deletion confirmation message and deleted item object.
+ * @returns Promise<void>
  */
 export const deleteActionItem = async (
   req: AuthenticatedRequest,

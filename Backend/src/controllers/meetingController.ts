@@ -6,7 +6,12 @@ import { generateMeetingSummary } from "../services/aiService";
 import { AuthenticatedRequest } from "../middleware/authMiddleware";
 
 /**
- * Helper to sync extracted action items into the relational `action_items` DB table
+ * Helper function that synchronizes extracted AI action items into the relational PostgreSQL `action_items` DB table.
+ * Clears existing action items for the specified meeting and maps item owners to registered user IDs where possible.
+ * 
+ * @param meetingId - Unique identifier of the meeting.
+ * @param summary - Structured MeetingSummary object containing extracted action items.
+ * @returns Promise<void>
  */
 const syncActionItemsToDb = async (
   meetingId: string,
@@ -59,7 +64,12 @@ const syncActionItemsToDb = async (
 
 /**
  * GET /api/meetings
- * Fetch meetings associated with the currently authenticated user
+ * Retrieves meetings associated with the currently authenticated user session.
+ * Supports filtering by title/transcript search text, meeting type, and optional pagination.
+ * 
+ * @param req - Authenticated Express request object containing query parameters: `search`, `type`, `page`, `limit`.
+ * @param res - Express response object returning array of meetings or paginated response object.
+ * @returns Promise<void>
  */
 export const getMeetings = async (
   req: AuthenticatedRequest,
@@ -127,7 +137,11 @@ export const getMeetings = async (
 
 /**
  * GET /api/meetings/:id
- * Fetch single meeting by ID
+ * Fetches a single meeting record by its unique ID.
+ * 
+ * @param req - Authenticated Express request object with route parameter `id`.
+ * @param res - Express response object returning meeting JSON object or 404 error.
+ * @returns Promise<void>
  */
 export const getMeetingById = async (
   req: AuthenticatedRequest,
@@ -155,7 +169,12 @@ export const getMeetingById = async (
 
 /**
  * POST /api/meetings
- * Create a new meeting & generate AI summary + sync action items
+ * Creates a new meeting record, triggers automated multi-tier AI transcript summarization,
+ * and syncs extracted action items into the relational database table.
+ * 
+ * @param req - Authenticated Express request object containing `title`, `date`, `type`, `participants`, `transcript`, and optional `apiKey`.
+ * @param res - Express response object returning HTTP 201 with created meeting JSON.
+ * @returns Promise<void>
  */
 export const createMeeting = async (
   req: AuthenticatedRequest,
@@ -218,7 +237,12 @@ export const createMeeting = async (
 
 /**
  * PUT /api/meetings/:id
- * Update an existing meeting & update AI summary + action items
+ * Updates an existing meeting's title, date, type, participants, or transcript text.
+ * Re-runs AI summarization and action item syncing if transcript is updated.
+ * 
+ * @param req - Authenticated Express request object with route parameter `id` and update payload.
+ * @param res - Express response object returning updated meeting JSON.
+ * @returns Promise<void>
  */
 export const updateMeeting = async (
   req: AuthenticatedRequest,
@@ -271,7 +295,12 @@ export const updateMeeting = async (
 
 /**
  * POST /api/meetings/:id/summarize
- * Generate or re-generate AI summary for an existing meeting & sync action items
+ * Generates or re-generates an AI summary on demand for an existing meeting transcript,
+ * updating the meeting record and syncing action items.
+ * 
+ * @param req - Authenticated Express request object containing route parameter `id` and optional `apiKey`.
+ * @param res - Express response object returning generated summary and updated meeting payload.
+ * @returns Promise<void>
  */
 export const summarizeMeeting = async (
   req: AuthenticatedRequest,
@@ -323,7 +352,11 @@ export const summarizeMeeting = async (
 
 /**
  * DELETE /api/meetings/:id
- * Delete a meeting
+ * Permanently deletes a meeting record and its associated action items.
+ * 
+ * @param req - Authenticated Express request object containing route parameter `id`.
+ * @param res - Express response object confirming deletion and returning deleted meeting JSON.
+ * @returns Promise<void>
  */
 export const deleteMeeting = async (
   req: AuthenticatedRequest,

@@ -8,7 +8,7 @@ dotenv.config();
 const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
-  console.warn("⚠️ DATABASE_URL is not set in environment variables.");
+  console.warn("DATABASE_URL is not set in environment variables.");
 }
 
 const sql = neon(connectionString || "");

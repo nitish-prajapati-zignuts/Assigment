@@ -14,8 +14,13 @@ const COOKIE_OPTIONS = {
 };
 
 /**
- * Register a new user
  * POST /api/auth/register
+ * Registers a new user account with hashed password (`bcryptjs`), creates database record,
+ * and sets an HTTP-only JWT authentication cookie.
+ * 
+ * @param req - Express request object containing `name`, `email`, and `password` in body.
+ * @param res - Express response object returning created user profile and HTTP-only auth token cookie.
+ * @returns Promise<void>
  */
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -87,8 +92,13 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 };
 
 /**
- * Authenticate user & get token
  * POST /api/auth/login
+ * Authenticates user credentials using password comparison (`bcrypt.compare`),
+ * generates a signed JWT token, and returns user session object with HTTP-only cookie.
+ * 
+ * @param req - Express request object containing `email` and `password` in body.
+ * @param res - Express response object returning authenticated user info and setting auth cookie.
+ * @returns Promise<void>
  */
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -146,8 +156,13 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 };
 
 /**
- * Get all registered application users
  * GET /api/auth/users
+ * Fetches list of all registered application users (excluding password hashes)
+ * for UI participant selection and action item assignment dropdowns.
+ * 
+ * @param req - Express request object.
+ * @param res - Express response object returning array of user objects (`id`, `name`, `email`).
+ * @returns Promise<void>
  */
 export const getUsers = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -168,8 +183,12 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
 };
 
 /**
- * Get current authenticated user details
  * GET /api/auth/me
+ * Retrieves current authenticated user session details from verified JWT payload.
+ * 
+ * @param req - Authenticated Express request object populated with `req.user`.
+ * @param res - Express response object returning current user profile payload.
+ * @returns Promise<void>
  */
 export const getMe = async (
   req: AuthenticatedRequest,
@@ -191,8 +210,12 @@ export const getMe = async (
 };
 
 /**
- * Clear auth cookie and logout user
  * POST /api/auth/logout
+ * Clears the HTTP-only JWT authentication cookie (`token`) to log out the user.
+ * 
+ * @param req - Express request object.
+ * @param res - Express response object clearing cookie and confirming logout.
+ * @returns Promise<void>
  */
 export const logout = async (req: Request, res: Response): Promise<void> => {
   try {
