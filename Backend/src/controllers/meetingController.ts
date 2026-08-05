@@ -3,6 +3,7 @@ import { db } from "../db";
 import { meetings, actionItems, users, MeetingSummary } from "../db/schema";
 import { eq } from "drizzle-orm";
 import { generateMeetingSummary } from "../services/aiService";
+import { AuthenticatedRequest } from "../middleware/authMiddleware";
 
 /**
  * Helper to sync extracted action items into the relational `action_items` DB table
@@ -58,14 +59,29 @@ const syncActionItemsToDb = async (
 
 /**
  * GET /api/meetings
- * Fetch all meetings with optional search and type filter
+ * Fetch meetings associated with the currently authenticated user
  */
-export const getMeetings = async (req: Request, res: Response): Promise<void> => {
+export const getMeetings = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
   try {
     const { search, type } = req.query;
+    const userEmail = req.user?.email?.toLowerCase();
 
     const allMeetings = await db.select().from(meetings);
-    let filtered = allMeetings;
+
+    // Filter meetings where the logged-in user is a participant
+    let userMeetings = allMeetings;
+    if (userEmail) {
+      userMeetings = allMeetings.filter(
+        (m) =>
+          Array.isArray(m.participants) &&
+          m.participants.some((p) => p.toLowerCase() === userEmail)
+      );
+    }
+
+    let filtered = userMeetings;
 
     if (search && typeof search === "string") {
       const q = search.toLowerCase();
@@ -81,6 +97,27 @@ export const getMeetings = async (req: Request, res: Response): Promise<void> =>
       filtered = filtered.filter((m) => m.type === type);
     }
 
+    const page = req.query.page ? parseInt(String(req.query.page), 10) : undefined;
+    const limit = req.query.limit ? parseInt(String(req.query.limit), 10) : undefined;
+
+    if (page !== undefined || limit !== undefined) {
+      const pageNum = page && page > 0 ? page : 1;
+      const limitNum = limit && limit > 0 ? limit : 10;
+      const total = filtered.length;
+      const totalPages = Math.ceil(total / limitNum) || 1;
+      const startIndex = (pageNum - 1) * limitNum;
+      const items = filtered.slice(startIndex, startIndex + limitNum);
+
+      res.json({
+        items,
+        total,
+        page: pageNum,
+        totalPages,
+        limit: limitNum,
+      });
+      return;
+    }
+
     res.json(filtered);
   } catch (error) {
     console.error("Error fetching meetings:", error);
@@ -92,7 +129,10 @@ export const getMeetings = async (req: Request, res: Response): Promise<void> =>
  * GET /api/meetings/:id
  * Fetch single meeting by ID
  */
-export const getMeetingById = async (req: Request, res: Response): Promise<void> => {
+export const getMeetingById = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
   try {
     const targetId = String(req.params.id);
 
@@ -117,21 +157,35 @@ export const getMeetingById = async (req: Request, res: Response): Promise<void>
  * POST /api/meetings
  * Create a new meeting & generate AI summary + sync action items
  */
-export const createMeeting = async (req: Request, res: Response): Promise<void> => {
+export const createMeeting = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
   try {
     const { title, date, type, participants, transcript, apiKey } = req.body;
+    const userEmail = req.user?.email;
 
     if (!title || !date || !type) {
       res.status(400).json({ error: "Title, date, and type are required." });
       return;
     }
 
+    // Ensure the creating user's email is included in the participants list
+    let finalParticipants = Array.isArray(participants) ? participants : [];
+    if (
+      userEmail &&
+      !finalParticipants.some((p) => p.toLowerCase() === userEmail.toLowerCase())
+    ) {
+      finalParticipants = [...finalParticipants, userEmail];
+    }
+
     const cleanTranscript = transcript || "";
 
     // Generate structured AI meeting summary
-    const summary = cleanTranscript.trim().length > 0
-      ? await generateMeetingSummary(cleanTranscript, apiKey, title)
-      : null;
+    const summary =
+      cleanTranscript.trim().length > 0
+        ? await generateMeetingSummary(cleanTranscript, apiKey, title)
+        : null;
 
     const meetingId = Date.now().toString();
 
@@ -140,7 +194,7 @@ export const createMeeting = async (req: Request, res: Response): Promise<void> 
       title,
       date,
       type,
-      participants: Array.isArray(participants) ? participants : [],
+      participants: finalParticipants,
       transcript: cleanTranscript,
       summary,
       createdAt: new Date(),
@@ -166,7 +220,10 @@ export const createMeeting = async (req: Request, res: Response): Promise<void> 
  * PUT /api/meetings/:id
  * Update an existing meeting & update AI summary + action items
  */
-export const updateMeeting = async (req: Request, res: Response): Promise<void> => {
+export const updateMeeting = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
   try {
     const targetId = String(req.params.id);
     const { title, date, type, participants, transcript, apiKey } = req.body;
@@ -216,7 +273,10 @@ export const updateMeeting = async (req: Request, res: Response): Promise<void> 
  * POST /api/meetings/:id/summarize
  * Generate or re-generate AI summary for an existing meeting & sync action items
  */
-export const summarizeMeeting = async (req: Request, res: Response): Promise<void> => {
+export const summarizeMeeting = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
   try {
     const targetId = String(req.params.id);
     const { apiKey } = req.body;
@@ -265,7 +325,10 @@ export const summarizeMeeting = async (req: Request, res: Response): Promise<voi
  * DELETE /api/meetings/:id
  * Delete a meeting
  */
-export const deleteMeeting = async (req: Request, res: Response): Promise<void> => {
+export const deleteMeeting = async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
   try {
     const targetId = String(req.params.id);
 

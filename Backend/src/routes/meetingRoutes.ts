@@ -7,8 +7,12 @@ import {
   summarizeMeeting,
   deleteMeeting,
 } from "../controllers/meetingController";
+import { protect } from "../middleware/authMiddleware";
 
 const router = Router();
+
+// Protect all meeting endpoints
+router.use(protect);
 
 // GET /api/meetings - Fetch all meetings
 router.get("/", getMeetings);

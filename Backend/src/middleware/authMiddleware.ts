@@ -13,17 +13,27 @@ export const protect = (
   res: Response,
   next: NextFunction
 ): void => {
-  const authHeader = req.headers.authorization;
+  let token: string | undefined;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    token = authHeader.split(" ")[1];
+  } else if (req.headers.cookie) {
+    const cookies = req.headers.cookie.split(";").reduce((acc, current) => {
+      const [key, value] = current.trim().split("=");
+      if (key && value) acc[key] = value;
+      return acc;
+    }, {} as Record<string, string>);
+    token = cookies["token"];
+  }
+
+  if (!token) {
     res.status(401).json({
       error: "Unauthorized",
-      message: "Access denied. No token provided in Authorization header.",
+      message: "Access denied. No authentication token provided.",
     });
     return;
   }
-
-  const token = authHeader.split(" ")[1];
 
   try {
     const decodedPayload = verifyToken(token);

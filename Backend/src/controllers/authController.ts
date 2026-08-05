@@ -189,3 +189,21 @@ export const getMe = async (
     res.status(500).json({ error: "Failed to fetch user profile." });
   }
 };
+
+/**
+ * Clear auth cookie and logout user
+ * POST /api/auth/logout
+ */
+export const logout = async (req: Request, res: Response): Promise<void> => {
+  try {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: (process.env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
+    });
+    res.json({ message: "Logout successful" });
+  } catch (error) {
+    console.error("Logout Error:", error);
+    res.status(500).json({ error: "Failed to logout." });
+  }
+};

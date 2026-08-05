@@ -2,7 +2,10 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const actionItemController_1 = require("../controllers/actionItemController");
+const authMiddleware_1 = require("../middleware/authMiddleware");
 const router = (0, express_1.Router)();
+// Protect all action item endpoints
+router.use(authMiddleware_1.protect);
 // GET /api/action-items - View all action items (with optional filters: ?meetingId= & ?userId= & ?status= & ?priority=)
 router.get("/", actionItemController_1.getActionItems);
 // GET /api/action-items/meeting/:meetingId - View action items for a specific meeting

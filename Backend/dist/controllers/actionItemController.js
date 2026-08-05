@@ -6,13 +6,33 @@ const schema_1 = require("../db/schema");
 const drizzle_orm_1 = require("drizzle-orm");
 /**
  * GET /api/action-items
- * View all action items with optional filtering by meetingId, userId, status, or priority
+ * View action items accessible to the currently authenticated user
  */
 const getActionItems = async (req, res) => {
     try {
         const { meetingId, userId, status, priority } = req.query;
+        const currentUserId = req.user?.userId;
+        const currentUserEmail = req.user?.email?.toLowerCase();
+        const currentUserName = req.user?.name?.toLowerCase();
+        // 1. Fetch user's accessible meetings
+        const allMeetings = await db_1.db.select().from(schema_1.meetings);
+        const userMeetingIds = new Set(allMeetings
+            .filter((m) => currentUserEmail &&
+            Array.isArray(m.participants) &&
+            m.participants.some((p) => p.toLowerCase() === currentUserEmail))
+            .map((m) => m.id));
         const allItems = await db_1.db.select().from(schema_1.actionItems);
-        let filtered = allItems;
+        // 2. Filter items: Belongs to accessible meeting OR assigned to user
+        let filtered = allItems.filter((item) => {
+            const isMeetingParticipant = userMeetingIds.has(item.meetingId);
+            const itemOwnerLow = item.owner?.toLowerCase() || "";
+            const isUserAssigned = (currentUserId && item.userId === currentUserId) ||
+                (currentUserEmail && itemOwnerLow === currentUserEmail) ||
+                (currentUserName &&
+                    itemOwnerLow.length > 0 &&
+                    itemOwnerLow.includes(currentUserName.split(" ")[0]));
+            return isMeetingParticipant || isUserAssigned;
+        });
         if (meetingId && typeof meetingId === "string") {
             filtered = filtered.filter((item) => item.meetingId === meetingId);
         }
@@ -24,6 +44,24 @@ const getActionItems = async (req, res) => {
         }
         if (priority && typeof priority === "string") {
             filtered = filtered.filter((item) => item.priority?.toLowerCase() === priority.toLowerCase());
+        }
+        const page = req.query.page ? parseInt(String(req.query.page), 10) : undefined;
+        const limit = req.query.limit ? parseInt(String(req.query.limit), 10) : undefined;
+        if (page !== undefined || limit !== undefined) {
+            const pageNum = page && page > 0 ? page : 1;
+            const limitNum = limit && limit > 0 ? limit : 10;
+            const total = filtered.length;
+            const totalPages = Math.ceil(total / limitNum) || 1;
+            const startIndex = (pageNum - 1) * limitNum;
+            const items = filtered.slice(startIndex, startIndex + limitNum);
+            res.json({
+                items,
+                total,
+                page: pageNum,
+                totalPages,
+                limit: limitNum,
+            });
+            return;
         }
         res.json(filtered);
     }

@@ -1,5 +1,6 @@
 import { generateObject } from "ai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createOpenAI } from "@ai-sdk/openai";
 import { z } from "zod";
 import { MeetingSummary, KeyDecision, ActionItem } from "../db/schema";
 import dotenv from "dotenv";
@@ -67,7 +68,14 @@ export const meetingSummarySchema = z.object({
     ),
 });
 
-export const stripHtml = (input: string | null | undefined): string => {
+/**
+ * Sanitizes and cleans input text by stripping HTML markup, unescaping common HTML entities,
+ * and normalizing whitespace to ensure plain text output.
+ * 
+ * @param input - The raw text string containing potential HTML markup or entities.
+ * @returns Plain text representation with HTML tags removed and spaces normalized.
+ */
+export function stripHtml(input: string | null | undefined): string {
   if (!input) return "";
 
   let str = input;
@@ -111,9 +119,16 @@ export const stripHtml = (input: string | null | undefined): string => {
   }
 
   return str;
-};
+}
 
-export const cleanSummary = (summary: MeetingSummary): MeetingSummary => {
+/**
+ * Post-processes a structured MeetingSummary object to ensure all string fields
+ * are free of HTML tags and assigned appropriate fallback default values if empty.
+ * 
+ * @param summary - Raw MeetingSummary object returned by LLM or fallback generator.
+ * @returns Cleaned MeetingSummary object with sanitized fields.
+ */
+export function cleanSummary(summary: MeetingSummary): MeetingSummary {
   return {
     purpose: stripHtml(summary.purpose) || "General meeting discussion and updates.",
     discussionPoints: (summary.discussionPoints || [])
@@ -146,15 +161,20 @@ export const cleanSummary = (summary: MeetingSummary): MeetingSummary => {
       }))
       .filter((item) => item.task.length > 0),
   };
-};
+}
 
 /**
- * Heuristic fallback generator when AI API Key is not set or API call is skipped
+ * Heuristic fallback generator used when no AI API key is configured or when AI provider calls fail.
+ * Extracts key sentences, decision keywords, and simple action items directly from transcript text lines.
+ * 
+ * @param rawTranscript - Raw transcript string.
+ * @param title - Optional meeting title.
+ * @returns A structured MeetingSummary generated via text heuristic extraction.
  */
-export const generateFallbackSummary = (
+export function generateFallbackSummary(
   rawTranscript: string,
   title?: string
-): MeetingSummary => {
+): MeetingSummary {
   const plainTranscript = stripHtml(rawTranscript);
 
   const lines = plainTranscript
@@ -249,37 +269,33 @@ export const generateFallbackSummary = (
     keyDecisions: extractedDecisions,
     actionItems: extractedActionItems,
   });
-};
+}
 
 /**
- * Generate AI-Powered Structured Meeting Summary using Vercel AI SDK
+ * Primary meeting summarization function using AI LLMs (Vercel AI SDK).
+ * Executes primary (Google Gemini) LLM summarization if API key is provided,
+ * falls back to OpenAI (gpt-4o-mini) if Gemini fails or is missing,
+ * and uses heuristic fallback generation if all LLM options are unavailable.
+ * 
+ * @param rawTranscript - Raw transcript string.
+ * @param customApiKey - Optional custom API key provided by user.
+ * @param title - Optional title of the meeting.
+ * @returns Promise resolving to a structured, sanitized MeetingSummary object.
  */
-export const generateMeetingSummary = async (
+export async function generateMeetingSummary(
   rawTranscript: string,
   customApiKey?: string,
   title?: string
-): Promise<MeetingSummary> => {
-  const apiKey = customApiKey || process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY;
+): Promise<MeetingSummary> {
+  const geminiApiKey = customApiKey || process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY;
+  const openAiApiKey = process.env.OPENAI_API_KEY;
   const plainTranscript = stripHtml(rawTranscript);
 
   if (!plainTranscript || plainTranscript.trim().length === 0) {
     return generateFallbackSummary("", title);
   }
 
-  if (!apiKey) {
-    console.warn("⚠️ No Gemini/Google AI API Key provided. Using structured heuristic summary fallback.");
-    return generateFallbackSummary(plainTranscript, title);
-  }
-
-  try {
-    const google = createGoogleGenerativeAI({
-      apiKey,
-    });
-
-    const { object } = await generateObject({
-      model: google("gemini-3.5-flash"),
-      schema: meetingSummarySchema,
-      prompt: `You are an expert AI executive assistant. Analyze the following meeting transcript and generate a structured summary.
+  const promptText = `You are an expert AI executive assistant. Analyze the following meeting transcript and generate a structured summary.
       
 Meeting Title: ${title || "Team Meeting"}
 Transcript:
@@ -305,13 +321,47 @@ CRITICAL RULES:
 - The input transcript may contain raw text. All outputs MUST BE in plain text ONLY. DO NOT include any HTML elements (like <div>, <p>, <strong>, <span>) or markdown containers in any output fields.
 - If NO clear decision was made, return an empty array [] for keyDecisions. DO NOT invent decisions.
 - Handle missing action item details sensibly (Owner='Unassigned', DueDate='Not specified'). DO NOT invent ungrounded details.
-`,
-    });
+`;
 
-    return cleanSummary(object);
-  } catch (error) {
-    console.error("Error generating AI summary via Vercel AI SDK:", error);
-    console.warn("Falling back to structured heuristic summary generator.");
-    return generateFallbackSummary(plainTranscript, title);
+  // 1. Try Primary Model: Google Gemini
+  if (geminiApiKey) {
+    try {
+      console.log("🤖 Attempting meeting summarization with Primary Model (Google Gemini)...");
+      const google = createGoogleGenerativeAI({ apiKey: geminiApiKey });
+      const { object } = await generateObject({
+        model: google("gemini-3.5-flash"),
+        schema: meetingSummarySchema,
+        prompt: promptText,
+      });
+
+      return cleanSummary(object);
+    } catch (geminiError) {
+      console.error("Primary Model (Google Gemini) failed:", geminiError);
+    }
+  } else {
+    console.warn("No Gemini/Google AI API Key provided.");
   }
-};
+
+  // 2. Try Fallback Model: OpenAI
+  if (openAiApiKey) {
+    try {
+      console.log("🔄 Attempting meeting summarization with Fallback Model (OpenAI gpt-4o-mini)...");
+      const openai = createOpenAI({ apiKey: openAiApiKey });
+      const { object } = await generateObject({
+        model: openai("gpt-4o-mini"),
+        schema: meetingSummarySchema,
+        prompt: promptText,
+      });
+
+      return cleanSummary(object);
+    } catch (openAiError) {
+      console.error("Fallback Model (OpenAI) failed:", openAiError);
+    }
+  } else {
+    console.warn("No OpenAI API Key provided (OPENAI_API_KEY environment variable missing).");
+  }
+
+  // 3. Last Resort: Structured Heuristic Generator
+  console.warn("Both primary AI model and fallback AI model were unavailable or failed. Using structured heuristic fallback.");
+  return generateFallbackSummary(plainTranscript, title);
+}

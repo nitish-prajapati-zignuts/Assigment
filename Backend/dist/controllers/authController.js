@@ -3,12 +3,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMe = exports.login = exports.register = void 0;
+exports.logout = exports.getMe = exports.getUsers = exports.login = exports.register = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const db_1 = require("../db");
 const schema_1 = require("../db/schema");
 const drizzle_orm_1 = require("drizzle-orm");
 const jwt_1 = require("../utils/jwt");
+const COOKIE_OPTIONS = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: (process.env.NODE_ENV === "production" ? "none" : "lax"),
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+};
 /**
  * Register a new user
  * POST /api/auth/register
@@ -53,6 +59,8 @@ const register = async (req, res) => {
             email: createdUser.email,
             name: createdUser.name,
         });
+        // Set HTTP-only Cookie in response headers
+        res.cookie("token", token, COOKIE_OPTIONS);
         res.status(201).json({
             message: "User registered successfully",
             token,
@@ -102,6 +110,8 @@ const login = async (req, res) => {
             email: user.email,
             name: user.name,
         });
+        // Set HTTP-only Cookie in response headers
+        res.cookie("token", token, COOKIE_OPTIONS);
         res.json({
             message: "Login successful",
             token,
@@ -119,6 +129,28 @@ const login = async (req, res) => {
     }
 };
 exports.login = login;
+/**
+ * Get all registered application users
+ * GET /api/auth/users
+ */
+const getUsers = async (req, res) => {
+    try {
+        const allUsers = await db_1.db
+            .select({
+            id: schema_1.users.id,
+            name: schema_1.users.name,
+            email: schema_1.users.email,
+            createdAt: schema_1.users.createdAt,
+        })
+            .from(schema_1.users);
+        res.json(allUsers);
+    }
+    catch (error) {
+        console.error("GetUsers Error:", error);
+        res.status(500).json({ error: "Failed to fetch registered users." });
+    }
+};
+exports.getUsers = getUsers;
 /**
  * Get current authenticated user details
  * GET /api/auth/me
@@ -139,3 +171,22 @@ const getMe = async (req, res) => {
     }
 };
 exports.getMe = getMe;
+/**
+ * Clear auth cookie and logout user
+ * POST /api/auth/logout
+ */
+const logout = async (req, res) => {
+    try {
+        res.clearCookie("token", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: (process.env.NODE_ENV === "production" ? "none" : "lax"),
+        });
+        res.json({ message: "Logout successful" });
+    }
+    catch (error) {
+        console.error("Logout Error:", error);
+        res.status(500).json({ error: "Failed to logout." });
+    }
+};
+exports.logout = logout;

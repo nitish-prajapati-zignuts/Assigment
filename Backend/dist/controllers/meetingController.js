@@ -48,13 +48,20 @@ const syncActionItemsToDb = async (meetingId, summary) => {
 };
 /**
  * GET /api/meetings
- * Fetch all meetings with optional search and type filter
+ * Fetch meetings associated with the currently authenticated user
  */
 const getMeetings = async (req, res) => {
     try {
         const { search, type } = req.query;
+        const userEmail = req.user?.email?.toLowerCase();
         const allMeetings = await db_1.db.select().from(schema_1.meetings);
-        let filtered = allMeetings;
+        // Filter meetings where the logged-in user is a participant
+        let userMeetings = allMeetings;
+        if (userEmail) {
+            userMeetings = allMeetings.filter((m) => Array.isArray(m.participants) &&
+                m.participants.some((p) => p.toLowerCase() === userEmail));
+        }
+        let filtered = userMeetings;
         if (search && typeof search === "string") {
             const q = search.toLowerCase();
             filtered = filtered.filter((m) => m.title.toLowerCase().includes(q) ||
@@ -63,6 +70,24 @@ const getMeetings = async (req, res) => {
         }
         if (type && typeof type === "string" && type !== "All") {
             filtered = filtered.filter((m) => m.type === type);
+        }
+        const page = req.query.page ? parseInt(String(req.query.page), 10) : undefined;
+        const limit = req.query.limit ? parseInt(String(req.query.limit), 10) : undefined;
+        if (page !== undefined || limit !== undefined) {
+            const pageNum = page && page > 0 ? page : 1;
+            const limitNum = limit && limit > 0 ? limit : 10;
+            const total = filtered.length;
+            const totalPages = Math.ceil(total / limitNum) || 1;
+            const startIndex = (pageNum - 1) * limitNum;
+            const items = filtered.slice(startIndex, startIndex + limitNum);
+            res.json({
+                items,
+                total,
+                page: pageNum,
+                totalPages,
+                limit: limitNum,
+            });
+            return;
         }
         res.json(filtered);
     }
@@ -102,9 +127,16 @@ exports.getMeetingById = getMeetingById;
 const createMeeting = async (req, res) => {
     try {
         const { title, date, type, participants, transcript, apiKey } = req.body;
+        const userEmail = req.user?.email;
         if (!title || !date || !type) {
             res.status(400).json({ error: "Title, date, and type are required." });
             return;
+        }
+        // Ensure the creating user's email is included in the participants list
+        let finalParticipants = Array.isArray(participants) ? participants : [];
+        if (userEmail &&
+            !finalParticipants.some((p) => p.toLowerCase() === userEmail.toLowerCase())) {
+            finalParticipants = [...finalParticipants, userEmail];
         }
         const cleanTranscript = transcript || "";
         // Generate structured AI meeting summary
@@ -117,7 +149,7 @@ const createMeeting = async (req, res) => {
             title,
             date,
             type,
-            participants: Array.isArray(participants) ? participants : [],
+            participants: finalParticipants,
             transcript: cleanTranscript,
             summary,
             createdAt: new Date(),

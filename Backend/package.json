@@ -15,6 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "@ai-sdk/google": "^4.0.34",
+    "@ai-sdk/openai": "^4.0.30",
     "@neondatabase/serverless": "^1.1.0",
     "ai": "^7.0.52",
     "bcryptjs": "^3.0.3",

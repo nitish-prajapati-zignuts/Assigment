@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateMeetingSummary = exports.generateFallbackSummary = exports.meetingSummarySchema = exports.actionItemSchema = exports.keyDecisionSchema = void 0;
+exports.generateMeetingSummary = exports.generateFallbackSummary = exports.cleanSummary = exports.stripHtml = exports.meetingSummarySchema = exports.actionItemSchema = exports.keyDecisionSchema = void 0;
 const ai_1 = require("ai");
 const google_1 = require("@ai-sdk/google");
 const zod_1 = require("zod");
@@ -61,17 +61,98 @@ exports.meetingSummarySchema = zod_1.z.object({
         .array(exports.actionItemSchema)
         .describe("List of extracted actionable tasks with Task Description, Owner, Due Date, Priority, and Status. Handle missing information sensibly (Owner='Unassigned', DueDate='Not specified'). DO NOT invent ungrounded details."),
 });
+const stripHtml = (input) => {
+    if (!input)
+        return "";
+    let str = input;
+    if (/<[a-z][\s\S]*>/i.test(str)) {
+        str = str
+            .replace(/<br\s*\/?>/gi, " ")
+            .replace(/<\/(p|div|li|tr|h[1-6])>/gi, "\n")
+            .replace(/<[^>]+>/g, " ")
+            .replace(/&nbsp;/gi, " ")
+            .replace(/&amp;/gi, "&")
+            .replace(/&lt;/gi, "<")
+            .replace(/&gt;/gi, ">")
+            .replace(/&quot;/gi, '"')
+            .replace(/&#39;/gi, "'")
+            .replace(/&rsquo;/gi, "'")
+            .replace(/&lsquo;/gi, "'")
+            .replace(/&rdquo;/gi, '"')
+            .replace(/&ldquo;/gi, '"')
+            .replace(/&mdash;/gi, "—")
+            .replace(/&ndash;/gi, "–")
+            .replace(/[ \t]+/g, " ")
+            .replace(/\n\s*\n+/g, "\n")
+            .trim();
+    }
+    else {
+        str = str
+            .replace(/&nbsp;/gi, " ")
+            .replace(/&amp;/gi, "&")
+            .replace(/&lt;/gi, "<")
+            .replace(/&gt;/gi, ">")
+            .replace(/&quot;/gi, '"')
+            .replace(/&#39;/gi, "'")
+            .replace(/&rsquo;/gi, "'")
+            .replace(/&lsquo;/gi, "'")
+            .replace(/&rdquo;/gi, '"')
+            .replace(/&ldquo;/gi, '"')
+            .replace(/&mdash;/gi, "—")
+            .replace(/&ndash;/gi, "–")
+            .replace(/[ \t]+/g, " ")
+            .trim();
+    }
+    return str;
+};
+exports.stripHtml = stripHtml;
+const cleanSummary = (summary) => {
+    return {
+        purpose: (0, exports.stripHtml)(summary.purpose) || "General meeting discussion and updates.",
+        discussionPoints: (summary.discussionPoints || [])
+            .map(exports.stripHtml)
+            .filter((s) => s.length > 0),
+        majorOutcomes: (summary.majorOutcomes || [])
+            .map(exports.stripHtml)
+            .filter((s) => s.length > 0),
+        importantConcerns: (summary.importantConcerns || [])
+            .map(exports.stripHtml)
+            .filter((s) => s.length > 0),
+        nextSteps: (summary.nextSteps || [])
+            .map(exports.stripHtml)
+            .filter((s) => s.length > 0),
+        keyDecisions: (summary.keyDecisions || [])
+            .map((kd) => ({
+            category: (0, exports.stripHtml)(kd.category) || "General Decision",
+            decision: (0, exports.stripHtml)(kd.decision),
+            context: kd.context ? (0, exports.stripHtml)(kd.context) : undefined,
+        }))
+            .filter((kd) => kd.decision.length > 0),
+        actionItems: (summary.actionItems || [])
+            .map((item) => ({
+            ...item,
+            task: (0, exports.stripHtml)(item.task),
+            owner: (0, exports.stripHtml)(item.owner) || "Unassigned",
+            dueDate: (0, exports.stripHtml)(item.dueDate) || "Not specified",
+            priority: item.priority || "Medium",
+            status: item.status || "Pending",
+        }))
+            .filter((item) => item.task.length > 0),
+    };
+};
+exports.cleanSummary = cleanSummary;
 /**
  * Heuristic fallback generator when AI API Key is not set or API call is skipped
  */
-const generateFallbackSummary = (transcript, title) => {
-    const lines = transcript
+const generateFallbackSummary = (rawTranscript, title) => {
+    const plainTranscript = (0, exports.stripHtml)(rawTranscript);
+    const lines = plainTranscript
         .split("\n")
         .map((l) => l.trim())
-        .filter((l) => l.length > 0);
-    const cleanText = transcript.trim();
+        .filter((l) => l.length > 0 && !l.startsWith("<"));
+    const cleanText = plainTranscript.trim();
     if (!cleanText) {
-        return {
+        return (0, exports.cleanSummary)({
             purpose: title ? `Discuss ${title}` : "General team sync and progress review.",
             discussionPoints: ["Initial overview of project status and updates."],
             majorOutcomes: ["Aligned on current project direction."],
@@ -79,7 +160,7 @@ const generateFallbackSummary = (transcript, title) => {
             nextSteps: ["Schedule follow-up sync for next status update."],
             keyDecisions: [],
             actionItems: [],
-        };
+        });
     }
     // Extract key sentences or lines for points
     const points = lines.slice(0, 8);
@@ -125,7 +206,7 @@ const generateFallbackSummary = (transcript, title) => {
             status: "Pending",
         };
     });
-    return {
+    return (0, exports.cleanSummary)({
         purpose: title
             ? `Meeting regarding ${title}: ${points[0] || cleanText.slice(0, 100)}`
             : `Review and discussion covering key updates: ${points[0] || cleanText.slice(0, 100)}`,
@@ -146,34 +227,35 @@ const generateFallbackSummary = (transcript, title) => {
             ],
         keyDecisions: extractedDecisions,
         actionItems: extractedActionItems,
-    };
+    });
 };
 exports.generateFallbackSummary = generateFallbackSummary;
 /**
  * Generate AI-Powered Structured Meeting Summary using Vercel AI SDK
  */
-const generateMeetingSummary = async (transcript, customApiKey, title) => {
+const generateMeetingSummary = async (rawTranscript, customApiKey, title) => {
     const apiKey = customApiKey || process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY;
-    if (!transcript || transcript.trim().length === 0) {
+    const plainTranscript = (0, exports.stripHtml)(rawTranscript);
+    if (!plainTranscript || plainTranscript.trim().length === 0) {
         return (0, exports.generateFallbackSummary)("", title);
     }
     if (!apiKey) {
         console.warn("⚠️ No Gemini/Google AI API Key provided. Using structured heuristic summary fallback.");
-        return (0, exports.generateFallbackSummary)(transcript, title);
+        return (0, exports.generateFallbackSummary)(plainTranscript, title);
     }
     try {
         const google = (0, google_1.createGoogleGenerativeAI)({
             apiKey,
         });
         const { object } = await (0, ai_1.generateObject)({
-            model: google("gemini-1.5-flash"),
+            model: google("gemini-3.5-flash"),
             schema: exports.meetingSummarySchema,
             prompt: `You are an expert AI executive assistant. Analyze the following meeting transcript and generate a structured summary.
       
 Meeting Title: ${title || "Team Meeting"}
 Transcript:
 """
-${transcript}
+${plainTranscript}
 """
 
 Ensure the summary strictly covers:
@@ -184,23 +266,24 @@ Ensure the summary strictly covers:
 5. Next steps
 6. Key Decisions Made (Categorize each into e.g., Technology/Platform, Feature Approval/Rejection, Timeline Agreed, Scope Change, Budget/Staffing, Responsibility Assigned, General Decision). 
 7. Action Items Extracted:
-   - task: Clear action task description.
+   - task: Clear action task description in simple plain text.
    - owner: Assignee name or 'Unassigned' if missing.
    - dueDate: Due date (YYYY-MM-DD or relative like 'Next Friday') or 'Not specified' if missing.
    - priority: Priority level ('Low', 'Medium', 'High', 'Urgent').
    - status: Current status ('Pending', 'In Progress', 'Completed').
 
 CRITICAL RULES:
+- The input transcript may contain raw text. All outputs MUST BE in plain text ONLY. DO NOT include any HTML elements (like <div>, <p>, <strong>, <span>) or markdown containers in any output fields.
 - If NO clear decision was made, return an empty array [] for keyDecisions. DO NOT invent decisions.
-- Handle missing action item details sensibly (Owner='Unassigned', DueDate='Not specified'). DO NOT invent specific details not present in transcript.
+- Handle missing action item details sensibly (Owner='Unassigned', DueDate='Not specified'). DO NOT invent ungrounded details.
 `,
         });
-        return object;
+        return (0, exports.cleanSummary)(object);
     }
     catch (error) {
         console.error("Error generating AI summary via Vercel AI SDK:", error);
         console.warn("Falling back to structured heuristic summary generator.");
-        return (0, exports.generateFallbackSummary)(transcript, title);
+        return (0, exports.generateFallbackSummary)(plainTranscript, title);
     }
 };
 exports.generateMeetingSummary = generateMeetingSummary;

@@ -7,8 +7,12 @@ import {
   updateActionItem,
   deleteActionItem,
 } from "../controllers/actionItemController";
+import { protect } from "../middleware/authMiddleware";
 
 const router = Router();
+
+// Protect all action item endpoints
+router.use(protect);
 
 // GET /api/action-items - View all action items (with optional filters: ?meetingId= & ?userId= & ?status= & ?priority=)
 router.get("/", getActionItems);
