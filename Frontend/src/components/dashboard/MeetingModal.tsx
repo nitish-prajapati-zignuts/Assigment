@@ -110,12 +110,8 @@ export function MeetingModal({
           setAppUsers(res.data);
         }
       } catch (err) {
-        console.log("Using default participant fallback list");
-        setAppUsers([
-          { id: "1", name: "Nitish Prajapati", email: "nitish@zignuts.com" },
-          { id: "2", name: "Alex Johnson", email: "alex@company.com" },
-          { id: "3", name: "Sarah Smith", email: "sarah@company.com" },
-        ]);
+        console.error("Failed to fetch registered users from API:", err);
+        setAppUsers([]);
       }
     };
 

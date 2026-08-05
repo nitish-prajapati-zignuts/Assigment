@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import api from "@/lib/axios";
 import { Meeting, ActionItem } from "@/types/meeting";
-import { initialMeetings } from "@/data/mockMeetings";
 import { MeetingDetailModal } from "@/components/dashboard/MeetingDetailModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,11 +34,13 @@ import {
   ListTodo,
   FileText,
   AlertCircle,
+  Loader2,
 } from "lucide-react";
 
 export default function DashboardPage() {
-  const [meetings, setMeetings] = useState<Meeting[]>(initialMeetings);
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [actionItems, setActionItems] = useState<ActionItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [viewingMeeting, setViewingMeeting] = useState<Meeting | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
@@ -52,38 +53,38 @@ export default function DashboardPage() {
     return dueDate < today;
   };
 
-  // Fetch meetings and action items from API or fallback
+  // Fetch meetings and action items directly from backend API
   useEffect(() => {
     const fetchData = async () => {
-      // 1. Meetings
+      setIsLoading(true);
       try {
-        const res = await api.get("/meetings");
-        if (Array.isArray(res.data) && res.data.length > 0) {
-          setMeetings(res.data);
+        const [meetingsRes, actionItemsRes] = await Promise.allSettled([
+          api.get("/meetings"),
+          api.get("/action-items"),
+        ]);
+
+        if (
+          meetingsRes.status === "fulfilled" &&
+          Array.isArray(meetingsRes.value.data)
+        ) {
+          setMeetings(meetingsRes.value.data);
+        } else {
+          setMeetings([]);
+        }
+
+        if (
+          actionItemsRes.status === "fulfilled" &&
+          Array.isArray(actionItemsRes.value.data)
+        ) {
+          setActionItems(actionItemsRes.value.data);
+        } else {
+          setActionItems([]);
         }
       } catch (err) {
-        console.log("Using initialMeetings fallback for dashboard.");
+        console.error("Failed to fetch dashboard data from API:", err);
+      } finally {
+        setIsLoading(false);
       }
-
-      // 2. Action Items
-      try {
-        const res = await api.get("/action-items");
-        if (Array.isArray(res.data) && res.data.length > 0) {
-          setActionItems(res.data);
-          return;
-        }
-      } catch (err) {
-        console.log("Using fallback action items for dashboard.");
-      }
-
-      // Fallback action items aggregated from initialMeetings
-      const fallbackList: ActionItem[] = [];
-      initialMeetings.forEach((m) => {
-        if (m.summary?.actionItems) {
-          fallbackList.push(...m.summary.actionItems);
-        }
-      });
-      setActionItems(fallbackList);
     };
 
     fetchData();
@@ -137,24 +138,29 @@ export default function DashboardPage() {
   }, [meetings]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-zinc-200 dark:border-zinc-800 pb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard Overview</h1>
-          <p className="text-sm text-zinc-500">
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+            Dashboard Overview
+          </h1>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
             Real-time analytics, action tracker status, and recently created meetings.
           </p>
         </div>
         <div className="flex items-center gap-3">
           <Link href="/dashboard/action-items">
-            <Button variant="outline" className="flex items-center gap-2">
-              <ListTodo className="h-4 w-4" />
+            <Button
+              variant="outline"
+              className="flex items-center gap-2 shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+            >
+              <ListTodo className="h-4 w-4 text-zinc-500" />
               Action Tracker
             </Button>
           </Link>
           <Link href="/dashboard/meetings">
-            <Button className="flex items-center gap-2">
+            <Button className="flex items-center gap-2 shadow-sm bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 font-medium">
               <Plus className="h-4 w-4" />
               Manage Meetings
             </Button>
@@ -165,84 +171,125 @@ export default function DashboardPage() {
       {/* Required Statistics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {/* 1. Total Meetings */}
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase text-zinc-500">
+        <Card className="rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm transition-all duration-200 hover:shadow-md hover:border-zinc-300 dark:hover:border-zinc-700">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
               Total Meetings
             </CardTitle>
-            <Calendar className="h-4 w-4 text-blue-500" />
+            <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800/80">
+              <Calendar className="h-4 w-4 text-zinc-600 dark:text-zinc-300" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.totalMeetings}</div>
-            <p className="text-[11px] text-zinc-500 mt-1">Scheduled & recorded</p>
+            {isLoading ? (
+              <Loader2 className="h-6 w-6 animate-spin text-zinc-400 my-1" />
+            ) : (
+              <div className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                {metrics.totalMeetings}
+              </div>
+            )}
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1 font-medium">
+              Scheduled & recorded
+            </p>
           </CardContent>
         </Card>
 
         {/* 2. Total Action Items */}
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase text-zinc-500">
+        <Card className="rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm transition-all duration-200 hover:shadow-md hover:border-zinc-300 dark:hover:border-zinc-700">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
               Total Action Items
             </CardTitle>
-            <CheckSquare className="h-4 w-4 text-purple-500" />
+            <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800/80">
+              <CheckSquare className="h-4 w-4 text-zinc-600 dark:text-zinc-300" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.totalActionItems}</div>
-            <p className="text-[11px] text-zinc-500 mt-1">Across all meetings</p>
+            {isLoading ? (
+              <Loader2 className="h-6 w-6 animate-spin text-zinc-400 my-1" />
+            ) : (
+              <div className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                {metrics.totalActionItems}
+              </div>
+            )}
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1 font-medium">
+              Across all meetings
+            </p>
           </CardContent>
         </Card>
 
         {/* 3. Open Action Items */}
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase text-zinc-500">
+        <Card className="rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm transition-all duration-200 hover:shadow-md hover:border-zinc-300 dark:hover:border-zinc-700">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
               Open Action Items
             </CardTitle>
-            <Clock className="h-4 w-4 text-amber-500" />
+            <div className="p-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
+              <Clock className="h-4 w-4" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
-              {metrics.openActionItems}
-            </div>
-            <p className="text-[11px] text-zinc-500 mt-1">Pending resolution</p>
+            {isLoading ? (
+              <Loader2 className="h-6 w-6 animate-spin text-zinc-400 my-1" />
+            ) : (
+              <div className="text-3xl font-bold tracking-tight text-amber-600 dark:text-amber-400">
+                {metrics.openActionItems}
+              </div>
+            )}
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1 font-medium">
+              Pending resolution
+            </p>
           </CardContent>
         </Card>
 
         {/* 4. Completed Action Items */}
-        <Card className="hover:shadow-md transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase text-zinc-500">
+        <Card className="rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm transition-all duration-200 hover:shadow-md hover:border-zinc-300 dark:hover:border-zinc-700">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
               Completed Items
             </CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+            <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              <CheckCircle2 className="h-4 w-4" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-              {metrics.completedActionItems}
-            </div>
-            <p className="text-[11px] text-zinc-500 mt-1">Resolved tasks</p>
+            {isLoading ? (
+              <Loader2 className="h-6 w-6 animate-spin text-zinc-400 my-1" />
+            ) : (
+              <div className="text-3xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
+                {metrics.completedActionItems}
+              </div>
+            )}
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1 font-medium">
+              Resolved tasks
+            </p>
           </CardContent>
         </Card>
 
         {/* 5. Overdue Action Items */}
         <Card
-          className={`hover:shadow-md transition-shadow ${
-            metrics.overdueActionItems > 0
-              ? "border-red-300 dark:border-red-900 bg-red-50/40 dark:bg-red-950/20"
-              : ""
-          }`}
+          className={`rounded-xl border transition-all duration-200 hover:shadow-md ${metrics.overdueActionItems > 0
+              ? "border-red-200 dark:border-red-900/50 bg-red-50/30 dark:bg-red-950/10"
+              : "border-zinc-200/80 dark:border-zinc-800/80 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm hover:border-zinc-300 dark:hover:border-zinc-700"
+            }`}
         >
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase text-red-600 dark:text-red-400">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-red-600 dark:text-red-400">
               Overdue Items
             </CardTitle>
-            <AlertTriangle className="h-4 w-4 text-red-500 animate-pulse" />
+            <div className="p-2 rounded-lg bg-red-500/10 text-red-500">
+              <AlertTriangle className="h-4 w-4 animate-pulse" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600 dark:text-red-400">
-              {metrics.overdueActionItems}
-            </div>
-            <p className="text-[11px] text-red-500/80 font-medium mt-1">
+            {isLoading ? (
+              <Loader2 className="h-6 w-6 animate-spin text-zinc-400 my-1" />
+            ) : (
+              <div className="text-3xl font-bold tracking-tight text-red-600 dark:text-red-400">
+                {metrics.overdueActionItems}
+              </div>
+            )}
+            <p className="text-[11px] text-red-500/90 font-medium mt-1">
               Requires immediate action
             </p>
           </CardContent>
@@ -251,46 +298,60 @@ export default function DashboardPage() {
 
       {/* Secondary Meaningful Indicators */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <div className="space-y-0.5">
-              <CardTitle className="text-sm font-semibold">
+        <Card className="rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm transition-all hover:shadow">
+          <CardHeader className="flex flex-row items-start justify-between pb-2">
+            <div className="space-y-1">
+              <CardTitle className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                 Transcripts Saved & Processed
               </CardTitle>
-              <CardDescription className="text-xs">
+              <CardDescription className="text-xs text-zinc-500 dark:text-zinc-400">
                 Transcripts ready for AI summary and action extraction
               </CardDescription>
             </div>
-            <FileText className="h-5 w-5 text-zinc-400" />
+            <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800">
+              <FileText className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+            </div>
           </CardHeader>
-          <CardContent className="flex items-center justify-between">
-            <div className="text-2xl font-bold">{metrics.savedTranscripts}</div>
+          <CardContent className="flex items-center justify-between pt-2">
+            <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+              {metrics.savedTranscripts}
+            </div>
             <Link href="/dashboard/meetings">
-              <Button variant="ghost" size="sm" className="text-xs flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              >
                 View Meetings <ArrowRight className="h-3.5 w-3.5" />
               </Button>
             </Link>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <div className="space-y-0.5">
-              <CardTitle className="text-sm font-semibold">
+        <Card className="rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm transition-all hover:shadow">
+          <CardHeader className="flex flex-row items-start justify-between pb-2">
+            <div className="space-y-1">
+              <CardTitle className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                 Blocked Action Items
               </CardTitle>
-              <CardDescription className="text-xs">
+              <CardDescription className="text-xs text-zinc-500 dark:text-zinc-400">
                 Tasks flagged with roadblocks or dependencies
               </CardDescription>
             </div>
-            <AlertCircle className="h-5 w-5 text-rose-500" />
+            <div className="p-2 rounded-lg bg-rose-500/10">
+              <AlertCircle className="h-4 w-4 text-rose-500" />
+            </div>
           </CardHeader>
-          <CardContent className="flex items-center justify-between">
+          <CardContent className="flex items-center justify-between pt-2">
             <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">
               {metrics.blockedActionItems}
             </div>
             <Link href="/dashboard/action-items">
-              <Button variant="ghost" size="sm" className="text-xs flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              >
                 View Tracker <ArrowRight className="h-3.5 w-3.5" />
               </Button>
             </Link>
@@ -299,82 +360,114 @@ export default function DashboardPage() {
       </div>
 
       {/* 6. Recently Created Meetings Section */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="text-base font-bold">Recently Created Meetings</CardTitle>
-            <CardDescription className="text-xs">
+      <Card className="rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-zinc-100 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/50 py-4 px-6">
+          <div className="space-y-0.5">
+            <CardTitle className="text-base font-bold text-zinc-900 dark:text-zinc-100">
+              Recently Created Meetings
+            </CardTitle>
+            <CardDescription className="text-xs text-zinc-500 dark:text-zinc-400">
               Latest meeting notes and transcripts uploaded to MeetNotes.
             </CardDescription>
           </div>
           <Link href="/dashboard/meetings">
-            <Button variant="outline" size="sm" className="text-xs flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs flex items-center gap-1.5 border-zinc-200 dark:border-zinc-800 shadow-sm text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            >
               View All <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </Link>
         </CardHeader>
-        <CardContent>
-          <div className="rounded-md border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Meeting Title</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Participants</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
+                <TableRow className="border-b border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/30 hover:bg-transparent">
+                  <TableHead className="font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider pl-6 py-3">
+                    Meeting Title
+                  </TableHead>
+                  <TableHead className="font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3">
+                    Type
+                  </TableHead>
+                  <TableHead className="font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3">
+                    Date
+                  </TableHead>
+                  <TableHead className="font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3">
+                    Participants
+                  </TableHead>
+                  <TableHead className="font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider pr-6 py-3 text-right">
+                    Action
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {recentMeetings.length === 0 ? (
+                {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-6 text-zinc-500">
-                      No recent meetings recorded yet.
+                    <TableCell colSpan={5} className="text-center py-12">
+                      <div className="flex items-center justify-center gap-2 text-zinc-500">
+                        <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+                        <span className="text-sm font-medium">Loading recent meetings...</span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : recentMeetings.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-12 text-zinc-500 dark:text-zinc-400">
+                      <p className="text-sm">No meetings recorded yet.</p>
+                      <p className="text-xs text-zinc-400 mt-1">Click &quot;Manage Meetings&quot; to get started.</p>
                     </TableCell>
                   </TableRow>
                 ) : (
                   recentMeetings.map((meeting) => (
-                    <TableRow key={meeting.id}>
-                      <TableCell className="font-medium">
+                    <TableRow
+                      key={meeting.id}
+                      className="border-b border-zinc-100 dark:border-zinc-800/50 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 transition-colors"
+                    >
+                      <TableCell className="font-medium pl-6 py-3.5">
                         <button
                           onClick={() => {
                             setViewingMeeting(meeting);
                             setIsDetailModalOpen(true);
                           }}
-                          className="hover:underline text-left font-semibold text-zinc-900 dark:text-zinc-100"
+                          className="hover:underline text-left font-semibold text-zinc-900 dark:text-zinc-100 transition-colors"
                         >
                           {meeting.title}
                         </button>
                       </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="text-xs">
+                      <TableCell className="py-3.5">
+                        <Badge
+                          variant="outline"
+                          className="text-xs font-normal border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 rounded-md"
+                        >
                           {meeting.type}
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        <span className="flex items-center gap-1 text-xs text-zinc-600 dark:text-zinc-400">
-                          <Calendar className="h-3.5 w-3.5" />
+                      <TableCell className="py-3.5">
+                        <span className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400 font-medium">
+                          <Calendar className="h-3.5 w-3.5 text-zinc-400" />
                           {meeting.date}
                         </span>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
+                      <TableCell className="py-3.5">
+                        <div className="flex flex-wrap gap-1 items-center">
                           {meeting.participants.slice(0, 2).map((p) => (
                             <span
                               key={p}
-                              className="text-[11px] bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded"
+                              className="text-[11px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 py-0.5 rounded-full border border-zinc-200/60 dark:border-zinc-700/60"
                             >
                               {p.split("@")[0]}
                             </span>
                           ))}
                           {meeting.participants.length > 2 && (
-                            <span className="text-[11px] text-zinc-500">
+                            <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium ml-0.5">
                               +{meeting.participants.length - 2}
                             </span>
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right pr-6 py-3.5">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -382,9 +475,9 @@ export default function DashboardPage() {
                             setViewingMeeting(meeting);
                             setIsDetailModalOpen(true);
                           }}
-                          className="h-8 text-xs flex items-center gap-1 ml-auto"
+                          className="h-8 text-xs font-medium flex items-center gap-1.5 ml-auto text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                         >
-                          <Eye className="h-3.5 w-3.5" />
+                          <Eye className="h-3.5 w-3.5 text-zinc-500" />
                           Details
                         </Button>
                       </TableCell>
@@ -405,7 +498,7 @@ export default function DashboardPage() {
           setViewingMeeting(null);
         }}
         meeting={viewingMeeting}
-        onEdit={(m) => {
+        onEdit={() => {
           setIsDetailModalOpen(false);
         }}
       />

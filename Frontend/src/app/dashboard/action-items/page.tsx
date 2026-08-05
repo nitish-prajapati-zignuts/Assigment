@@ -3,7 +3,6 @@
 import { useState, useMemo, useEffect } from "react";
 import api from "@/lib/axios";
 import { ActionItem, Meeting } from "@/types/meeting";
-import { initialMeetings } from "@/data/mockMeetings";
 import { CreateActionItemModal } from "@/components/dashboard/CreateActionItemModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +40,9 @@ import {
   Edit,
   Trash2,
   AlertCircle,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 interface ActionItemWithContext extends ActionItem {
@@ -51,19 +53,50 @@ interface ActionItemWithContext extends ActionItem {
 }
 
 export default function ActionTrackerPage() {
-  const [meetings, setMeetings] = useState<Meeting[]>(initialMeetings);
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [actionItems, setActionItems] = useState<ActionItemWithContext[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string>("All");
   const [selectedPriority, setSelectedPriority] = useState<string>("All");
   const [selectedOwner, setSelectedOwner] = useState<string>("All");
   const [showOverdueOnly, setShowOverdueOnly] = useState(false);
 
+  // Pagination state (Limit 10 items per page)
+  const ITEMS_PER_PAGE = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<
     (ActionItem & { meetingId?: string; id?: string }) | null
   >(null);
+
+  // Reset to page 1 whenever any filter or search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    searchQuery,
+    selectedStatus,
+    selectedPriority,
+    selectedOwner,
+    showOverdueOnly,
+  ]);
+
+  // Fetch real meetings from API
+  useEffect(() => {
+    const fetchMeetings = async () => {
+      try {
+        const res = await api.get<Meeting[]>("/meetings");
+        if (Array.isArray(res.data)) {
+          setMeetings(res.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch meetings for action tracker:", err);
+      }
+    };
+    fetchMeetings();
+  }, []);
 
   // Helper to check if item is overdue
   const checkIsOverdue = (dueDate: string, status: string): boolean => {
@@ -121,8 +154,9 @@ export default function ActionTrackerPage() {
   useEffect(() => {
     const fetchItems = async () => {
       try {
+        setIsLoading(true);
         const res = await api.get("/action-items");
-        if (Array.isArray(res.data) && res.data.length > 0) {
+        if (Array.isArray(res.data)) {
           const formatted = res.data.map((item: any) => ({
             id: item.id || `item-${Math.random()}`,
             meetingId: item.meetingId || "1",
@@ -137,28 +171,15 @@ export default function ActionTrackerPage() {
             isOverdue: checkIsOverdue(item.dueDate, item.status),
           }));
           setActionItems(formatted);
-          return;
+        } else {
+          setActionItems([]);
         }
       } catch (err) {
-        console.log("Using local initialMeetings fallback for Action Tracker.");
+        console.error("Failed to fetch action items from API:", err);
+        setActionItems([]);
+      } finally {
+        setIsLoading(false);
       }
-
-      // Fallback from initialMeetings
-      const fallbackList: ActionItemWithContext[] = [];
-      initialMeetings.forEach((m) => {
-        if (m.summary?.actionItems) {
-          m.summary.actionItems.forEach((ai, idx) => {
-            fallbackList.push({
-              ...ai,
-              id: `${m.id}-item-${idx}`,
-              meetingId: m.id,
-              meetingTitle: m.title,
-              isOverdue: checkIsOverdue(ai.dueDate, ai.status),
-            });
-          });
-        }
-      });
-      setActionItems(fallbackList);
     };
 
     fetchItems();
@@ -221,153 +242,132 @@ export default function ActionTrackerPage() {
     return { total, inProgress, blocked, overdue };
   }, [actionItems]);
 
-  // Create or Update Action Item
-  const handleSaveItem = async (
-    itemData: Partial<ActionItem> & { meetingId: string }
-  ) => {
-    const isEdit = Boolean(itemData.id);
+  // Pagination Calculations
+  const totalPages = useMemo(() => {
+    return Math.ceil(filteredItems.length / ITEMS_PER_PAGE) || 1;
+  }, [filteredItems.length]);
 
-    try {
-      if (isEdit) {
-        const res = await api.put(`/action-items/${itemData.id}`, itemData);
-        if (res.data) {
-          const updated = res.data;
-          setActionItems((prev) =>
-            prev.map((i) =>
-              i.id === itemData.id
-                ? {
-                    ...i,
-                    ...updated,
-                    meetingTitle:
-                      meetings.find((m) => m.id === updated.meetingId)?.title ||
-                      i.meetingTitle,
-                    isOverdue: checkIsOverdue(updated.dueDate, updated.status),
-                  }
-                : i
-            )
-          );
-          return;
-        }
-      } else {
-        const res = await api.post("/action-items", itemData);
-        if (res.data) {
-          const created = res.data;
-          const newItem: ActionItemWithContext = {
-            ...created,
-            meetingTitle:
-              meetings.find((m) => m.id === created.meetingId)?.title ||
-              "General Meeting",
-            isOverdue: checkIsOverdue(created.dueDate, created.status),
-          };
-          setActionItems((prev) => [newItem, ...prev]);
-          return;
-        }
-      }
-    } catch (err) {
-      console.error("Failed to sync item to API backend:", err);
-    }
-
-    // Local state fallback
-    if (isEdit) {
-      setActionItems((prev) =>
-        prev.map((i) =>
-          i.id === itemData.id
-            ? {
-                ...i,
-                ...itemData,
-                isOverdue: checkIsOverdue(
-                  itemData.dueDate || i.dueDate,
-                  itemData.status || i.status
-                ),
-              }
-            : i
-        )
-      );
-    } else {
-      const newItem: ActionItemWithContext = {
-        id: `item-${Date.now()}`,
-        meetingId: itemData.meetingId,
-        meetingTitle:
-          meetings.find((m) => m.id === itemData.meetingId)?.title ||
-          "General Meeting",
-        task: itemData.task || "",
-        owner: itemData.owner || "Unassigned",
-        dueDate: itemData.dueDate || "Not specified",
-        priority: itemData.priority || "Medium",
-        status: itemData.status || "Open",
-        isOverdue: checkIsOverdue(
-          itemData.dueDate || "Not specified",
-          itemData.status || "Open"
-        ),
-      };
-      setActionItems((prev) => [newItem, ...prev]);
-    }
-  };
-
-  // Delete Action Item
-  const handleDeleteItem = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this action item?")) return;
-
-    try {
-      await api.delete(`/action-items/${id}`);
-    } catch (err) {
-      console.error("Failed to delete item via API:", err);
-    }
-
-    setActionItems((prev) => prev.filter((i) => i.id !== id));
-  };
-
-  // Inline Status Change Handler
-  const handleStatusChange = async (id: string, newStatus: ActionItem["status"]) => {
-    setActionItems((prev) =>
-      prev.map((i) =>
-        i.id === id
-          ? {
-              ...i,
-              status: newStatus,
-              isOverdue: checkIsOverdue(i.dueDate, newStatus),
-            }
-          : i
-      )
-    );
-
-    try {
-      await api.put(`/action-items/${id}`, { status: newStatus });
-    } catch (err) {
-      console.error("Failed to update status via API:", err);
-    }
-  };
+  const paginatedItems = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredItems.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredItems, currentPage]);
 
   const getPriorityBadgeClass = (priority: string) => {
     switch (priority) {
       case "Urgent":
-        return "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 border-red-200";
+        return "bg-red-100 text-red-700 border-red-200 dark:bg-red-950/80 dark:text-red-300 dark:border-red-800 font-semibold";
       case "High":
-        return "bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300 border-orange-200";
+        return "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-800 font-semibold";
       case "Medium":
-        return "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border-blue-200";
+        return "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950/80 dark:text-blue-300 dark:border-blue-800";
       case "Low":
+        return "bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700";
       default:
-        return "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 border-zinc-200";
+        return "bg-zinc-100 text-zinc-700 border-zinc-200";
+    }
+  };
+
+  // Status Change Handler
+  const handleStatusChange = async (
+    id: string,
+    newStatus: ActionItem["status"]
+  ) => {
+    try {
+      await api.put(`/action-items/${id}`, { status: newStatus });
+      setActionItems((prev) =>
+        prev.map((item) =>
+          item.id === id
+            ? {
+              ...item,
+              status: newStatus,
+              isOverdue: checkIsOverdue(item.dueDate, newStatus),
+            }
+            : item
+        )
+      );
+    } catch (err) {
+      console.error("Failed to update status:", err);
+    }
+  };
+
+  // Create / Edit Handler
+  const handleSaveItem = async (
+    itemData: Partial<ActionItem> & { meetingId: string }
+  ) => {
+    try {
+      if (itemData.id && !itemData.id.includes("-item-")) {
+        const res = await api.put(`/action-items/${itemData.id}`, itemData);
+        setActionItems((prev) =>
+          prev.map((item) =>
+            item.id === itemData.id
+              ? {
+                ...item,
+                task: stripHtml(res.data.task),
+                owner: stripHtml(res.data.owner),
+                dueDate: stripHtml(res.data.dueDate),
+                priority: res.data.priority,
+                status: res.data.status,
+                isOverdue: checkIsOverdue(res.data.dueDate, res.data.status),
+              }
+              : item
+          )
+        );
+      } else {
+        const res = await api.post("/action-items", itemData);
+        const meetingObj = meetings.find((m) => m.id === itemData.meetingId);
+        const newItemWithContext: ActionItemWithContext = {
+          id: res.data.id || `item-${Date.now()}`,
+          meetingId: itemData.meetingId,
+          meetingTitle: meetingObj ? meetingObj.title : "General Meeting",
+          task: stripHtml(res.data.task || itemData.task),
+          owner: stripHtml(res.data.owner || itemData.owner) || "Unassigned",
+          dueDate:
+            stripHtml(res.data.dueDate || itemData.dueDate) || "Not specified",
+          priority: res.data.priority || itemData.priority || "Medium",
+          status: res.data.status || itemData.status || "Open",
+          isOverdue: checkIsOverdue(
+            res.data.dueDate || itemData.dueDate || "",
+            res.data.status || itemData.status || "Open"
+          ),
+        };
+        setActionItems((prev) => [newItemWithContext, ...prev]);
+      }
+    } catch (err) {
+      console.error("Failed to save action item:", err);
+    }
+  };
+
+  // Delete Handler
+  const handleDeleteItem = async (id: string) => {
+    if (confirm("Are you sure you want to delete this action item?")) {
+      try {
+        await api.delete(`/action-items/${id}`);
+        setActionItems((prev) => prev.filter((item) => item.id !== id));
+      } catch (err) {
+        console.error("Failed to delete action item:", err);
+      }
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Header & Page Title */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-zinc-200 dark:border-zinc-800 pb-5 gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Central Action Tracker</h1>
-          <p className="text-sm text-zinc-500">
-            Monitor, assign, filter, and manage tasks across all meeting transcripts.
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+            Action Tracker
+          </h1>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+            Manage, filter, and track deliverables extracted across all meeting notes.
           </p>
         </div>
+
         <Button
           onClick={() => {
             setEditingItem(null);
             setIsModalOpen(true);
           }}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 shadow-sm bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 font-medium"
         >
           <Plus className="h-4 w-4" />
           Add Action Item
@@ -375,56 +375,71 @@ export default function ActionTrackerPage() {
       </div>
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase text-zinc-500">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm transition-all duration-200 hover:shadow-md hover:border-zinc-300 dark:hover:border-zinc-700">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
               Total Action Items
             </CardTitle>
-            <CheckSquare className="h-4 w-4 text-zinc-400" />
+            <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800/80">
+              <CheckSquare className="h-4 w-4 text-zinc-600 dark:text-zinc-300" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.total}</div>
+            <div className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+              {metrics.total}
+            </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase text-zinc-500">
-              In Progress
+        <Card className="rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm transition-all duration-200 hover:shadow-md hover:border-zinc-300 dark:hover:border-zinc-700">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+              In Progress Tasks
             </CardTitle>
-            <Clock className="h-4 w-4 text-sky-500" />
+            <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">
+              <Clock className="h-4 w-4" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-sky-600 dark:text-sky-400">
+            <div className="text-3xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
               {metrics.inProgress}
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase text-zinc-500">
+        <Card className="rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm transition-all duration-200 hover:shadow-md hover:border-zinc-300 dark:hover:border-zinc-700">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
               Blocked Tasks
             </CardTitle>
-            <AlertCircle className="h-4 w-4 text-rose-500" />
+            <div className="p-2 rounded-lg bg-rose-500/10 text-rose-500">
+              <AlertCircle className="h-4 w-4" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">
+            <div className="text-3xl font-bold tracking-tight text-rose-600 dark:text-rose-400">
               {metrics.blocked}
             </div>
           </CardContent>
         </Card>
 
-        <Card className={metrics.overdue > 0 ? "border-red-300 dark:border-red-900 bg-red-50/30" : ""}>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold uppercase text-red-600 dark:text-red-400">
+        <Card
+          className={`rounded-xl border transition-all duration-200 hover:shadow-md ${metrics.overdue > 0
+              ? "border-red-200 dark:border-red-900/50 bg-red-50/30 dark:bg-red-950/10"
+              : "border-zinc-200/80 dark:border-zinc-800/80 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm hover:border-zinc-300 dark:hover:border-zinc-700"
+            }`}
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-red-600 dark:text-red-400">
               Overdue Tasks
             </CardTitle>
-            <AlertTriangle className="h-4 w-4 text-red-500 animate-pulse" />
+            <div className="p-2 rounded-lg bg-red-500/10 text-red-500">
+              <AlertTriangle className="h-4 w-4 animate-pulse" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+            <div className="text-3xl font-bold tracking-tight text-red-600 dark:text-red-400">
               {metrics.overdue}
             </div>
           </CardContent>
@@ -432,15 +447,15 @@ export default function ActionTrackerPage() {
       </div>
 
       {/* Control Bar: Search & Multi-Filters */}
-      <div className="flex flex-col gap-4 bg-white dark:bg-zinc-900 p-4 rounded-lg border border-zinc-200 dark:border-zinc-800">
+      <div className="flex flex-col gap-4 bg-white dark:bg-zinc-900 p-4 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-sm">
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-          <div className="relative w-full sm:w-80">
+          <div className="relative w-full sm:w-96">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
             <Input
               placeholder="Search task, owner, meeting..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
+              className="pl-9 bg-zinc-50/50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-800 focus-visible:ring-zinc-400 text-sm"
             />
           </div>
 
@@ -449,7 +464,7 @@ export default function ActionTrackerPage() {
               variant={showOverdueOnly ? "destructive" : "outline"}
               size="sm"
               onClick={() => setShowOverdueOnly(!showOverdueOnly)}
-              className="flex items-center gap-1.5 text-xs h-9"
+              className="flex items-center gap-1.5 text-xs h-9 border-zinc-200 dark:border-zinc-800"
             >
               <AlertTriangle className="h-3.5 w-3.5" />
               {showOverdueOnly ? "Showing Overdue Only" : "Filter Overdue"}
@@ -458,16 +473,16 @@ export default function ActionTrackerPage() {
         </div>
 
         {/* Filter Dropdowns */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-zinc-100 dark:border-zinc-800/80">
           <div className="space-y-1">
-            <label className="text-[11px] font-medium text-zinc-500 uppercase">
+            <label className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
               Filter by Status
             </label>
             <Select value={selectedStatus} onValueChange={(v) => v && setSelectedStatus(v)}>
-              <SelectTrigger className="h-8 text-xs">
+              <SelectTrigger className="h-9 text-xs bg-zinc-50/50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
                 <SelectItem value="All">All Statuses</SelectItem>
                 <SelectItem value="Open">Open</SelectItem>
                 <SelectItem value="In Progress">In Progress</SelectItem>
@@ -478,14 +493,14 @@ export default function ActionTrackerPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-[11px] font-medium text-zinc-500 uppercase">
+            <label className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
               Filter by Priority
             </label>
             <Select value={selectedPriority} onValueChange={(v) => v && setSelectedPriority(v)}>
-              <SelectTrigger className="h-8 text-xs">
+              <SelectTrigger className="h-9 text-xs bg-zinc-50/50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100">
                 <SelectValue placeholder="All Priorities" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
                 <SelectItem value="All">All Priorities</SelectItem>
                 <SelectItem value="Low">Low</SelectItem>
                 <SelectItem value="Medium">Medium</SelectItem>
@@ -496,14 +511,14 @@ export default function ActionTrackerPage() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-[11px] font-medium text-zinc-500 uppercase">
+            <label className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
               Filter by Owner
             </label>
             <Select value={selectedOwner} onValueChange={(v) => v && setSelectedOwner(v)}>
-              <SelectTrigger className="h-8 text-xs">
+              <SelectTrigger className="h-9 text-xs bg-zinc-50/50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100">
                 <SelectValue placeholder="All Owners" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
                 <SelectItem value="All">All Owners</SelectItem>
                 {uniqueOwners.map((owner) => (
                   <SelectItem key={owner} value={owner}>
@@ -517,65 +532,96 @@ export default function ActionTrackerPage() {
       </div>
 
       {/* Action Items Table */}
-      <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
-        <Table>
+      <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 overflow-x-auto shadow-sm">
+        <Table className="w-full min-w-[900px]">
           <TableHeader>
-            <TableRow>
-              <TableHead>Task Description</TableHead>
-              <TableHead>Meeting Context</TableHead>
-              <TableHead>Owner</TableHead>
-              <TableHead>Due Date</TableHead>
-              <TableHead>Priority</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+            <TableRow className="border-b border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/30 hover:bg-transparent">
+              <TableHead className="w-[35%] min-w-[280px] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider pl-6 py-3.5">
+                Task Description
+              </TableHead>
+              <TableHead className="w-[18%] min-w-[140px] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
+                Meeting Context
+              </TableHead>
+              <TableHead className="w-[13%] min-w-[120px] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
+                Owner
+              </TableHead>
+              <TableHead className="w-[14%] min-w-[130px] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
+                Due Date
+              </TableHead>
+              <TableHead className="w-[10%] min-w-[90px] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
+                Priority
+              </TableHead>
+              <TableHead className="w-[10%] min-w-[110px] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
+                Status
+              </TableHead>
+              <TableHead className="text-right min-w-[80px] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider pr-6 py-3.5">
+                Actions
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredItems.length === 0 ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-16">
+                  <div className="flex flex-col items-center justify-center gap-2 text-zinc-500">
+                    <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
+                    <span className="text-xs font-medium">Loading action items...</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : paginatedItems.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={7}
-                  className="text-center py-8 text-zinc-500"
+                  className="text-center py-12 text-zinc-500 dark:text-zinc-400"
                 >
-                  No action items found matching your filters.
+                  <p className="text-sm font-medium">No action items found matching your filters.</p>
+                  <p className="text-xs text-zinc-400 mt-1">Try clearing search parameters or overdue filter.</p>
                 </TableCell>
               </TableRow>
             ) : (
-              filteredItems.map((item) => (
+              paginatedItems.map((item) => (
                 <TableRow
                   key={item.id}
-                  className={item.isOverdue ? "bg-red-50/40 dark:bg-red-950/20" : ""}
+                  className={`border-b border-zinc-100 dark:border-zinc-800/50 transition-colors ${item.isOverdue
+                      ? "bg-red-50/40 dark:bg-red-950/20 hover:bg-red-50/60 dark:hover:bg-red-950/30"
+                      : "hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40"
+                    }`}
                 >
                   {/* Task Description */}
-                  <TableCell className="font-medium max-w-[280px]">
-                    <div className="flex items-start gap-2">
-                      <span className="h-2 w-2 rounded-full bg-blue-500 mt-1.5 shrink-0"></span>
-                      <span className="leading-snug">{item.task}</span>
+                  <TableCell className="font-medium min-w-[280px] max-w-[380px] pl-6 py-3.5">
+                    <div className="flex items-start gap-2.5">
+                      <span className="h-2 w-2 rounded-full bg-zinc-400 dark:bg-zinc-500 mt-1.5 shrink-0" />
+                      <span className="text-xs leading-relaxed text-zinc-900 dark:text-zinc-100 break-words whitespace-normal font-medium">
+                        {item.task}
+                      </span>
                     </div>
                   </TableCell>
 
                   {/* Meeting Context */}
-                  <TableCell className="text-xs text-zinc-500">
-                    {item.meetingTitle}
+                  <TableCell className="text-xs text-zinc-500 dark:text-zinc-400 min-w-[140px] max-w-[180px] py-3.5">
+                    <span className="truncate block font-medium" title={item.meetingTitle}>
+                      {item.meetingTitle}
+                    </span>
                   </TableCell>
 
                   {/* Owner */}
-                  <TableCell>
-                    <span className="flex items-center gap-1.5 text-xs text-zinc-700 dark:text-zinc-300">
-                      <User className="h-3.5 w-3.5 text-zinc-400" />
-                      {item.owner}
+                  <TableCell className="min-w-[120px] py-3.5">
+                    <span className="flex items-center gap-1.5 text-xs text-zinc-700 dark:text-zinc-300 font-medium">
+                      <User className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                      <span className="truncate">{item.owner}</span>
                     </span>
                   </TableCell>
 
                   {/* Due Date & Overdue Highlight */}
-                  <TableCell>
-                    <div className="flex flex-col gap-0.5">
-                      <span className="flex items-center gap-1 text-xs text-zinc-600 dark:text-zinc-400">
-                        <Calendar className="h-3.5 w-3.5 text-zinc-400" />
-                        {item.dueDate}
+                  <TableCell className="min-w-[130px] py-3.5">
+                    <div className="flex flex-col gap-1">
+                      <span className="flex items-center gap-1 text-xs text-zinc-600 dark:text-zinc-400 font-medium">
+                        <Calendar className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                        <span>{item.dueDate}</span>
                       </span>
                       {item.isOverdue && (
-                        <Badge variant="destructive" className="text-[9px] py-0 w-fit">
+                        <Badge variant="destructive" className="text-[9px] px-1.5 py-0 w-fit font-bold rounded-sm">
                           OVERDUE
                         </Badge>
                       )}
@@ -583,27 +629,27 @@ export default function ActionTrackerPage() {
                   </TableCell>
 
                   {/* Priority */}
-                  <TableCell>
+                  <TableCell className="min-w-[90px] py-3.5">
                     <Badge
                       variant="outline"
-                      className={`text-xs ${getPriorityBadgeClass(item.priority)}`}
+                      className={`text-xs font-medium rounded-md px-2 py-0.5 ${getPriorityBadgeClass(item.priority)}`}
                     >
                       {item.priority}
                     </Badge>
                   </TableCell>
 
                   {/* Status Dropdown */}
-                  <TableCell>
+                  <TableCell className="min-w-[110px] py-3.5">
                     <Select
                       value={item.status}
                       onValueChange={(val) =>
                         val && handleStatusChange(item.id, val as ActionItem["status"])
                       }
                     >
-                      <SelectTrigger className="h-7 text-xs w-28">
+                      <SelectTrigger className="h-7 text-xs w-28 border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/50 text-zinc-900 dark:text-zinc-100">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
                         <SelectItem value="Open">Open</SelectItem>
                         <SelectItem value="In Progress">In Progress</SelectItem>
                         <SelectItem value="Blocked">Blocked</SelectItem>
@@ -613,7 +659,7 @@ export default function ActionTrackerPage() {
                   </TableCell>
 
                   {/* Actions */}
-                  <TableCell className="text-right">
+                  <TableCell className="text-right min-w-[80px] pr-6 py-3.5">
                     <div className="flex items-center justify-end gap-1">
                       <Button
                         variant="ghost"
@@ -622,17 +668,19 @@ export default function ActionTrackerPage() {
                           setEditingItem(item);
                           setIsModalOpen(true);
                         }}
+                        className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-md"
                         title="Edit Action Item"
                       >
-                        <Edit className="h-4 w-4 text-blue-600" />
+                        <Edit className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => handleDeleteItem(item.id)}
+                        className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md"
                         title="Delete Action Item"
                       >
-                        <Trash2 className="h-4 w-4 text-red-600" />
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>
@@ -642,6 +690,60 @@ export default function ActionTrackerPage() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination Controls */}
+      {filteredItems.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-zinc-900 px-5 py-3.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-sm text-xs">
+          <div className="text-zinc-500 dark:text-zinc-400">
+            Showing <span className="font-semibold text-zinc-900 dark:text-zinc-100">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to{" "}
+            <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+              {Math.min(currentPage * ITEMS_PER_PAGE, filteredItems.length)}
+            </span>{" "}
+            of <span className="font-semibold text-zinc-900 dark:text-zinc-100">{filteredItems.length}</span> action items
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="h-8 text-xs flex items-center gap-1 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+              Previous
+            </Button>
+
+            <div className="flex items-center gap-1 px-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <Button
+                  key={page}
+                  variant={currentPage === page ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setCurrentPage(page)}
+                  className={`h-7 w-7 text-xs p-0 font-medium ${currentPage === page
+                      ? "bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                    }`}
+                >
+                  {page}
+                </Button>
+              ))}
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="h-8 text-xs flex items-center gap-1 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+            >
+              Next
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Modal */}
       <CreateActionItemModal

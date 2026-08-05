@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ActionItem, Meeting } from "@/types/meeting";
+import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -21,12 +23,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+interface AppUser {
+  id: string;
+  name: string;
+  email: string;
+}
+
 interface CreateActionItemModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (itemData: Partial<ActionItem> & { meetingId: string }) => void;
+  onSave: (itemData: Partial<ActionItem> & { meetingId: string }) => Promise<void> | void;
   meetings: Meeting[];
   initialData?: (ActionItem & { meetingId?: string; id?: string }) | null;
+  isSubmitting?: boolean;
 }
 
 export function CreateActionItemModal({
@@ -35,35 +44,76 @@ export function CreateActionItemModal({
   onSave,
   meetings,
   initialData,
+  isSubmitting = false,
 }: CreateActionItemModalProps) {
-  const [task, setTask] = useState(initialData?.task || "");
-  const [meetingId, setMeetingId] = useState(
-    initialData?.meetingId || (meetings[0]?.id || "")
-  );
-  const [owner, setOwner] = useState(initialData?.owner || "Unassigned");
-  const [dueDate, setDueDate] = useState(initialData?.dueDate || "");
-  const [priority, setPriority] = useState<ActionItem["priority"]>(
-    initialData?.priority || "Medium"
-  );
-  const [status, setStatus] = useState<ActionItem["status"]>(
-    initialData?.status || "Open"
-  );
+  const [task, setTask] = useState("");
+  const [meetingId, setMeetingId] = useState("");
+  const [owner, setOwner] = useState("Unassigned");
+  const [dueDate, setDueDate] = useState("");
+  const [priority, setPriority] = useState<ActionItem["priority"]>("Medium");
+  const [status, setStatus] = useState<ActionItem["status"]>("Open");
+  const [appUsers, setAppUsers] = useState<AppUser[]>([]);
+  const [localSubmitting, setLocalSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Fetch registered application users for Assignee dropdown
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await api.get("/auth/users");
+        if (Array.isArray(res.data)) {
+          setAppUsers(res.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch registered users for assignee dropdown:", err);
+      }
+    };
+    if (isOpen) {
+      fetchUsers();
+    }
+  }, [isOpen]);
+
+  // Sync state on modal open or initialData change
+  useEffect(() => {
+    if (isOpen) {
+      if (initialData) {
+        setTask(initialData.task || "");
+        setMeetingId(initialData.meetingId || (meetings[0]?.id || ""));
+        setOwner(initialData.owner || "Unassigned");
+        setDueDate(initialData.dueDate || "");
+        setPriority(initialData.priority || "Medium");
+        setStatus(initialData.status || "Open");
+      } else {
+        setTask("");
+        setMeetingId(meetings[0]?.id || "");
+        setOwner("Unassigned");
+        setDueDate("");
+        setPriority("Medium");
+        setStatus("Open");
+      }
+    }
+  }, [isOpen, initialData, meetings]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!task.trim() || !meetingId) return;
 
-    onSave({
-      ...(initialData?.id ? { id: initialData.id } : {}),
-      meetingId,
-      task: task.trim(),
-      owner: owner.trim() || "Unassigned",
-      dueDate: dueDate.trim() || "Not specified",
-      priority,
-      status,
-    });
-
-    onClose();
+    try {
+      setLocalSubmitting(true);
+      await onSave({
+        ...(initialData?.id ? { id: initialData.id } : {}),
+        meetingId,
+        task: task.trim(),
+        owner: owner.trim() || "Unassigned",
+        dueDate: dueDate.trim() || "Not specified",
+        priority,
+        status,
+      });
+      onClose();
+    } catch (err) {
+      console.error("Failed to save action item:", err);
+    } finally {
+      setLocalSubmitting(false);
+    }
   };
 
   return (
@@ -96,9 +146,18 @@ export function CreateActionItemModal({
           {/* Meeting Selection */}
           <div className="space-y-2">
             <Label htmlFor="meeting">Associated Meeting</Label>
-            <Select value={meetingId} onValueChange={(val) => val && setMeetingId(val)}>
-              <SelectTrigger id="meeting">
-                <SelectValue placeholder="Select meeting" />
+            <Select
+              value={meetingId}
+              onValueChange={(val) => {
+                if (val && typeof val === "string") setMeetingId(val);
+              }}
+            >
+              <SelectTrigger id="meeting" className="w-full">
+                <SelectValue placeholder="Select meeting">
+                  {meetings.find((m) => String(m.id) === String(meetingId))
+                    ? `${meetings.find((m) => String(m.id) === String(meetingId))?.title} (${meetings.find((m) => String(m.id) === String(meetingId))?.date})`
+                    : "Select meeting"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {meetings.map((m) => (
@@ -111,15 +170,30 @@ export function CreateActionItemModal({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {/* Owner */}
+            {/* Owner / Assignee Select Dropdown */}
             <div className="space-y-2">
               <Label htmlFor="owner">Assignee / Owner</Label>
-              <Input
-                id="owner"
-                placeholder="e.g. Alex or Unassigned"
+              <Select
                 value={owner}
-                onChange={(e) => setOwner(e.target.value)}
-              />
+                onValueChange={(val) => {
+                  if (val && typeof val === "string") setOwner(val);
+                }}
+              >
+                <SelectTrigger id="owner" className="w-full">
+                  <SelectValue placeholder="Select assignee">{owner}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Unassigned">Unassigned</SelectItem>
+                  {appUsers.map((user) => (
+                    <SelectItem key={user.id} value={user.name}>
+                      <div className="flex flex-col text-left">
+                        <span className="font-semibold text-xs">{user.name}</span>
+                        <span className="text-[10px] text-zinc-400">{user.email}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Due Date */}
@@ -179,10 +253,13 @@ export function CreateActionItemModal({
           </div>
 
           <DialogFooter className="pt-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting || localSubmitting}>
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" disabled={isSubmitting || localSubmitting}>
+              {(isSubmitting || localSubmitting) && (
+                <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
+              )}
               {initialData ? "Save Changes" : "Create Task"}
             </Button>
           </DialogFooter>
