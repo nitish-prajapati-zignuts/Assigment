@@ -35,13 +35,24 @@ const meetingTypes: MeetingType[] = [
   "Project Meeting",
   "Internal Meeting",
   "Requirement Discussion",
-  "Retrospective",
-  "Other",
 ];
+
+const getTodayDateString = (): string => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
 const meetingSchema = z.object({
   title: z.string().min(2, "Title must be at least 2 characters"),
-  date: z.string().min(1, "Date is required"),
+  date: z
+    .string()
+    .min(1, "Date is required")
+    .refine((val) => val === getTodayDateString(), {
+      message: "Only today's date can be selected.",
+    }),
   type: z.enum([
     "Client Meeting",
     "Sales Meeting",
@@ -83,6 +94,8 @@ export function MeetingModal({
   const [isDragging, setIsDragging] = useState(false);
   const [appUsers, setAppUsers] = useState<AppUser[]>([]);
 
+  const todayStr = getTodayDateString();
+
   const {
     register,
     handleSubmit,
@@ -94,7 +107,7 @@ export function MeetingModal({
     resolver: zodResolver(meetingSchema),
     defaultValues: {
       title: "",
-      date: new Date().toISOString().split("T")[0],
+      date: todayStr,
       type: "Internal Meeting",
       participants: "",
       transcript: "",
@@ -136,7 +149,7 @@ export function MeetingModal({
     } else {
       reset({
         title: "",
-        date: new Date().toISOString().split("T")[0],
+        date: getTodayDateString(),
         type: "Internal Meeting",
         participants: "",
         transcript: "",
@@ -284,7 +297,13 @@ export function MeetingModal({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="date">Meeting Date</Label>
-              <Input id="date" type="date" {...register("date")} />
+              <Input
+                id="date"
+                type="date"
+                min={initialData?.date && initialData.date < todayStr ? initialData.date : todayStr}
+                max={todayStr}
+                {...register("date")}
+              />
               {errors.date && (
                 <p className="text-xs text-red-500">{errors.date.message}</p>
               )}
