@@ -21,6 +21,9 @@ const envSchema = z.object({
   RATE_LIMIT_WINDOW_MS: z.string().regex(/^\d+$/).transform(Number).default(900000), // 15 min
   RATE_LIMIT_MAX_REQUESTS: z.string().regex(/^\d+$/).transform(Number).default(100),
   ENABLE_RATE_LIMITER: z.string().transform((val) => val === 'true').default(true),
+  AUTH_RATE_LIMITER: z.string().regex(/^\d+$/).default('100').transform(Number),
+  AI_RATE_LIMITER: z.string().regex(/^\d+$/).default('100').transform(Number),
+  API_RATE_LIMITER: z.string().regex(/^\d+$/).default('1000').transform(Number),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

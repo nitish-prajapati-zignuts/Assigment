@@ -90,7 +90,7 @@ export const generalRateLimiter = (req: Request, res: Response, next: NextFuncti
  * Login/Register Rate Limiter
  * Stricter limits for authentication endpoints
  */
-const authLimiter = new RateLimiter(15 * 60 * 1000, 5); // 5 attempts per 15 minutes
+const authLimiter = new RateLimiter(15 * 60 * 1000, Number(process.env.AUTH_RATE_LIMITER)); // 5 attempts per 15 minutes
 
 export const authRateLimiter = (req: Request, res: Response, next: NextFunction) => {
   if (!config.ENABLE_RATE_LIMITER) return next();
@@ -112,7 +112,7 @@ export const authRateLimiter = (req: Request, res: Response, next: NextFunction)
  * AI Service Rate Limiter
  * Prevent excessive AI API calls
  */
-const aiLimiter = new RateLimiter(60 * 60 * 1000, 10); // 10 calls per hour
+const aiLimiter = new RateLimiter(60 * 60 * 1000, Number(process.env.AI_RATE_LIMITER))
 
 export const aiRateLimiter = (req: Request, res: Response, next: NextFunction) => {
   if (!config.ENABLE_RATE_LIMITER) return next();
@@ -134,7 +134,7 @@ export const aiRateLimiter = (req: Request, res: Response, next: NextFunction) =
  * API Rate Limiter
  * Standard rate limit for normal API endpoints
  */
-const apiLimiter = new RateLimiter(5 * 60 * 1000, 30); // 30 calls per 5 minutes
+const apiLimiter = new RateLimiter(5 * 60 * 1000, Number(process.env.API_RATE_LIMITER));
 
 export const apiRateLimiter = (req: Request, res: Response, next: NextFunction) => {
   if (!config.ENABLE_RATE_LIMITER) return next();
