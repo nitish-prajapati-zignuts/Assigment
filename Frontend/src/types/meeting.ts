@@ -1,3 +1,5 @@
+export type SummaryLength = "short" | "medium" | "long";
+
 export type MeetingType =
   | "Client Meeting"
   | "Sales Meeting"

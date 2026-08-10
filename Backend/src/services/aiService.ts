@@ -2,7 +2,7 @@ import { generateObject } from "ai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenAI } from "@ai-sdk/openai";
 import { z } from "zod";
-import { MeetingSummary, KeyDecision, ActionItem } from "../db/schema";
+import { MeetingSummary, KeyDecision, ActionItem, SummaryLength } from "../db/schema";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -286,7 +286,8 @@ export async function generateMeetingSummary(
   rawTranscript: string,
   customApiKey?: string,
   title?: string,
-  language?: string
+  language?: string,
+  summaryLength: SummaryLength = "medium"
 ): Promise<MeetingSummary> {
   const geminiApiKey = customApiKey || process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY;
   const openAiApiKey = process.env.OPENAI_API_KEY;
@@ -300,10 +301,20 @@ export async function generateMeetingSummary(
     ? `\nIMPORTANT LANGUAGE REQUIREMENT:\n- Generate all output summary text, topics, concerns, next steps, key decisions, and action item tasks in ${language}.`
     : "";
 
+  let lengthInstruction = "";
+  if (summaryLength === "short") {
+    lengthInstruction = "\nSUMMARY LENGTH REQUIREMENT: Keep the output concise and brief (1-2 bullet points per section, high-level summary only).";
+  } else if (summaryLength === "long") {
+    lengthInstruction = "\nSUMMARY LENGTH REQUIREMENT: Provide an in-depth, thorough, and highly detailed summary covering all nuanced topics, deep context, key decisions, and comprehensive action items.";
+  } else {
+    lengthInstruction = "\nSUMMARY LENGTH REQUIREMENT: Provide a balanced, medium-length summary with clear key discussion points and action items.";
+  }
+
   const promptText = `You are an expert AI executive assistant. Analyze the following meeting transcript and generate a structured summary.
       
 Meeting Title: ${title || "Team Meeting"}
 ${languageInstruction}
+${lengthInstruction}
 Transcript:
 """
 ${plainTranscript}

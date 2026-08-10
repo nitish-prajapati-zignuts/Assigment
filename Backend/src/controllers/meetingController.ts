@@ -181,7 +181,7 @@ export const createMeeting = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { title, date, type, participants, transcript, apiKey, language } = req.body;
+    const { title, date, type, participants, transcript, apiKey, language, summaryLength } = req.body;
     const userEmail = req.user?.email;
 
     if (!title || !date || !type) {
@@ -203,7 +203,7 @@ export const createMeeting = async (
     // Generate structured AI meeting summary
     const summary =
       cleanTranscript.trim().length > 0
-        ? await generateMeetingSummary(cleanTranscript, apiKey, title, language)
+        ? await generateMeetingSummary(cleanTranscript, apiKey, title, language, summaryLength)
         : null;
 
     const meetingId = Date.now().toString();
@@ -250,12 +250,12 @@ export const updateMeeting = async (
 ): Promise<void> => {
   try {
     const targetId = String(req.params.id);
-    const { title, date, type, participants, transcript, apiKey, language } = req.body;
+    const { title, date, type, participants, transcript, apiKey, language, summaryLength } = req.body;
 
     let generatedSummary: MeetingSummary | null | undefined = undefined;
 
     if (transcript !== undefined && transcript.trim().length > 0) {
-      generatedSummary = await generateMeetingSummary(transcript, apiKey, title, language);
+      generatedSummary = await generateMeetingSummary(transcript, apiKey, title, language, summaryLength);
     }
 
     const existing = await db
@@ -308,7 +308,7 @@ export const summarizeMeeting = async (
 ): Promise<void> => {
   try {
     const targetId = String(req.params.id);
-    const { apiKey, language } = req.body;
+    const { apiKey, language, summaryLength } = req.body;
 
     const existing = await db
       .select()
@@ -325,7 +325,8 @@ export const summarizeMeeting = async (
       meeting.transcript || "",
       apiKey,
       meeting.title,
-      language
+      language,
+      summaryLength
     );
 
     const updated = await db

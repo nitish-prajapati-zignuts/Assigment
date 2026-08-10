@@ -68,6 +68,8 @@ const meetingSchema = z.object({
 
 type MeetingFormValues = z.infer<typeof meetingSchema>;
 
+import { SummaryLength } from "@/types/meeting";
+
 interface AppUser {
   id: string;
   name: string;
@@ -77,7 +79,7 @@ interface AppUser {
 interface MeetingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (meeting: Partial<Meeting>) => Promise<void> | void;
+  onSave: (meeting: Partial<Meeting> & { language?: string; summaryLength?: SummaryLength }) => Promise<void> | void;
   initialData?: Meeting | null;
 }
 
@@ -93,6 +95,7 @@ export function MeetingModal({
   const [isReadingFile, setIsReadingFile] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [appUsers, setAppUsers] = useState<AppUser[]>([]);
+  const [summaryLength, setSummaryLength] = useState<SummaryLength>("medium");
 
   const todayStr = getTodayDateString();
 
@@ -343,6 +346,7 @@ export function MeetingModal({
         title: data.title,
         date: data.date,
         type: data.type,
+        summaryLength,
         participants: formattedParticipants,
         transcript: data.transcript || "",
       });
@@ -381,7 +385,7 @@ export function MeetingModal({
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="date">Meeting Date</Label>
               <Input
@@ -418,6 +422,25 @@ export function MeetingModal({
               {errors.type && (
                 <p className="text-xs text-red-500">{errors.type.message}</p>
               )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="summaryLength">Summary Length</Label>
+              <Select
+                value={summaryLength}
+                onValueChange={(val) => {
+                  if (val) setSummaryLength(val as SummaryLength);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select length" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="short">Short (Concise)</SelectItem>
+                  <SelectItem value="medium">Medium (Standard)</SelectItem>
+                  <SelectItem value="long">Long (Detailed)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
