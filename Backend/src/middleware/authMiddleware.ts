@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyToken, JwtPayload } from "../utils/jwt";
+import { AuthenticationError } from "../utils/errors";
+import { logger } from "../utils/logger";
 
 /**
  * Express Request interface extended with user JWT payload parameters (`userId`, `email`, `name`).
@@ -13,11 +15,6 @@ export interface AuthenticatedRequest extends Request {
  * Intercepts incoming HTTP requests and verifies JWT authentication tokens extracted
  * from `Authorization: Bearer <token>` headers or `token` HTTP-only cookies.
  * Attaches decoded JWT user payload to `req.user` or returns 401 Unauthorized error.
- * 
- * @param req - Authenticated Express request object.
- * @param res - Express response object.
- * @param next - Express next middleware callback function.
- * @returns void
  */
 export const protect = (
   req: AuthenticatedRequest,
@@ -39,11 +36,11 @@ export const protect = (
   }
 
   if (!token) {
-    res.status(401).json({
-      error: "Unauthorized",
-      message: "Access denied. No authentication token provided.",
+    logger.warn("Authentication failed: no token provided", {
+      path: req.path,
+      ip: req.ip,
     });
-    return;
+    throw new AuthenticationError("Access denied. No authentication token provided.");
   }
 
   try {
@@ -51,10 +48,11 @@ export const protect = (
     req.user = decodedPayload;
     next();
   } catch (error) {
-    console.error("JWT Verification Error:", error);
-    res.status(401).json({
-      error: "Unauthorized",
-      message: "Invalid or expired token.",
+    logger.warn("JWT verification failed", {
+      path: req.path,
+      ip: req.ip,
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
+    throw new AuthenticationError("Invalid or expired token.");
   }
 };

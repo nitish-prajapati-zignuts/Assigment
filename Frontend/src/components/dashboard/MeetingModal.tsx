@@ -96,6 +96,7 @@ export function MeetingModal({
   const [isDragging, setIsDragging] = useState(false);
   const [appUsers, setAppUsers] = useState<AppUser[]>([]);
   const [summaryLength, setSummaryLength] = useState<SummaryLength>("Medium");
+  const [usersFetched, setUsersFetched] = useState(false);
 
   const todayStr = getTodayDateString();
 
@@ -117,7 +118,7 @@ export function MeetingModal({
     },
   });
 
-  // Fetch all registered application users
+  // Fetch all registered application users only once
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -128,13 +129,16 @@ export function MeetingModal({
       } catch (err) {
         console.error("Failed to fetch registered users from API:", err);
         setAppUsers([]);
+      } finally {
+        setUsersFetched(true);
       }
     };
 
-    if (isOpen) {
+    // Only fetch if modal is open AND users haven't been fetched yet
+    if (isOpen && !usersFetched) {
       fetchUsers();
     }
-  }, [isOpen]);
+  }, [isOpen, usersFetched]);
 
   // Sync form values when initialData changes or modal opens
   useEffect(() => {

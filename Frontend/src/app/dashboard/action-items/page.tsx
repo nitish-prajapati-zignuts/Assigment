@@ -62,9 +62,11 @@ export default function ActionTrackerPage() {
   const [selectedOwner, setSelectedOwner] = useState<string>("All");
   const [showOverdueOnly, setShowOverdueOnly] = useState(false);
 
-  // Pagination state (Limit 10 items per page)
+  // Pagination state (Server-side pagination)
   const ITEMS_PER_PAGE = 10;
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -87,9 +89,10 @@ export default function ActionTrackerPage() {
   useEffect(() => {
     const fetchMeetings = async () => {
       try {
-        const res = await api.get<Meeting[]>("/meetings");
-        if (Array.isArray(res.data)) {
-          setMeetings(res.data);
+        const res = await api.get("/meetings");
+        const meetingsData = res.data?.data || res.data;
+        if (Array.isArray(meetingsData)) {
+          setMeetings(meetingsData);
         }
       } catch (err) {
         console.error("Failed to fetch meetings for action tracker:", err);
@@ -150,13 +153,40 @@ export default function ActionTrackerPage() {
     return str;
   };
 
-  // Build aggregated action items from meetings or API
+  // Build aggregated action items from API with server-side pagination
   useEffect(() => {
     const fetchItems = async () => {
       try {
         setIsLoading(true);
-        const res = await api.get("/action-items");
-        if (Array.isArray(res.data)) {
+        const res = await api.get("/action-items", {
+          params: {
+            page: currentPage,
+            limit: ITEMS_PER_PAGE,
+          },
+        });
+
+        console.log("Action Items API Response:", res.data);
+
+        if (res.data.data && res.data.pagination) {
+          // Server-side paginated response
+          const formatted = res.data.data.map((item: any) => ({
+            id: item.id || `item-${Math.random()}`,
+            meetingId: item.meetingId || "1",
+            meetingTitle:
+              meetings.find((m) => m.id === item.meetingId)?.title ||
+              "General Meeting",
+            task: stripHtml(item.task),
+            owner: stripHtml(item.owner) || "Unassigned",
+            dueDate: stripHtml(item.dueDate) || "Not specified",
+            priority: item.priority || "Medium",
+            status: item.status || "Open",
+            isOverdue: checkIsOverdue(item.dueDate, item.status),
+          }));
+          setActionItems(formatted);
+          setTotalPages(res.data.pagination.totalPages);
+          setTotalItems(res.data.pagination.total);
+        } else if (Array.isArray(res.data)) {
+          // Fallback for non-paginated response
           const formatted = res.data.map((item: any) => ({
             id: item.id || `item-${Math.random()}`,
             meetingId: item.meetingId || "1",
@@ -171,19 +201,25 @@ export default function ActionTrackerPage() {
             isOverdue: checkIsOverdue(item.dueDate, item.status),
           }));
           setActionItems(formatted);
+          setTotalPages(1);
+          setTotalItems(formatted.length);
         } else {
           setActionItems([]);
+          setTotalPages(1);
+          setTotalItems(0);
         }
       } catch (err) {
         console.error("Failed to fetch action items from API:", err);
         setActionItems([]);
+        setTotalPages(1);
+        setTotalItems(0);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchItems();
-  }, [meetings]);
+  }, [meetings, currentPage]);
 
   // Extract unique owners for filter dropdown
   const uniqueOwners = useMemo(() => {
@@ -194,7 +230,7 @@ export default function ActionTrackerPage() {
     return Array.from(set);
   }, [actionItems]);
 
-  // Filtered Action Items
+  // Client-side filtering for search and filters
   const filteredItems = useMemo(() => {
     return actionItems.filter((item) => {
       const matchesSearch =
@@ -230,27 +266,57 @@ export default function ActionTrackerPage() {
     showOverdueOnly,
   ]);
 
-  // Summary Metrics
+  // Use filtered items for display
+  const displayItems = filteredItems;
+
+  // Summary Metrics (based on all action items, not just current page)
+  const [allActionItems, setAllActionItems] = useState<ActionItemWithContext[]>([]);
+
+  // Fetch all action items for metrics (without pagination)
+  useEffect(() => {
+    const fetchAllItems = async () => {
+      try {
+        const res = await api.get("/action-items", {
+          params: {
+            page: 1,
+            limit: 1000, // Get all items for metrics
+          },
+        });
+
+        if (res.data.data) {
+          const formatted = res.data.data.map((item: any) => ({
+            id: item.id || `item-${Math.random()}`,
+            meetingId: item.meetingId || "1",
+            meetingTitle: "General Meeting",
+            task: stripHtml(item.task),
+            owner: stripHtml(item.owner) || "Unassigned",
+            dueDate: stripHtml(item.dueDate) || "Not specified",
+            priority: item.priority || "Medium",
+            status: item.status || "Open",
+            isOverdue: checkIsOverdue(item.dueDate, item.status),
+          }));
+          setAllActionItems(formatted);
+        }
+      } catch (err) {
+        console.error("Failed to fetch all action items for metrics:", err);
+      }
+    };
+
+    fetchAllItems();
+  }, []);
+
   const metrics = useMemo(() => {
-    const total = actionItems.length;
-    const inProgress = actionItems.filter(
+    const total = allActionItems.length;
+    const inProgress = allActionItems.filter(
       (i) => i.status === "In Progress"
     ).length;
-    const blocked = actionItems.filter((i) => i.status === "Blocked").length;
-    const overdue = actionItems.filter((i) => i.isOverdue).length;
+    const blocked = allActionItems.filter((i) => i.status === "Blocked").length;
+    const overdue = allActionItems.filter((i) => i.isOverdue).length;
 
     return { total, inProgress, blocked, overdue };
-  }, [actionItems]);
+  }, [allActionItems]);
 
-  // Pagination Calculations
-  const totalPages = useMemo(() => {
-    return Math.ceil(filteredItems.length / ITEMS_PER_PAGE) || 1;
-  }, [filteredItems.length]);
 
-  const paginatedItems = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredItems.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [filteredItems, currentPage]);
 
   const getPriorityBadgeClass = (priority: string) => {
     switch (priority) {
@@ -426,8 +492,8 @@ export default function ActionTrackerPage() {
 
         <Card
           className={`rounded-xl border transition-all duration-200 hover:shadow-md ${metrics.overdue > 0
-              ? "border-red-200 dark:border-red-900/50 bg-red-50/30 dark:bg-red-950/10"
-              : "border-zinc-200/80 dark:border-zinc-800/80 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm hover:border-zinc-300 dark:hover:border-zinc-700"
+            ? "border-red-200 dark:border-red-900/50 bg-red-50/30 dark:bg-red-950/10"
+            : "border-zinc-200/80 dark:border-zinc-800/80 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm hover:border-zinc-300 dark:hover:border-zinc-700"
             }`}
         >
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
@@ -569,7 +635,7 @@ export default function ActionTrackerPage() {
                   </div>
                 </TableCell>
               </TableRow>
-            ) : paginatedItems.length === 0 ? (
+            ) : displayItems.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={7}
@@ -580,12 +646,12 @@ export default function ActionTrackerPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              paginatedItems.map((item) => (
+              displayItems.map((item) => (
                 <TableRow
                   key={item.id}
                   className={`border-b border-zinc-100 dark:border-zinc-800/50 transition-colors ${item.isOverdue
-                      ? "bg-red-50/40 dark:bg-red-950/20 hover:bg-red-50/60 dark:hover:bg-red-950/30"
-                      : "hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40"
+                    ? "bg-red-50/40 dark:bg-red-950/20 hover:bg-red-50/60 dark:hover:bg-red-950/30"
+                    : "hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40"
                     }`}
                 >
                   {/* Task Description */}
@@ -692,58 +758,77 @@ export default function ActionTrackerPage() {
       </div>
 
       {/* Pagination Controls */}
-      {filteredItems.length > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-zinc-900 px-5 py-3.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-sm text-xs">
-          <div className="text-zinc-500 dark:text-zinc-400">
-            Showing <span className="font-semibold text-zinc-900 dark:text-zinc-100">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to{" "}
-            <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-              {Math.min(currentPage * ITEMS_PER_PAGE, filteredItems.length)}
-            </span>{" "}
-            of <span className="font-semibold text-zinc-900 dark:text-zinc-100">{filteredItems.length}</span> action items
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="h-8 text-xs flex items-center gap-1 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
-            >
-              <ChevronLeft className="h-3.5 w-3.5" />
-              Previous
-            </Button>
-
-            <div className="flex items-center gap-1 px-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <Button
-                  key={page}
-                  variant={currentPage === page ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setCurrentPage(page)}
-                  className={`h-7 w-7 text-xs p-0 font-medium ${currentPage === page
-                      ? "bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                    }`}
-                >
-                  {page}
-                </Button>
-              ))}
+      {!searchQuery &&
+        selectedStatus === "All" &&
+        selectedPriority === "All" &&
+        selectedOwner === "All" &&
+        !showOverdueOnly &&
+        totalItems > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-zinc-900 px-5 py-3.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-sm text-xs">
+            <div className="text-zinc-500 dark:text-zinc-400">
+              Showing <span className="font-semibold text-zinc-900 dark:text-zinc-100">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to{" "}
+              <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                {Math.min(currentPage * ITEMS_PER_PAGE, totalItems)}
+              </span>{" "}
+              of <span className="font-semibold text-zinc-900 dark:text-zinc-100">{totalItems}</span> action items
             </div>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="h-8 text-xs flex items-center gap-1 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
-            >
-              Next
-              <ChevronRight className="h-3.5 w-3.5" />
-            </Button>
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="h-8 text-xs flex items-center gap-1 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+                Previous
+              </Button>
+
+              <div className="flex items-center gap-1 px-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setCurrentPage(page)}
+                    className={`h-7 w-7 text-xs p-0 font-medium ${currentPage === page
+                      ? "bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                      }`}
+                  >
+                    {page}
+                  </Button>
+                ))}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="h-8 text-xs flex items-center gap-1 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+              >
+                Next
+                <ChevronRight className="h-3.5 w-3.5" />
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+      {/* Filtered Results Info (when search/filter is active) */}
+      {(searchQuery ||
+        selectedStatus !== "All" ||
+        selectedPriority !== "All" ||
+        selectedOwner !== "All" ||
+        showOverdueOnly) &&
+        displayItems.length > 0 && (
+          <div className="bg-white dark:bg-zinc-900 px-5 py-3 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-sm text-xs">
+            <div className="text-zinc-500 dark:text-zinc-400">
+              Found <span className="font-semibold text-zinc-900 dark:text-zinc-100">{displayItems.length}</span> matching action item(s)
+            </div>
+          </div>
+        )}
 
       {/* Modal */}
       <CreateActionItemModal

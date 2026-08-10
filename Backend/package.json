@@ -1,7 +1,7 @@
 {
   "name": "ai-meeting-notes",
   "version": "1.0.0",
-  "description": "",
+  "description": "AI-Powered Meeting Notes & Action Item Tracking System",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
@@ -9,7 +9,11 @@
     "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "db:studio": "drizzle-kit studio",
+    "lint": "eslint src --ext .ts",
+    "type-check": "tsc --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "author": "",
   "license": "ISC",
@@ -19,16 +23,17 @@
     "@neondatabase/serverless": "^1.1.0",
     "ai": "^7.0.52",
     "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.6",
     "cors": "^2.8.6",
     "dotenv": "^17.2.2",
     "drizzle-orm": "^0.45.2",
     "express": "^4.22.2",
     "jsonwebtoken": "^9.0.3",
-    "ls": "^1.0.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
+    "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.0",
     "@types/jsonwebtoken": "^9.0.10",

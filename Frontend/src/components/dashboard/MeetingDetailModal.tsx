@@ -35,6 +35,7 @@ interface MeetingDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   onEdit: (meeting: Meeting) => void;
+  isSummarizing?: boolean;
 }
 
 export function MeetingDetailModal({
@@ -42,6 +43,7 @@ export function MeetingDetailModal({
   isOpen,
   onClose,
   onEdit,
+  isSummarizing = false,
 }: MeetingDetailModalProps) {
   const [activeTab, setActiveTab] = useState<"summary" | "transcript">("summary");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -391,6 +393,19 @@ export function MeetingDetailModal({
                       </div>
                     )}
                   </div>
+                </div>
+              ) : isSummarizing || isGenerating ? (
+                <div className="text-center py-10 border border-amber-200 dark:border-amber-900/50 bg-amber-50/30 dark:bg-amber-950/10 rounded-lg space-y-3">
+                  <div className="flex items-center justify-center gap-2 text-amber-600 dark:text-amber-400">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <Sparkles className="h-6 w-6 text-amber-500 animate-pulse" />
+                  </div>
+                  <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                    AI Summary Job is Processing
+                  </h4>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-md mx-auto">
+                    Our AI model is currently generating structured notes, purpose, discussion points, key decisions, and action items. This will update automatically once completed.
+                  </p>
                 </div>
               ) : (
                 <div className="text-center py-8 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg">

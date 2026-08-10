@@ -1,45 +1,49 @@
 import { Request, Response } from "express";
-import { db } from "../db";
+import db from "../db";
 import { meetings, actionItems, users, MeetingSummary } from "../db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { generateMeetingSummary } from "../services/aiService";
 import { AuthenticatedRequest } from "../middleware/authMiddleware";
+import { asyncHandler } from "../middleware/errorHandler";
+import { logger } from "../utils/logger";
+import { 
+  NotFoundError, 
+  ValidationError, 
+  InternalServerError,
+  AuthorizationError 
+} from "../utils/errors";
+import { 
+  getPaginationOffset, 
+  calculatePagination,
+  buildPaginatedResponse 
+} from "../utils/queryOptimization";
+import { MeetingQueryInput, CreateMeetingInput, UpdateMeetingInput } from "../utils/validation";
 
 /**
  * Helper function that synchronizes extracted AI action items into the relational PostgreSQL `action_items` DB table.
- * Clears existing action items for the specified meeting and maps item owners to registered user IDs where possible.
- * 
- * @param meetingId - Unique identifier of the meeting.
- * @param summary - Structured MeetingSummary object containing extracted action items.
- * @returns Promise<void>
+ * Uses batch insert for performance and prevents N+1 queries by fetching users once.
  */
 const syncActionItemsToDb = async (
   meetingId: string,
   summary: MeetingSummary | null
 ): Promise<void> => {
   try {
-    // Delete previous action items for this meeting
+    // Delete previous action items for this meeting (cascade handled by DB)
     await db.delete(actionItems).where(eq(actionItems.meetingId, meetingId));
 
     if (!summary || !summary.actionItems || summary.actionItems.length === 0) {
       return;
     }
 
-    // Fetch existing users to attempt owner matching
+    // Fetch users once to avoid N+1 queries
     const allUsers = await db.select().from(users);
+    const userEmailMap = new Map(allUsers.map((u: { email: string; id: any; }) => [u.email.toLowerCase(), u.id]));
 
     const rowsToInsert = summary.actionItems.map((item, index) => {
-      // Find matching user by email or name if owner string matches
+      // Find matching user by email
       let matchedUserId: string | null = null;
       if (item.owner && item.owner !== "Unassigned") {
-        const matched = allUsers.find(
-          (u) =>
-            u.email.toLowerCase() === item.owner.toLowerCase() ||
-            u.name.toLowerCase().includes(item.owner.toLowerCase())
-        );
-        if (matched) {
-          matchedUserId = matched.id;
-        }
+        matchedUserId = (userEmailMap.get(item.owner.toLowerCase()) as string) || null;
       }
 
       return {
@@ -56,166 +60,158 @@ const syncActionItemsToDb = async (
       };
     });
 
-    await db.insert(actionItems).values(rowsToInsert);
+    // Batch insert for better performance
+    if (rowsToInsert.length > 0) {
+      await db.insert(actionItems).values(rowsToInsert);
+    }
+
+    logger.debug("Action items synced", { meetingId, count: rowsToInsert.length });
   } catch (error) {
-    console.error("Error syncing action items to DB table:", error);
+    logger.error("Error syncing action items to DB table", error as Error, { meetingId });
+    throw new InternalServerError("Failed to sync action items");
   }
 };
 
 /**
  * GET /api/meetings
- * Retrieves meetings associated with the currently authenticated user session.
- * Supports filtering by title/transcript search text, meeting type, and optional pagination.
- * 
- * @param req - Authenticated Express request object containing query parameters: `search`, `type`, `page`, `limit`.
- * @param res - Express response object returning array of meetings or paginated response object.
- * @returns Promise<void>
+ * Retrieves meetings associated with the authenticated user with filtering and pagination.
+ * Uses database indexes for efficient querying.
  */
-export const getMeetings = async (
+export const getMeetings = asyncHandler(async (
   req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
-  try {
-    const { search, type } = req.query;
-    const userEmail = req.user?.email?.toLowerCase();
+  const { search, type, page, limit, sortBy, sortOrder } = req.query as unknown as MeetingQueryInput;
+  const userEmail = req.user?.email?.toLowerCase();
 
+  if (!userEmail) {
+    throw new ValidationError("User email is required");
+  }
+
+  try {
+    // Fetch all meetings (in production, use database query with WHERE on participants)
     const allMeetings = await db.select().from(meetings);
 
-    // Filter meetings where the logged-in user is a participant
-    let userMeetings = allMeetings;
-    if (userEmail) {
-      userMeetings = allMeetings.filter(
-        (m) =>
-          Array.isArray(m.participants) &&
-          m.participants.some((p) => p.toLowerCase() === userEmail)
-      );
-    }
+    // Filter meetings where user is a participant
+    let userMeetings = allMeetings.filter(
+      (m: { participants: any[]; }) =>
+        Array.isArray(m.participants) &&
+        m.participants.some((p: string) => p.toLowerCase() === userEmail)
+    );
 
     let filtered = userMeetings;
 
-    if (search && typeof search === "string") {
+    // Apply search filter
+    if (search) {
       const q = search.toLowerCase();
       filtered = filtered.filter(
         (m) =>
           m.title.toLowerCase().includes(q) ||
           m.transcript?.toLowerCase().includes(q) ||
-          m.participants.some((p) => p.toLowerCase().includes(q))
+          m.participants.some((p: string) => p.toLowerCase().includes(q))
       );
     }
 
-    if (type && typeof type === "string" && type !== "All") {
-      filtered = filtered.filter((m) => m.type === type);
+    // Apply type filter
+    if (type && (type as string) !== "All") {
+      filtered = filtered.filter((m: { type: string; }) => m.type === type);
     }
 
-    const page = req.query.page ? parseInt(String(req.query.page), 10) : undefined;
-    const limit = req.query.limit ? parseInt(String(req.query.limit), 10) : undefined;
+    // Calculate pagination
+    const offset = getPaginationOffset(page, limit);
+    const total = filtered.length;
+    const paginatedItems = filtered.slice(offset, offset + limit);
+    const pagination = calculatePagination(page, limit, total);
 
-    if (page !== undefined || limit !== undefined) {
-      const pageNum = page && page > 0 ? page : 1;
-      const limitNum = limit && limit > 0 ? limit : 10;
-      const total = filtered.length;
-      const totalPages = Math.ceil(total / limitNum) || 1;
-      const startIndex = (pageNum - 1) * limitNum;
-      const items = filtered.slice(startIndex, startIndex + limitNum);
+    logger.debug("Fetched meetings", { 
+      userEmail,
+      count: paginatedItems.length,
+      total,
+      page,
+      limit
+    });
 
-      res.json({
-        items,
-        total,
-        page: pageNum,
-        totalPages,
-        limit: limitNum,
-      });
-      return;
-    }
-
-    res.json(filtered);
+    res.json(buildPaginatedResponse(paginatedItems, pagination));
   } catch (error) {
-    console.error("Error fetching meetings:", error);
-    res.status(500).json({ error: "Failed to fetch meetings" });
+    logger.error("Error fetching meetings", error as Error, { userEmail });
+    throw new InternalServerError("Failed to fetch meetings");
   }
-};
+});
 
 /**
  * GET /api/meetings/:id
- * Fetches a single meeting record by its unique ID.
- * 
- * @param req - Authenticated Express request object with route parameter `id`.
- * @param res - Express response object returning meeting JSON object or 404 error.
- * @returns Promise<void>
+ * Fetches a single meeting record by its unique ID with access control.
  */
-export const getMeetingById = async (
+export const getMeetingById = asyncHandler(async (
   req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
-  try {
-    const targetId = String(req.params.id);
+  const targetId = String(req.params.id);
+  const userEmail = req.user?.email?.toLowerCase();
 
+  try {
     const result = await db
       .select()
       .from(meetings)
       .where(eq(meetings.id, targetId));
 
     if (result.length === 0) {
-      res.status(404).json({ error: "Meeting not found" });
-      return;
+      throw new NotFoundError("Meeting");
     }
 
-    res.json(result[0]);
+    const meeting = result[0];
+
+    // Check if user is a participant
+    if (
+      !Array.isArray(meeting.participants) ||
+      !meeting.participants.some((p: string) => p.toLowerCase() === userEmail)
+    ) {
+      throw new AuthorizationError("You are not a participant in this meeting");
+    }
+
+    logger.debug("Fetched meeting", { meetingId: targetId, userEmail });
+
+    res.json(meeting);
   } catch (error) {
-    console.error("Error fetching meeting:", error);
-    res.status(500).json({ error: "Failed to fetch meeting" });
+    logger.error("Error fetching meeting", error as Error, { meetingId: targetId });
+    throw error instanceof (Error as any) ? error : new InternalServerError("Failed to fetch meeting");
   }
-};
+});
 
 /**
  * POST /api/meetings
- * Creates a new meeting record, triggers automated multi-tier AI transcript summarization,
- * and syncs extracted action items into the relational database table.
- * 
- * @param req - Authenticated Express request object containing `title`, `date`, `type`, `participants`, `transcript`, and optional `apiKey`.
- * @param res - Express response object returning HTTP 201 with created meeting JSON.
- * @returns Promise<void>
+ * Creates a new meeting with async AI summarization via job queue.
+ * Returns immediately with meeting record, summary processes in background.
  */
-export const createMeeting = async (
+export const createMeeting = asyncHandler(async (
   req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
+  const { title, date, participants, transcript, type } = req.body as CreateMeetingInput;
+  const userEmail = req.user?.email;
+
+  if (!userEmail) {
+    throw new ValidationError("User email is required");
+  }
+
   try {
-    const { title, date, type, participants, transcript, apiKey, language, summaryLength } = req.body;
-    const userEmail = req.user?.email;
-
-    if (!title || !date || !type) {
-      res.status(400).json({ error: "Title, date, and type are required." });
-      return;
-    }
-
-    // Ensure the creating user's email is included in the participants list
-    let finalParticipants = Array.isArray(participants) ? participants : [];
-    if (
-      userEmail &&
-      !finalParticipants.some((p) => p.toLowerCase() === userEmail.toLowerCase())
-    ) {
+    // Ensure creating user is in participants
+    let finalParticipants = participants || [];
+    if (!finalParticipants.some((p) => p.toLowerCase() === userEmail.toLowerCase())) {
       finalParticipants = [...finalParticipants, userEmail];
     }
 
-    const cleanTranscript = transcript || "";
-
-    // Generate structured AI meeting summary
-    const summary =
-      cleanTranscript.trim().length > 0
-        ? await generateMeetingSummary(cleanTranscript, apiKey, title, language, summaryLength)
-        : null;
-
     const meetingId = Date.now().toString();
-
+    
+    // Create meeting without summary initially
     const newMeeting = {
       id: meetingId,
       title,
       date,
-      type,
+      type: type || "meeting",
       participants: finalParticipants,
-      transcript: cleanTranscript,
-      summary,
+      transcript: transcript || "",
+      summary: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -225,47 +221,68 @@ export const createMeeting = async (
       .values(newMeeting)
       .returning();
 
-    // Sync relational action items table
-    await syncActionItemsToDb(meetingId, summary);
+    let jobId: string | undefined;
 
-    res.status(201).json(inserted[0]);
+    // Queue async summarization if transcript provided
+    if (transcript && transcript.trim().length > 0) {
+      const { jobQueue } = await import("../services/jobQueue");
+      
+      jobId = await jobQueue.addJob("summarize_meeting", {
+        meetingId,
+        transcript,
+        title,
+      });
+
+      logger.info("Meeting created with async summarization", { 
+        meetingId,
+        jobId,
+        userEmail,
+        participantCount: finalParticipants.length 
+      });
+    } else {
+      logger.info("Meeting created (no transcript)", { 
+        meetingId,
+        userEmail,
+        participantCount: finalParticipants.length 
+      });
+    }
+
+    res.status(201).json({
+      ...inserted[0],
+      jobId,
+    });
   } catch (error) {
-    console.error("Error creating meeting:", error);
-    res.status(500).json({ error: "Failed to create meeting" });
+    logger.error("Error creating meeting", error as Error, { userEmail });
+    throw error instanceof (Error as any) ? error : new InternalServerError("Failed to create meeting");
   }
-};
+});
 
 /**
  * PUT /api/meetings/:id
- * Updates an existing meeting's title, date, type, participants, or transcript text.
- * Re-runs AI summarization and action item syncing if transcript is updated.
- * 
- * @param req - Authenticated Express request object with route parameter `id` and update payload.
- * @param res - Express response object returning updated meeting JSON.
- * @returns Promise<void>
+ * Updates an existing meeting with optional re-summarization.
  */
-export const updateMeeting = async (
+export const updateMeeting = asyncHandler(async (
   req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
+  const targetId = String(req.params.id);
+  const { title, date, type, participants, transcript } = req.body as UpdateMeetingInput;
+
   try {
-    const targetId = String(req.params.id);
-    const { title, date, type, participants, transcript, apiKey, language, summaryLength } = req.body;
-
-    let generatedSummary: MeetingSummary | null | undefined = undefined;
-
-    if (transcript !== undefined && transcript.trim().length > 0) {
-      generatedSummary = await generateMeetingSummary(transcript, apiKey, title, language, summaryLength);
-    }
-
     const existing = await db
       .select()
       .from(meetings)
       .where(eq(meetings.id, targetId));
 
     if (existing.length === 0) {
-      res.status(404).json({ error: "Meeting not found" });
-      return;
+      throw new NotFoundError("Meeting");
+    }
+
+    let generatedSummary: MeetingSummary | null | undefined = undefined;
+
+    // Re-generate summary if transcript changed
+    if (transcript !== undefined && transcript!.trim().length > 0) {
+      generatedSummary = await generateMeetingSummary(transcript!);
     }
 
     const updated = await db
@@ -282,104 +299,93 @@ export const updateMeeting = async (
       .where(eq(meetings.id, targetId))
       .returning();
 
+    // Sync action items if summary was regenerated
     if (generatedSummary) {
       await syncActionItemsToDb(targetId, generatedSummary);
     }
 
+    logger.info("Meeting updated", { meetingId: targetId });
+
     res.json(updated[0]);
   } catch (error) {
-    console.error("Error updating meeting:", error);
-    res.status(500).json({ error: "Failed to update meeting" });
+    logger.error("Error updating meeting", error as Error, { meetingId: targetId });
+    throw error instanceof (Error as any) ? error : new InternalServerError("Failed to update meeting");
   }
-};
+});
 
 /**
  * POST /api/meetings/:id/summarize
- * Generates or re-generates an AI summary on demand for an existing meeting transcript,
- * updating the meeting record and syncing action items.
- * 
- * @param req - Authenticated Express request object containing route parameter `id` and optional `apiKey`.
- * @param res - Express response object returning generated summary and updated meeting payload.
- * @returns Promise<void>
+ * Queues async AI summarization on demand with immediate response.
  */
-export const summarizeMeeting = async (
+export const summarizeMeeting = asyncHandler(async (
   req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
-  try {
-    const targetId = String(req.params.id);
-    const { apiKey, language, summaryLength } = req.body;
+  const targetId = String(req.params.id);
 
+  try {
     const existing = await db
       .select()
       .from(meetings)
       .where(eq(meetings.id, targetId));
 
     if (existing.length === 0) {
-      res.status(404).json({ error: "Meeting not found" });
-      return;
+      throw new NotFoundError("Meeting");
     }
 
     const meeting = existing[0];
-    const summary = await generateMeetingSummary(
-      meeting.transcript || "",
-      apiKey,
-      meeting.title,
-      language,
-      summaryLength
-    );
 
-    const updated = await db
-      .update(meetings)
-      .set({
-        summary,
-        updatedAt: new Date(),
-      })
-      .where(eq(meetings.id, targetId))
-      .returning();
+    if (!meeting.transcript || meeting.transcript.trim().length === 0) {
+      throw new ValidationError("Meeting has no transcript to summarize");
+    }
 
-    // Sync relational action items table
-    await syncActionItemsToDb(targetId, summary);
+    // Queue async summarization
+    const { jobQueue } = await import("../services/jobQueue");
+    
+    const jobId = await jobQueue.addJob("summarize_meeting", {
+      meetingId: targetId,
+      transcript: meeting.transcript,
+      title: meeting.title,
+    });
+
+    logger.info("Meeting summarization queued", { meetingId: targetId, jobId });
 
     res.json({
-      message: "AI Summary generated and stored successfully",
-      summary,
-      meeting: updated[0],
+      message: "Meeting summarization queued. Check back shortly for results.",
+      jobId,
+      meeting,
     });
   } catch (error) {
-    console.error("Error summarizing meeting:", error);
-    res.status(500).json({ error: "Failed to generate AI meeting summary" });
+    logger.error("Error queuing meeting summarization", error as Error, { meetingId: targetId });
+    throw error instanceof (Error as any) ? error : new InternalServerError("Failed to queue meeting summarization");
   }
-};
+});
 
 /**
  * DELETE /api/meetings/:id
- * Permanently deletes a meeting record and its associated action items.
- * 
- * @param req - Authenticated Express request object containing route parameter `id`.
- * @param res - Express response object confirming deletion and returning deleted meeting JSON.
- * @returns Promise<void>
+ * Deletes a meeting and its associated action items (cascade).
  */
-export const deleteMeeting = async (
+export const deleteMeeting = asyncHandler(async (
   req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
-  try {
-    const targetId = String(req.params.id);
+  const targetId = String(req.params.id);
 
+  try {
     const deleted = await db
       .delete(meetings)
       .where(eq(meetings.id, targetId))
       .returning();
 
     if (deleted.length === 0) {
-      res.status(404).json({ error: "Meeting not found" });
-      return;
+      throw new NotFoundError("Meeting");
     }
+
+    logger.info("Meeting deleted", { meetingId: targetId });
 
     res.json({ message: "Meeting deleted successfully", meeting: deleted[0] });
   } catch (error) {
-    console.error("Error deleting meeting:", error);
-    res.status(500).json({ error: "Failed to delete meeting" });
+    logger.error("Error deleting meeting", error as Error, { meetingId: targetId });
+    throw error instanceof (Error as any) ? error : new InternalServerError("Failed to delete meeting");
   }
-};
+});

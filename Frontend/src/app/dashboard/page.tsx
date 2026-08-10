@@ -63,25 +63,41 @@ export default function DashboardPage() {
           api.get("/action-items"),
         ]);
 
-        if (
-          meetingsRes.status === "fulfilled" &&
-          Array.isArray(meetingsRes.value.data)
-        ) {
-          setMeetings(meetingsRes.value.data);
+        if (meetingsRes.status === "fulfilled") {
+          const responseData = meetingsRes.value.data;
+          
+          // Check if response is paginated (has data property) or direct array
+          const meetingsData = responseData?.data || responseData;
+          
+          if (Array.isArray(meetingsData)) {
+            setMeetings(meetingsData);
+          } else {
+            console.warn("⚠️ Meetings data is not an array:", responseData);
+            setMeetings([]);
+          }
         } else {
+          console.error("❌ Failed to fetch meetings:", meetingsRes.reason);
           setMeetings([]);
         }
 
-        if (
-          actionItemsRes.status === "fulfilled" &&
-          Array.isArray(actionItemsRes.value.data)
-        ) {
-          setActionItems(actionItemsRes.value.data);
+        if (actionItemsRes.status === "fulfilled") {
+          const responseData = actionItemsRes.value.data;
+          
+          // Check if response is paginated (has data property) or direct array
+          const actionItemsData = responseData?.data || responseData;
+          
+          if (Array.isArray(actionItemsData)) {
+            setActionItems(actionItemsData);
+          } else {
+            console.warn("⚠️ Action items data is not an array:", responseData);
+            setActionItems([]);
+          }
         } else {
+          console.error("❌ Failed to fetch action items:", actionItemsRes.reason);
           setActionItems([]);
         }
       } catch (err) {
-        console.error("Failed to fetch dashboard data from API:", err);
+        console.error("❌ Failed to fetch dashboard data from API:", err);
       } finally {
         setIsLoading(false);
       }

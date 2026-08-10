@@ -42,9 +42,11 @@ export default function MeetingsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string>("All");
 
-  // Pagination state (Limit 10 meetings per page)
+  // Pagination state (Server-side pagination)
   const ITEMS_PER_PAGE = 10;
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
   // Modal states
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -58,27 +60,49 @@ export default function MeetingsPage() {
     setCurrentPage(1);
   }, [searchQuery, selectedType]);
 
-  // Fetch meetings from backend API / Database
-  const fetchMeetings = useCallback(async () => {
+  // Fetch meetings from backend API with server-side pagination
+  const fetchMeetings = useCallback(async (page: number) => {
     try {
       setIsLoading(true);
-      const response = await api.get("/meetings");
-      const resData = Array.isArray(response.data)
-        ? response.data
-        : response.data.items || [];
-      setMeetings(resData);
+      const response = await api.get("/meetings", {
+        params: {
+          page,
+          limit: ITEMS_PER_PAGE,
+        },
+      });
+
+      console.log("Meetings API Response:", response.data);
+
+      // Handle paginated response
+      if (response.data.data && response.data.pagination) {
+        setMeetings(response.data.data);
+        setTotalPages(response.data.pagination.totalPages);
+        setTotalItems(response.data.pagination.total);
+      } else if (Array.isArray(response.data)) {
+        // Fallback for non-paginated response
+        setMeetings(response.data);
+        setTotalPages(1);
+        setTotalItems(response.data.length);
+      } else {
+        setMeetings([]);
+        setTotalPages(1);
+        setTotalItems(0);
+      }
     } catch (error) {
       console.error("Failed to fetch meetings from database:", error);
+      setMeetings([]);
+      setTotalPages(1);
+      setTotalItems(0);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchMeetings();
-  }, [fetchMeetings]);
+    fetchMeetings(currentPage);
+  }, [currentPage, fetchMeetings]);
 
-  // Search & Filter
+  // Client-side filtering (for search and type filter)
   const filteredMeetings = useMemo(() => {
     return meetings.filter((meeting) => {
       const matchesSearch =
@@ -96,15 +120,57 @@ export default function MeetingsPage() {
     });
   }, [meetings, searchQuery, selectedType]);
 
-  // Pagination Calculations
-  const totalPages = useMemo(() => {
-    return Math.ceil(filteredMeetings.length / ITEMS_PER_PAGE) || 1;
-  }, [filteredMeetings.length]);
+  // Use filtered meetings for display
+  const displayMeetings = filteredMeetings;
 
-  const paginatedMeetings = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredMeetings.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [filteredMeetings, currentPage]);
+  // Active background jobs being processed
+  const [activeJobIds, setActiveJobIds] = useState<string[]>([]);
+
+  // Poll active jobs and refresh list upon completion
+  useEffect(() => {
+    if (activeJobIds.length === 0) return;
+
+    const interval = setInterval(async () => {
+      let shouldRefresh = false;
+      const remainingJobIds: string[] = [];
+
+      for (const jobId of activeJobIds) {
+        try {
+          const res = await api.get(`/jobs/${jobId}`);
+          const status = res.data?.status;
+
+          if (status === "completed" || status === "failed") {
+            shouldRefresh = true;
+          } else {
+            remainingJobIds.push(jobId);
+          }
+        } catch (err) {
+          console.error(`Error checking job status for ${jobId}:`, err);
+        }
+      }
+
+      setActiveJobIds(remainingJobIds);
+
+      if (shouldRefresh) {
+        // Fetch current page data without resetting currentPage
+        const res = await api.get("/meetings", {
+          params: { page: currentPage, limit: ITEMS_PER_PAGE },
+        });
+        if (res.data?.data) {
+          setMeetings(res.data.data);
+          // If a meeting detail modal is open, update its viewingMeeting reference to reflect newly completed summary
+          if (viewingMeeting) {
+            const updatedMatch = res.data.data.find((m: Meeting) => m.id === viewingMeeting.id);
+            if (updatedMatch) {
+              setViewingMeeting(updatedMatch);
+            }
+          }
+        }
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [activeJobIds, currentPage, fetchMeetings, viewingMeeting]);
 
   // Create or Update meeting in Database
   const handleSaveMeeting = async (meetingData: Partial<Meeting>) => {
@@ -115,13 +181,17 @@ export default function MeetingsPage() {
           `/meetings/${meetingData.id}`,
           meetingData
         );
-        setMeetings((prev) =>
-          prev.map((m) => (m.id === meetingData.id ? response.data : m))
-        );
+        // Refresh current page to show updated data
+        await fetchMeetings(currentPage);
       } else {
         // Create new meeting
-        const response = await api.post<Meeting>("/meetings", meetingData);
-        setMeetings((prev) => [response.data, ...prev]);
+        const response = await api.post<{ jobId?: string } & Meeting>("/meetings", meetingData);
+        if (response.data?.jobId) {
+          setActiveJobIds((prev) => [...prev, response.data.jobId!]);
+        }
+        // Go to page 1 to see the newly created meeting
+        await fetchMeetings(1);
+        setCurrentPage(1);
       }
     } catch (error) {
       console.error("Failed to save meeting to database:", error);
@@ -134,7 +204,8 @@ export default function MeetingsPage() {
     if (confirm("Are you sure you want to delete this meeting?")) {
       try {
         await api.delete(`/meetings/${id}`);
-        setMeetings((prev) => prev.filter((m) => m.id !== id));
+        // Refresh the current page
+        await fetchMeetings(currentPage);
       } catch (error) {
         console.error("Failed to delete meeting from database:", error);
         alert("Failed to delete meeting. Please try again.");
@@ -239,7 +310,7 @@ export default function MeetingsPage() {
                   </div>
                 </TableCell>
               </TableRow>
-            ) : paginatedMeetings.length === 0 ? (
+            ) : displayMeetings.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={5}
@@ -250,7 +321,7 @@ export default function MeetingsPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              paginatedMeetings.map((meeting) => (
+              displayMeetings.map((meeting) => (
                 <TableRow
                   key={meeting.id}
                   className="border-b border-zinc-100 dark:border-zinc-800/50 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 transition-colors"
@@ -267,12 +338,23 @@ export default function MeetingsPage() {
                     </button>
                   </TableCell>
                   <TableCell className="py-3.5">
-                    <Badge
-                      variant="outline"
-                      className="text-xs font-normal border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 rounded-md"
-                    >
-                      {meeting.type}
-                    </Badge>
+                    <div className="flex items-center gap-1.5">
+                      <Badge
+                        variant="outline"
+                        className="text-xs font-normal border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 rounded-md"
+                      >
+                        {meeting.type}
+                      </Badge>
+                      {!meeting.summary && meeting.transcript && (
+                        <Badge
+                          variant="secondary"
+                          className="text-[10px] font-medium bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 animate-pulse flex items-center gap-1"
+                        >
+                          <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                          Summarizing...
+                        </Badge>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="py-3.5">
                     <span className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400 font-medium">
@@ -342,14 +424,14 @@ export default function MeetingsPage() {
       </div>
 
       {/* Pagination Controls */}
-      {filteredMeetings.length > 0 && (
+      {!searchQuery && selectedType === "All" && totalItems > 0 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-zinc-900 px-5 py-3.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-sm text-xs">
           <div className="text-zinc-500 dark:text-zinc-400">
             Showing <span className="font-semibold text-zinc-900 dark:text-zinc-100">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to{" "}
             <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-              {Math.min(currentPage * ITEMS_PER_PAGE, filteredMeetings.length)}
+              {Math.min(currentPage * ITEMS_PER_PAGE, totalItems)}
             </span>{" "}
-            of <span className="font-semibold text-zinc-900 dark:text-zinc-100">{filteredMeetings.length}</span> meetings
+            of <span className="font-semibold text-zinc-900 dark:text-zinc-100">{totalItems}</span> meetings
           </div>
 
           <div className="flex items-center gap-1.5">
@@ -372,8 +454,8 @@ export default function MeetingsPage() {
                   size="sm"
                   onClick={() => setCurrentPage(page)}
                   className={`h-7 w-7 text-xs p-0 font-medium ${currentPage === page
-                      ? "bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                    ? "bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
                     }`}
                 >
                   {page}
@@ -391,6 +473,17 @@ export default function MeetingsPage() {
               Next
               <ChevronRight className="h-3.5 w-3.5" />
             </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Filtered Results Info (when search/filter is active) */}
+      {(searchQuery || selectedType !== "All") && displayMeetings.length > 0 && (
+        <div className="bg-white dark:bg-zinc-900 px-5 py-3 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-sm text-xs">
+          <div className="text-zinc-500 dark:text-zinc-400">
+            Found <span className="font-semibold text-zinc-900 dark:text-zinc-100">{displayMeetings.length}</span> matching meeting(s)
+            {searchQuery && <span> for &quot;<span className="font-semibold text-zinc-900 dark:text-zinc-100">{searchQuery}</span>&quot;</span>}
+            {selectedType !== "All" && <span> in <span className="font-semibold text-zinc-900 dark:text-zinc-100">{selectedType}</span></span>}
           </div>
         </div>
       )}
@@ -413,6 +506,7 @@ export default function MeetingsPage() {
           setViewingMeeting(null);
         }}
         meeting={viewingMeeting}
+        isSummarizing={!!(viewingMeeting && !viewingMeeting.summary && viewingMeeting.transcript)}
         onEdit={(meeting) => {
           setEditingMeeting(meeting);
           setIsFormModalOpen(true);

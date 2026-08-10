@@ -1,0 +1,76 @@
+/**
+ * Environment Configuration & Validation
+ * Validates and exposes all environment variables with type safety
+ */
+
+import { z } from 'zod';
+import { logger } from './logger';
+
+const envSchema = z.object({
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  PORT: z.string().regex(/^\d+$/).default('5000').transform(Number),
+  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
+  JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters for production').default(''),
+  JWT_EXPIRES_IN: z.string().default('7d'),
+  GOOGLE_GENERATIVE_AI_API_KEY: z.string().optional(),
+  OPENAI_API_KEY: z.string().optional(),
+  CORS_ORIGINS: z.string().default('http://localhost:3000,http://localhost:3001'),
+  LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
+  MAX_REQUEST_SIZE: z.string().default('10mb'),
+  REQUEST_TIMEOUT: z.string().regex(/^\d+$/).transform(Number).default(30000),
+  RATE_LIMIT_WINDOW_MS: z.string().regex(/^\d+$/).transform(Number).default(900000), // 15 min
+  RATE_LIMIT_MAX_REQUESTS: z.string().regex(/^\d+$/).transform(Number).default(100),
+  ENABLE_RATE_LIMITER: z.string().transform((val) => val === 'true').default(true),
+});
+
+export type EnvConfig = z.infer<typeof envSchema>;
+
+function validateEnv(): EnvConfig {
+  try {
+    const env = envSchema.parse(process.env);
+
+    // Additional validation for production
+    if (env.NODE_ENV === 'production') {
+      if (!env.JWT_SECRET || env.JWT_SECRET === 'default_fallback_secret_key_change_in_production') {
+        throw new Error(
+          'CRITICAL: JWT_SECRET must be set to a secure random value in production. ' +
+          'Generate with: openssl rand -base64 32'
+        );
+      }
+
+      if (!env.GOOGLE_GENERATIVE_AI_API_KEY && !env.OPENAI_API_KEY) {
+        logger.warn('No AI API keys configured. Meeting summarization will use fallback heuristics.', {
+          environment: 'production',
+        });
+      }
+    }
+
+    return env;
+  } catch (error) {
+    logger.error(
+      'Environment validation failed. Please check .env file and required variables.',
+      error instanceof Error ? error : new Error(String(error))
+    );
+    process.exit(1);
+  }
+}
+
+export const config = validateEnv();
+
+/**
+ * Get environment variable with fallback
+ */
+export const getEnv = (key: keyof EnvConfig, fallback?: string): string => {
+  const value = config[key];
+  if (value === undefined && !fallback) {
+    throw new Error(`Environment variable ${key} is not set`);
+  }
+  return String(value || fallback || '');
+};
+
+/**
+ * Check if running in production
+ */
+export const isProduction = () => config.NODE_ENV === 'production';
+export const isDevelopment = () => config.NODE_ENV === 'development';
+export const isTest = () => config.NODE_ENV === 'test';

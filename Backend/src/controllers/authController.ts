@@ -1,10 +1,19 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
-import { db } from "../db";
+import db from "../db";
 import { users } from "../db/schema";
 import { eq } from "drizzle-orm";
 import { generateToken } from "../utils/jwt";
 import { AuthenticatedRequest } from "../middleware/authMiddleware";
+import { asyncHandler } from "../middleware/errorHandler";
+import { logger } from "../utils/logger";
+import { 
+  AuthenticationError, 
+  ConflictError, 
+  ValidationError, 
+  InternalServerError 
+} from "../utils/errors";
+import { RegisterInput, LoginInput } from "../utils/validation";
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
@@ -15,52 +24,37 @@ const COOKIE_OPTIONS = {
 
 /**
  * POST /api/auth/register
- * Registers a new user account with hashed password (`bcryptjs`), creates database record,
+ * Registers a new user account with hashed password (bcryptjs), creates database record,
  * and sets an HTTP-only JWT authentication cookie.
- * 
- * @param req - Express request object containing `name`, `email`, and `password` in body.
- * @param res - Express response object returning created user profile and HTTP-only auth token cookie.
- * @returns Promise<void>
  */
-export const register = async (req: Request, res: Response): Promise<void> => {
+export const register = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const { name, email, password } = req.body as RegisterInput;
+
+  logger.debug("Registration attempt", { email });
+
+  // Check if user already exists
+  const existingUser = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email));
+
+  if (existingUser.length > 0) {
+    throw new ConflictError("User with this email already exists");
+  }
+
+  // Hash password with salt rounds for security
+  const salt = await bcrypt.genSalt(12);
+  const hashedPassword = await bcrypt.hash(password, salt);
+
+  const newUserId = Date.now().toString();
+
   try {
-    const { name, email, password } = req.body;
-
-    if (!name || !email || !password) {
-      res.status(400).json({ error: "Name, email, and password are required." });
-      return;
-    }
-
-    if (password.length < 6) {
-      res.status(400).json({ error: "Password must be at least 6 characters long." });
-      return;
-    }
-
-    const cleanEmail = email.toLowerCase().trim();
-
-    // Check if user already exists
-    const existingUser = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, cleanEmail));
-
-    if (existingUser.length > 0) {
-      res.status(400).json({ error: "User with this email already exists." });
-      return;
-    }
-
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    const newUserId = Date.now().toString();
-
     const inserted = await db
       .insert(users)
       .values({
         id: newUserId,
         name,
-        email: cleanEmail,
+        email,
         password: hashedPassword,
       })
       .returning();
@@ -75,6 +69,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     // Set HTTP-only Cookie in response headers
     res.cookie("token", token, COOKIE_OPTIONS);
 
+    logger.info("User registered successfully", { userId: createdUser.id, email: createdUser.email });
+
     res.status(201).json({
       message: "User registered successfully",
       token,
@@ -86,85 +82,70 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       },
     });
   } catch (error) {
-    console.error("Register Error:", error);
-    res.status(500).json({ error: "Internal server error during registration." });
+    logger.error("Database error during registration", error as Error, { email });
+    throw new InternalServerError("Failed to register user");
   }
-};
+});
 
 /**
  * POST /api/auth/login
- * Authenticates user credentials using password comparison (`bcrypt.compare`),
+ * Authenticates user credentials using password comparison (bcrypt.compare),
  * generates a signed JWT token, and returns user session object with HTTP-only cookie.
- * 
- * @param req - Express request object containing `email` and `password` in body.
- * @param res - Express response object returning authenticated user info and setting auth cookie.
- * @returns Promise<void>
  */
-export const login = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { email, password } = req.body;
+export const login = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const { email, password } = req.body as LoginInput;
 
-    if (!email || !password) {
-      res.status(400).json({ error: "Email and password are required." });
-      return;
-    }
+  logger.debug("Login attempt", { email });
 
-    const cleanEmail = email.toLowerCase().trim();
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email));
 
-    const result = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, cleanEmail));
-
-    if (result.length === 0) {
-      res.status(401).json({ error: "Invalid email or password." });
-      return;
-    }
-
-    const user = result[0];
-
-    // Compare passwords
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      res.status(401).json({ error: "Invalid email or password." });
-      return;
-    }
-
-    const token = generateToken({
-      userId: user.id,
-      email: user.email,
-      name: user.name,
-    });
-
-    // Set HTTP-only Cookie in response headers
-    res.cookie("token", token, COOKIE_OPTIONS);
-
-    res.json({
-      message: "Login successful",
-      token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        createdAt: user.createdAt,
-      },
-    });
-  } catch (error) {
-    console.error("Login Error:", error);
-    res.status(500).json({ error: "Internal server error during login." });
+  if (result.length === 0) {
+    // Log failed attempt but don't reveal user doesn't exist
+    logger.warn("Login failed: user not found", { email });
+    throw new AuthenticationError("Invalid email or password");
   }
-};
+
+  const user = result[0];
+
+  // Compare passwords
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    logger.warn("Login failed: invalid password", { email, userId: user.id });
+    throw new AuthenticationError("Invalid email or password");
+  }
+
+  const token = generateToken({
+    userId: user.id,
+    email: user.email,
+    name: user.name,
+  });
+
+  // Set HTTP-only Cookie in response headers
+  res.cookie("token", token, COOKIE_OPTIONS);
+
+  logger.info("User logged in successfully", { userId: user.id, email: user.email });
+
+  res.json({
+    message: "Login successful",
+    token,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      createdAt: user.createdAt,
+    },
+  });
+});
 
 /**
  * GET /api/auth/users
  * Fetches list of all registered application users (excluding password hashes)
  * for UI participant selection and action item assignment dropdowns.
- * 
- * @param req - Express request object.
- * @param res - Express response object returning array of user objects (`id`, `name`, `email`).
- * @returns Promise<void>
  */
-export const getUsers = async (req: Request, res: Response): Promise<void> => {
+export const getUsers = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   try {
     const allUsers = await db
       .select({
@@ -175,58 +156,45 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
       })
       .from(users);
 
+    logger.debug("Fetched users list", { count: allUsers.length });
+
     res.json(allUsers);
   } catch (error) {
-    console.error("GetUsers Error:", error);
-    res.status(500).json({ error: "Failed to fetch registered users." });
+    logger.error("Failed to fetch users", error as Error);
+    throw new InternalServerError("Failed to fetch registered users");
   }
-};
+});
 
 /**
  * GET /api/auth/me
  * Retrieves current authenticated user session details from verified JWT payload.
- * 
- * @param req - Authenticated Express request object populated with `req.user`.
- * @param res - Express response object returning current user profile payload.
- * @returns Promise<void>
  */
-export const getMe = async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
-  try {
+export const getMe = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     if (!req.user) {
-      res.status(401).json({ error: "Not authenticated" });
-      return;
+      throw new AuthenticationError("Not authenticated");
     }
+
+    logger.debug("User profile requested", { userId: req.user.userId });
 
     res.json({
       user: req.user,
     });
-  } catch (error) {
-    console.error("GetMe Error:", error);
-    res.status(500).json({ error: "Failed to fetch user profile." });
   }
-};
+);
 
 /**
  * POST /api/auth/logout
- * Clears the HTTP-only JWT authentication cookie (`token`) to log out the user.
- * 
- * @param req - Express request object.
- * @param res - Express response object clearing cookie and confirming logout.
- * @returns Promise<void>
+ * Clears the HTTP-only JWT authentication cookie (token) to log out the user.
  */
-export const logout = async (req: Request, res: Response): Promise<void> => {
-  try {
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: (process.env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
-    });
-    res.json({ message: "Logout successful" });
-  } catch (error) {
-    console.error("Logout Error:", error);
-    res.status(500).json({ error: "Failed to logout." });
-  }
-};
+export const logout = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: (process.env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
+  });
+
+  logger.info("User logged out successfully", { userId: (req as any).user?.userId });
+
+  res.json({ message: "Logout successful" });
+});
