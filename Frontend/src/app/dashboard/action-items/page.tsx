@@ -597,8 +597,8 @@ export default function ActionTrackerPage() {
         </div>
       </div>
 
-      {/* Action Items Table */}
-      <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 overflow-x-auto shadow-sm">
+      {/* Desktop & Tablet Table View */}
+      <div className="hidden md:block bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 overflow-x-auto shadow-sm">
         <Table className="w-full min-w-[900px]">
           <TableHeader>
             <TableRow className="border-b border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/30 hover:bg-transparent">
@@ -757,6 +757,104 @@ export default function ActionTrackerPage() {
         </Table>
       </div>
 
+      {/* Mobile Responsive Cards View */}
+      <div className="md:hidden space-y-3">
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center p-8 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-500">
+            <Loader2 className="h-6 w-6 animate-spin text-zinc-400 mb-2" />
+            <span className="text-xs font-medium">Loading action items...</span>
+          </div>
+        ) : displayItems.length === 0 ? (
+          <div className="p-6 text-center bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-500">
+            <p className="text-sm font-medium">No action items found matching your filters.</p>
+            <p className="text-xs text-zinc-400 mt-1">Try clearing search parameters or overdue filter.</p>
+          </div>
+        ) : (
+          displayItems.map((item) => (
+            <div
+              key={item.id}
+              className={`p-4 rounded-xl border bg-white dark:bg-zinc-900 shadow-sm space-y-3 transition-colors ${item.isOverdue
+                  ? "border-red-200 dark:border-red-900/50 bg-red-50/20 dark:bg-red-950/10"
+                  : "border-zinc-200/80 dark:border-zinc-800/80"
+                }`}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-snug">
+                  {item.task}
+                </p>
+                <div className="flex items-center gap-1 shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      setEditingItem(item);
+                      setIsModalOpen(true);
+                    }}
+                    className="h-7 w-7 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                  >
+                    <Edit className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDeleteItem(item.id)}
+                    className="h-7 w-7 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
+                Meeting: <span className="text-zinc-800 dark:text-zinc-200">{item.meetingTitle}</span>
+              </p>
+
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800 text-xs">
+                <span className="flex items-center gap-1 text-zinc-600 dark:text-zinc-400">
+                  <User className="h-3.5 w-3.5 text-zinc-400" />
+                  {item.owner}
+                </span>
+                <div className="flex items-center gap-1">
+                  <Calendar className="h-3.5 w-3.5 text-zinc-400" />
+                  <span className="text-zinc-600 dark:text-zinc-400">{item.dueDate}</span>
+                  {item.isOverdue && (
+                    <Badge variant="destructive" className="text-[9px] px-1 py-0 font-bold ml-1">
+                      OVERDUE
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-2 pt-1">
+                <Badge
+                  variant="outline"
+                  className={`text-xs font-medium rounded-md px-2 py-0.5 ${getPriorityBadgeClass(item.priority)}`}
+                >
+                  Priority: {item.priority}
+                </Badge>
+
+                <Select
+                  value={item.status}
+                  onValueChange={(val) =>
+                    val && handleStatusChange(item.id, val as ActionItem["status"])
+                  }
+                >
+                  <SelectTrigger className="h-7 text-xs w-28 border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/50 text-zinc-900 dark:text-zinc-100">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
+                    <SelectItem value="Open">Open</SelectItem>
+                    <SelectItem value="In Progress">In Progress</SelectItem>
+                    <SelectItem value="Blocked">Blocked</SelectItem>
+                    <SelectItem value="Completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
       {/* Pagination Controls */}
       {!searchQuery &&
         selectedStatus === "All" &&
@@ -765,7 +863,7 @@ export default function ActionTrackerPage() {
         !showOverdueOnly &&
         totalItems > 0 && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-zinc-900 px-5 py-3.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-sm text-xs">
-            <div className="text-zinc-500 dark:text-zinc-400">
+            <div className="text-zinc-500 dark:text-zinc-400 text-center sm:text-left">
               Showing <span className="font-semibold text-zinc-900 dark:text-zinc-100">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to{" "}
               <span className="font-semibold text-zinc-900 dark:text-zinc-100">
                 {Math.min(currentPage * ITEMS_PER_PAGE, totalItems)}
@@ -773,7 +871,7 @@ export default function ActionTrackerPage() {
               of <span className="font-semibold text-zinc-900 dark:text-zinc-100">{totalItems}</span> action items
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex flex-wrap items-center justify-center gap-1.5 w-full sm:w-auto">
               <Button
                 variant="outline"
                 size="sm"
@@ -786,20 +884,49 @@ export default function ActionTrackerPage() {
               </Button>
 
               <div className="flex items-center gap-1 px-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <Button
-                    key={page}
-                    variant={currentPage === page ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setCurrentPage(page)}
-                    className={`h-7 w-7 text-xs p-0 font-medium ${currentPage === page
-                      ? "bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                      }`}
-                  >
-                    {page}
-                  </Button>
-                ))}
+                {(() => {
+                  const pages: (number | string)[] = [];
+                  if (totalPages <= 5) {
+                    for (let i = 1; i <= totalPages; i++) pages.push(i);
+                  } else {
+                    pages.push(1);
+                    if (currentPage > 3) {
+                      pages.push("...");
+                    }
+                    const start = Math.max(2, currentPage - 1);
+                    const end = Math.min(totalPages - 1, currentPage + 1);
+                    for (let i = start; i <= end; i++) {
+                      if (!pages.includes(i)) pages.push(i);
+                    }
+                    if (currentPage < totalPages - 2) {
+                      pages.push("...");
+                    }
+                    if (!pages.includes(totalPages)) {
+                      pages.push(totalPages);
+                    }
+                  }
+
+                  return pages.map((page, idx) =>
+                    typeof page === "number" ? (
+                      <Button
+                        key={idx}
+                        variant={currentPage === page ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setCurrentPage(page)}
+                        className={`h-7 w-7 text-xs p-0 font-medium ${currentPage === page
+                            ? "bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                            : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                          }`}
+                      >
+                        {page}
+                      </Button>
+                    ) : (
+                      <span key={idx} className="px-1 text-xs text-zinc-400 font-medium">
+                        ...
+                      </span>
+                    )
+                  );
+                })()}
               </div>
 
               <Button

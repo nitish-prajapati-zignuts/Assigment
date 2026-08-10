@@ -278,8 +278,8 @@ export default function MeetingsPage() {
         </div>
       </div>
 
-      {/* Table Container */}
-      <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 overflow-hidden shadow-sm">
+      {/* Desktop & Tablet Table View */}
+      <div className="hidden md:block bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 overflow-hidden shadow-sm">
         <Table>
           <TableHeader>
             <TableRow className="border-b border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/30 hover:bg-transparent">
@@ -423,10 +423,116 @@ export default function MeetingsPage() {
         </Table>
       </div>
 
+      {/* Mobile Responsive Cards View */}
+      <div className="md:hidden space-y-3">
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center p-8 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-500">
+            <Loader2 className="h-6 w-6 animate-spin text-zinc-400 mb-2" />
+            <span className="text-xs font-medium">Loading meetings...</span>
+          </div>
+        ) : displayMeetings.length === 0 ? (
+          <div className="p-6 text-center bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-500">
+            <p className="text-sm font-medium">No meetings found matching your search.</p>
+            <p className="text-xs text-zinc-400 mt-1">Try adjusting your filters or search keywords.</p>
+          </div>
+        ) : (
+          displayMeetings.map((meeting) => (
+            <div
+              key={meeting.id}
+              className="p-4 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm space-y-3"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <button
+                  onClick={() => {
+                    setViewingMeeting(meeting);
+                    setIsDetailModalOpen(true);
+                  }}
+                  className="hover:underline text-left font-semibold text-sm text-zinc-900 dark:text-zinc-100"
+                >
+                  {meeting.title}
+                </button>
+                <div className="flex items-center gap-1 shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      setViewingMeeting(meeting);
+                      setIsDetailModalOpen(true);
+                    }}
+                    className="h-7 w-7 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  >
+                    <Eye className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      setEditingMeeting(meeting);
+                      setIsFormModalOpen(true);
+                    }}
+                    className="h-7 w-7 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                  >
+                    <Edit className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDeleteMeeting(meeting.id)}
+                    className="h-7 w-7 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Badge
+                  variant="outline"
+                  className="text-xs font-normal border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 rounded-md"
+                >
+                  {meeting.type}
+                </Badge>
+                {!meeting.summary && meeting.transcript && (
+                  <Badge
+                    variant="secondary"
+                    className="text-[10px] font-medium bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 animate-pulse flex items-center gap-1"
+                  >
+                    <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                    Summarizing...
+                  </Badge>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800 text-xs">
+                <span className="flex items-center gap-1 text-zinc-600 dark:text-zinc-400 font-medium">
+                  <Calendar className="h-3.5 w-3.5 text-zinc-400" />
+                  {meeting.date}
+                </span>
+                <div className="flex flex-wrap gap-1 max-w-[200px] items-center justify-end">
+                  {meeting.participants.slice(0, 2).map((p) => (
+                    <span
+                      key={p}
+                      className="text-[10px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-1.5 py-0.5 rounded-full border border-zinc-200/60 dark:border-zinc-700/60"
+                    >
+                      {p.split("@")[0]}
+                    </span>
+                  ))}
+                  {meeting.participants.length > 2 && (
+                    <span className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">
+                      +{meeting.participants.length - 2} more
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
       {/* Pagination Controls */}
       {!searchQuery && selectedType === "All" && totalItems > 0 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-zinc-900 px-5 py-3.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-sm text-xs">
-          <div className="text-zinc-500 dark:text-zinc-400">
+          <div className="text-zinc-500 dark:text-zinc-400 text-center sm:text-left">
             Showing <span className="font-semibold text-zinc-900 dark:text-zinc-100">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to{" "}
             <span className="font-semibold text-zinc-900 dark:text-zinc-100">
               {Math.min(currentPage * ITEMS_PER_PAGE, totalItems)}
@@ -434,7 +540,7 @@ export default function MeetingsPage() {
             of <span className="font-semibold text-zinc-900 dark:text-zinc-100">{totalItems}</span> meetings
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center justify-center gap-1.5 w-full sm:w-auto">
             <Button
               variant="outline"
               size="sm"
@@ -447,20 +553,50 @@ export default function MeetingsPage() {
             </Button>
 
             <div className="flex items-center gap-1 px-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <Button
-                  key={page}
-                  variant={currentPage === page ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setCurrentPage(page)}
-                  className={`h-7 w-7 text-xs p-0 font-medium ${currentPage === page
-                    ? "bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-                    : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                    }`}
-                >
-                  {page}
-                </Button>
-              ))}
+              {(() => {
+                const pages: (number | string)[] = [];
+                if (totalPages <= 5) {
+                  for (let i = 1; i <= totalPages; i++) pages.push(i);
+                } else {
+                  pages.push(1);
+                  if (currentPage > 3) {
+                    pages.push("...");
+                  }
+                  const start = Math.max(2, currentPage - 1);
+                  const end = Math.min(totalPages - 1, currentPage + 1);
+                  for (let i = start; i <= end; i++) {
+                    if (!pages.includes(i)) pages.push(i);
+                  }
+                  if (currentPage < totalPages - 2) {
+                    pages.push("...");
+                  }
+                  if (!pages.includes(totalPages)) {
+                    pages.push(totalPages);
+                  }
+                }
+
+                return pages.map((page, idx) =>
+                  typeof page === "number" ? (
+                    <Button
+                      key={idx}
+                      variant={currentPage === page ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setCurrentPage(page)}
+                      className={`h-7 w-7 text-xs p-0 font-medium ${
+                        currentPage === page
+                          ? "bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                          : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                      }`}
+                    >
+                      {page}
+                    </Button>
+                  ) : (
+                    <span key={idx} className="px-1 text-xs text-zinc-400 font-medium">
+                      ...
+                    </span>
+                  )
+                );
+              })()}
             </div>
 
             <Button

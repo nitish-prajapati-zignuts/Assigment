@@ -455,34 +455,6 @@ export function MeetingModal({
                 <Users className="h-4 w-4 text-zinc-500" />
                 Participants (Emails)
               </Label>
-
-              {/* Dropdown selecting from registered application users */}
-              <div className="w-60">
-                <Select onValueChange={(val) => { if (val) handleSelectUser(val as string); }}>
-                  <SelectTrigger className="h-8 text-xs bg-zinc-50 dark:bg-zinc-900 border-dashed">
-                    <div className="flex items-center gap-1 text-zinc-600 dark:text-zinc-300">
-                      <UserPlus className="h-3.5 w-3.5 text-blue-500" />
-                      <span>Add Registered User</span>
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {appUsers
-                      .filter(
-                        (user) =>
-                          !alreadySelectedList.includes(user.email.toLowerCase()) &&
-                          !alreadySelectedList.includes(user.name.toLowerCase())
-                      )
-                      .map((user) => (
-                        <SelectItem key={user.id} value={user.email} className="text-xs">
-                          <div className="flex flex-col">
-                            <span className="font-semibold">{user.name}</span>
-                            <span className="text-[10px] text-zinc-400">{user.email}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
 
             <div className="relative">

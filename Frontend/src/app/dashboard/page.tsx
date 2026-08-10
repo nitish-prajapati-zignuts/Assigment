@@ -65,10 +65,10 @@ export default function DashboardPage() {
 
         if (meetingsRes.status === "fulfilled") {
           const responseData = meetingsRes.value.data;
-          
+
           // Check if response is paginated (has data property) or direct array
           const meetingsData = responseData?.data || responseData;
-          
+
           if (Array.isArray(meetingsData)) {
             setMeetings(meetingsData);
           } else {
@@ -82,10 +82,10 @@ export default function DashboardPage() {
 
         if (actionItemsRes.status === "fulfilled") {
           const responseData = actionItemsRes.value.data;
-          
+
           // Check if response is paginated (has data property) or direct array
           const actionItemsData = responseData?.data || responseData;
-          
+
           if (Array.isArray(actionItemsData)) {
             setActionItems(actionItemsData);
           } else {
@@ -165,18 +165,18 @@ export default function DashboardPage() {
             Real-time analytics, action tracker status, and recently created meetings.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard/action-items">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+          <Link href="/dashboard/action-items" className="w-full sm:w-auto">
             <Button
               variant="outline"
-              className="flex items-center gap-2 shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
             >
               <ListTodo className="h-4 w-4 text-zinc-500" />
               Action Tracker
             </Button>
           </Link>
-          <Link href="/dashboard/meetings">
-            <Button className="flex items-center gap-2 shadow-sm bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 font-medium">
+          <Link href="/dashboard/meetings" className="w-full sm:w-auto">
+            <Button className="w-full sm:w-auto flex items-center justify-center gap-2 shadow-sm bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 font-medium">
               <Plus className="h-4 w-4" />
               Manage Meetings
             </Button>
@@ -285,8 +285,8 @@ export default function DashboardPage() {
         {/* 5. Overdue Action Items */}
         <Card
           className={`rounded-xl border transition-all duration-200 hover:shadow-md ${metrics.overdueActionItems > 0
-              ? "border-red-200 dark:border-red-900/50 bg-red-50/30 dark:bg-red-950/10"
-              : "border-zinc-200/80 dark:border-zinc-800/80 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm hover:border-zinc-300 dark:hover:border-zinc-700"
+            ? "border-red-200 dark:border-red-900/50 bg-red-50/30 dark:bg-red-950/10"
+            : "border-zinc-200/80 dark:border-zinc-800/80 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm hover:border-zinc-300 dark:hover:border-zinc-700"
             }`}
         >
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
