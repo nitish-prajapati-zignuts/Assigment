@@ -1,6 +1,6 @@
 import { pgTable, text, timestamp, varchar, jsonb } from "drizzle-orm/pg-core";
 
-export type SummaryLength = "short" | "medium" | "long";
+export type SummaryLength = "Short" | "Medium" | "Long";
 
 export interface KeyDecision {
   category: string;

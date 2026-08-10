@@ -95,7 +95,7 @@ export function MeetingModal({
   const [isReadingFile, setIsReadingFile] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [appUsers, setAppUsers] = useState<AppUser[]>([]);
-  const [summaryLength, setSummaryLength] = useState<SummaryLength>("medium");
+  const [summaryLength, setSummaryLength] = useState<SummaryLength>("Medium");
 
   const todayStr = getTodayDateString();
 
@@ -436,9 +436,9 @@ export function MeetingModal({
                   <SelectValue placeholder="Select length" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="short">Short (Concise)</SelectItem>
-                  <SelectItem value="medium">Medium (Standard)</SelectItem>
-                  <SelectItem value="long">Long (Detailed)</SelectItem>
+                  <SelectItem value="Short">Short (Concise)</SelectItem>
+                  <SelectItem value="Medium">Medium (Standard)</SelectItem>
+                  <SelectItem value="Long">Long (Detailed)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

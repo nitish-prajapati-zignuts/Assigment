@@ -287,7 +287,7 @@ export async function generateMeetingSummary(
   customApiKey?: string,
   title?: string,
   language?: string,
-  summaryLength: SummaryLength = "medium"
+  summaryLength: SummaryLength = "Medium"
 ): Promise<MeetingSummary> {
   const geminiApiKey = customApiKey || process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY;
   const openAiApiKey = process.env.OPENAI_API_KEY;
@@ -302,9 +302,9 @@ export async function generateMeetingSummary(
     : "";
 
   let lengthInstruction = "";
-  if (summaryLength === "short") {
+  if (summaryLength === "Short") {
     lengthInstruction = "\nSUMMARY LENGTH REQUIREMENT: Keep the output concise and brief (1-2 bullet points per section, high-level summary only).";
-  } else if (summaryLength === "long") {
+  } else if (summaryLength === "Long") {
     lengthInstruction = "\nSUMMARY LENGTH REQUIREMENT: Provide an in-depth, thorough, and highly detailed summary covering all nuanced topics, deep context, key decisions, and comprehensive action items.";
   } else {
     lengthInstruction = "\nSUMMARY LENGTH REQUIREMENT: Provide a balanced, medium-length summary with clear key discussion points and action items.";

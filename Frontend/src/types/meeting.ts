@@ -1,4 +1,4 @@
-export type SummaryLength = "short" | "medium" | "long";
+export type SummaryLength = "Short" | "Medium" | "Long";
 
 export type MeetingType =
   | "Client Meeting"
