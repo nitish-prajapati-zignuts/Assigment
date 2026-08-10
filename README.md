@@ -214,6 +214,8 @@ The PostgreSQL database uses three core relational tables defined via **Drizzle 
 
 ##  Features Completed
 
+- [x] **Multi-Language AI Output**: Multi-language support allowing summary output generation in 10 languages (English, Spanish, French, German, Hindi, Japanese, Chinese, Portuguese, Italian, Dutch).
+- [x] **Slack-Style @-Mention Participant Tagging**: Real-time Slack-style `@` mention popover menu with keyboard navigation (↑↓ Enter), duplicate user filtering, and clean comma formatting.
 - [x] **Secure Authentication**: Complete signup and login flow with encrypted passwords and HTTP-only cookie session storage.
 - [x] **Redesigned Auth UI**: Modern glassmorphic Login and Register views featuring subtle ambient light gradients, micro-interactions, and high contrast typography.
 - [x] **Live Database Integration**: Fully decoupled mock data; all views query PostgreSQL via Drizzle ORM.

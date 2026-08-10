@@ -41,16 +41,23 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 🔐 Route Protection & Navigation Workflow
+## 🔐 Key Features & Workflows
 
 1. **Root Path (`/`)**: Automatically redirects to `/login`.
 2. **Login Page (`/login`)**:
    - On page load, executes an asynchronous authentication check calling `GET /auth/me` on the backend.
-   - If already authenticated, automatically redirects to `/dashboard`.
+   - Automatically redirects authenticated users to `/dashboard`.
    - Clears stale token state if authentication check fails.
-   - All React Hooks are declared at top level to enforce React Rules of Hooks.
+   - Enforces React Rules of Hooks with top-level hook declarations.
 3. **Register Page (`/register`)**:
    - Redirects to `/dashboard` if an active session token is present.
-4. **Dashboard (`/dashboard/*`)**:
-   - Protected layout that validates session state. Unauthenticated requests are redirected to `/login`.
-   - Employs browser `popstate` history lock (`window.history.pushState`) to prevent logged-in users from accidentally navigating back to login/public pages.
+4. **Protected Dashboard (`/dashboard/*`)**:
+   - Protected layout validating session state. Unauthenticated requests are redirected to `/login`.
+   - Employs browser `popstate` history lock (`window.history.pushState`) to prevent logged-in users from navigating back to login/public pages.
+5. **Slack-Style `@` Mention Tagging**:
+   - Typing `@` in the Participants input field triggers a real-time autocomplete popover menu of registered application users.
+   - Supports keyboard navigation (↑↓ and Enter/Tab to select).
+   - Automatically excludes users already added to avoid duplicate selections.
+   - Formats participants with comma separation without trailing commas.
+6. **Multi-Language AI Summary Output**:
+   - Allows users to select from 10 supported output languages (English, Spanish, French, German, Hindi, Japanese, Chinese, Portuguese, Italian, Dutch).
