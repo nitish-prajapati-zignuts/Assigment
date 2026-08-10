@@ -24,10 +24,12 @@ The **AI Meeting Notes Summarizer** streamlines post-meeting workflows by transf
 - **Runtime**: Node.js & Express
 - **Language**: TypeScript
 - **Database & ORM**: PostgreSQL (Neon Serverless) managed with Drizzle ORM & Drizzle Kit
-- **AI Integration**: Vercel AI SDK (`ai`, `@ai-sdk/google`, `@ai-sdk/openai`) powered by a multi-tiered pipeline:
-  1. **Primary Model**: Google Gemini (`gemini-3.5-flash`)
-  2. **Fallback Model**: OpenAI (`gpt-4o-mini`)
-  3. **Last Resort**: Structured Heuristic Text Parser
+- **AI Integration**: Vercel AI SDK (`ai`, `@ai-sdk/google`) powered by a multi-tiered pipeline:
+  1. **Primary Model**: Google Gemini (`gemini-3.5-flash-lite`)
+  2. **Fallback Model**: Google Gemini Fallback Key (`gemini-3.5-flash-lite`)
+  3. **Last Resort**: Structured Heuristic Text Parser & Question Extractor
+- **Prompt Architecture**: Modular prompt builder (`buildMeetingSummaryPrompt`) in `src/utils/aiPrompts.ts`
+- **Rate Limiting**: Configurable middleware for Auth (`AUTH_RATE_LIMITER`), AI endpoints (`AI_RATE_LIMITER`), and API routes (`API_RATE_LIMITER`)
 - **Authentication**: JWT (JSON Web Tokens) stored securely in HTTP-only cookies (`auth_token`) and `bcryptjs` password hashing
 
 ---
@@ -38,7 +40,7 @@ The **AI Meeting Notes Summarizer** streamlines post-meeting workflows by transf
 - Node.js (v18 or higher)
 - npm or yarn package manager
 - PostgreSQL Database URL (Neon DB instance recommended)
-- Google Gemini API Key and OpenAI API Key
+- Google Gemini API Key (`GOOGLE_GENERATIVE_AI_API_KEY` or `GEMINI_API_KEY`) and optional Fallback Key (`GEMINI_FALL_BACK_KEY`)
 
 ---
 
@@ -56,7 +58,11 @@ PORT=4000
 DATABASE_URL=postgresql://<user>:<password>@<host>/<dbname>?sslmode=require
 JWT_SECRET=your_jwt_secret_key_here
 GOOGLE_GENERATIVE_AI_API_KEY=your_google_gemini_api_key
-OPENAI_API_KEY=your_openai_api_key_optional
+GEMINI_FALL_BACK_KEY=your_backup_gemini_api_key_optional
+ENABLE_RATE_LIMITER=true
+AUTH_RATE_LIMITER=100
+AI_RATE_LIMITER=100
+API_RATE_LIMITER=1000
 NODE_ENV=development
 ```
 
@@ -105,7 +111,11 @@ The client application will run at `http://localhost:3000`.
 | `DATABASE_URL` | PostgreSQL connection string | Backend `.env` |
 | `JWT_SECRET` | Secret key used for signing authentication JWT tokens | Backend `.env` |
 | `GOOGLE_GENERATIVE_AI_API_KEY` | Primary API Key for Google Gemini model | Backend `.env` |
-| `OPENAI_API_KEY` | Fallback API Key for OpenAI model | Backend `.env` |
+| `GEMINI_FALL_BACK_KEY` | Fallback API Key for backup Google Gemini quota/account | Backend `.env` |
+| `ENABLE_RATE_LIMITER` | Toggle rate limiting middleware (`true`/`false`) | Backend `.env` |
+| `AUTH_RATE_LIMITER` | Max auth endpoint attempts allowed in 15 mins (Default: `100`) | Backend `.env` |
+| `AI_RATE_LIMITER` | Max AI endpoint requests allowed per hour (Default: `100`) | Backend `.env` |
+| `API_RATE_LIMITER` | Max standard API calls allowed per 5 mins (Default: `1000`) | Backend `.env` |
 | `NODE_ENV` | Development or Production environment state | Backend `.env` |
 | `NEXT_PUBLIC_API_URL` | Base URL of the Express backend API | Frontend `.env.local` |
 
@@ -122,22 +132,23 @@ The system follows a modern decoupled client-server architecture:
 │  - Responsive Dashboard & Analytics                         │
 │  - Meeting Management & File Transcript Upload               │
 │  - Action Item Tracker & Priority Filter                    │
+│  - Unanswered Questions Empty State UI Display              │
 └──────────────────────────────┬──────────────────────────────┘
                                │ HTTP Requests (with HTTP-only Cookies)
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                    Express Backend (4000)                   │
 │  - Controllers & Routes (Auth, Meetings, Action Items, AI)  │
-│  - JWT Verification Middleware                              │
-│  - Multi-tier Vercel AI SDK Integration                     │
+│  - JWT Verification & Dynamic Rate Limiting Middleware      │
+│  - Modular AI Prompt Engine (buildMeetingSummaryPrompt)     │
 └──────────────┬──────────────────────────────┬───────────────┘
                │                              │
                ▼                              ▼
 ┌──────────────────────────────┐┌─────────────────────────────┐
 │    PostgreSQL (Neon DB)      ││     Multi-Tier AI Pipeline  │
-│  - Drizzle ORM Schema        ││  - Primary: Google Gemini   │
-│                              ││  - Fallback: OpenAI GPT     │
-│                              ││  - Resilient Text Heuristics│
+│  - Drizzle ORM Schema        ││  - Primary: Gemini Flash    │
+│                              ││  - Fallback: Gemini Backup  │
+│                              ││  - Text & Question Parser  │
 └──────────────────────────────┘└─────────────────────────────┘
 ```
 
@@ -165,7 +176,7 @@ The PostgreSQL database uses three core relational tables defined via **Drizzle 
 | `type` | TEXT | NOT NULL |
 | `participants` | JSONB | Array of participant strings |
 | `transcript` | TEXT | Full transcript text |
-| `summary` | JSONB | Structured JSON (Purposes, Outcomes, Next Steps, Key Decisions) |
+| `summary` | JSONB | Structured JSON (Purposes, Outcomes, Concerns, Unanswered Questions, Next Steps, Key Decisions) |
 | `created_at` | TIMESTAMP | DEFAULT NOW() |
 
 ### `action_items`
@@ -211,7 +222,7 @@ The PostgreSQL database uses three core relational tables defined via **Drizzle 
 ## Assumptions Made
 
 1. Users upload or paste meeting transcripts (TXT, DOCX, PDF, or raw text) for AI summarization.
-2. AI summarization uses a resilient 3-tier strategy (Primary Gemini LLM $\rightarrow$ Secondary OpenAI LLM $\rightarrow$ Text Heuristic fallback) returning clean, structured JSON format matching the meeting summary interface.
+2. AI summarization uses a resilient 3-tier strategy (Primary Gemini LLM $\rightarrow$ Backup Gemini LLM $\rightarrow$ Text Heuristic fallback with Unanswered Questions extraction) returning clean, structured JSON format matching the meeting summary interface.
 3. Registered user emails serve as primary identifier references when assigning action item owners across the platform.
 
 ---
@@ -220,13 +231,16 @@ The PostgreSQL database uses three core relational tables defined via **Drizzle 
 
 - [x] **Dedicated Dashboard API Endpoint**: Backend `/api/dashboard/stats` calculates metrics (Total Meetings, Action Items, Open, Completed, Overdue, Blocked, Transcripts) directly in database layer.
 - [x] **Async Background Job Queue System**: In-memory `JobQueue` handles non-blocking AI summarization tasks with polling support (`GET /api/jobs/:id`).
+- [x] **Unanswered Questions Handling**: Extracted and sanitized in AI summaries with fallback heuristic detection (`?`, `tbd`, `unresolved`, `open question`) and empty state icon UI in modal.
+- [x] **Modular Prompt Architecture**: Isolated prompt construction into `src/utils/aiPrompts.ts` for clean reuse and maintainability.
+- [x] **Configurable Rate Limiting**: Dynamic environment-driven rate limiters (`AUTH_RATE_LIMITER`, `AI_RATE_LIMITER`, `API_RATE_LIMITER`).
 - [x] **Responsive Mobile Drawer & Mobile Card Views**: Collapsible mobile sidebar drawer and mobile card layouts for Meetings and Action Tracker tables.
 - [x] **Smart Truncated Pagination (`1 ... N`)**: Touch-friendly pagination controls preventing button overflow on mobile screens.
 - [x] **Harmonious Custom OKLCH Theme**: Indigo/violet theme tokens for subtle highlights working seamlessly in Light & Dark modes.
 - [x] **Slack-Style @-Mention Participant Tagging**: Real-time Slack-style `@` mention popover menu with keyboard navigation (↑↓ Enter), duplicate user filtering, and clean comma formatting.
 - [x] **Secure Authentication**: Complete signup and login flow with encrypted passwords and HTTP-only cookie session storage.
 - [x] **Live Database Integration**: Fully decoupled mock data; all views query PostgreSQL via Drizzle ORM.
-- [x] **Multi-Tier AI Meeting Summarization**: Automated key point, outcome, decision, and action item extraction using Google Gemini primary model, OpenAI fallback model, and heuristic fallback parsing.
+- [x] **Multi-Tier AI Meeting Summarization**: Automated key point, outcome, decision, unanswered question, and action item extraction using primary Gemini model, fallback Gemini model, and heuristic fallback parsing.
 - [x] **Participant Assignment**: Dynamic dropdown fetching registered application users for seamless task ownership.
 - [x] **Action Item Management**: Dedicated dashboard view with status toggle, priority filtering, and meeting contextual links.
 
@@ -241,23 +255,22 @@ The PostgreSQL database uses three core relational tables defined via **Drizzle 
 ##  Known Limitations
 
 - **File Parsing Limits**: Document upload transcript extraction supports standard TXT, DOCX, and PDF text formats; scanned image PDFs requiring OCR are not supported.
-- **LLM Quota Limits**: High volume concurrent meeting summarizations depend on provider API quota limits, gracefully backed up by the text heuristic summarizer if quotas are exceeded.
+- **LLM Quota Limits**: High volume concurrent meeting summarizations depend on provider API quota limits, gracefully backed up by secondary API key and text heuristic summarizer if quotas are exceeded.
 
 ---
 
 ## 🤖 AI Usage, Engineering Audit & Technical Decisions
 
 ### 1. AI Tools Used
-- **Vercel AI SDK (`ai`, `@ai-sdk/google`, `@ai-sdk/openai`)**: Core library for structured LLM response generation and JSON schema enforcement.
-- **Google Gemini (`gemini-3.5-flash`)**: Primary LLM model for high-speed, cost-effective meeting transcript summarization.
-- **OpenAI (`gpt-4o-mini`)**: Secondary fallback LLM model for zero-downtime reliability.
+- **Vercel AI SDK (`ai`, `@ai-sdk/google`)**: Core library for structured LLM response generation and JSON schema enforcement.
+- **Google Gemini (`gemini-3.5-flash-lite`)**: Primary and secondary fallback LLM model for high-speed, cost-effective meeting transcript summarization.
 
 ---
 
 ### 2. How Each Tool Was Used
 - **Vercel AI SDK**: Configured structured output schemas via Zod (`meetingSummarySchema`, `keyDecisionSchema`, `actionItemSchema`) to parse raw LLM output directly into TypeScript objects.
-- **Google Gemini 3.5 Flash**: Processes transcript inputs in `generateMeetingSummary()` to extract executive summaries, outcomes, key decisions, and action items.
-- **OpenAI GPT-4o-mini**: Serves as a secondary fallback model invoked automatically if the primary Gemini model fails or lacks API credentials.
+- **Google Gemini 3.5 Flash Lite**: Processes transcript inputs in `generateMeetingSummary()` to extract executive summaries, outcomes, unanswered questions, key decisions, and action items.
+- **Modular Prompt Builder (`buildMeetingSummaryPrompt`)**: Formats language, summary length, and structured output guidelines in `src/utils/aiPrompts.ts`.
 
 ---
 
@@ -268,6 +281,8 @@ Below is the system prompt enforced during meeting transcript processing:
 You are an expert AI executive assistant. Analyze the following meeting transcript and generate a structured summary.
 
 Meeting Title: {title}
+{languageInstruction}
+{lengthInstruction}
 Transcript:
 """
 {plainTranscript}
@@ -299,36 +314,29 @@ CRITICAL RULES:
 1. **Implicit `any` Recursive Initializer Error (TS7022)**:
    - *Issue*: AI-generated arrow function variables (`export const generateFallbackSummary = (...) => ...`) caused TypeScript circular type inference errors when referenced recursively or within sibling functions.
    - *Resolution*: Converted arrow functions into standard hoisted `function` declarations with explicit return types (`export function generateFallbackSummary(...): MeetingSummary`).
-2. **Zod Optional Field Mismatch with OpenAI Structured Outputs**:
-   - *Issue*: OpenAI's strict JSON schema mode rejected schemas with optional fields (`context?: string`) lacking explicit required declarations.
-   - *Resolution*: Adjusted schema definitions and fallback default logic in `cleanSummary()`.
+2. **Vercel AI SDK Gateway Extra Argument Mismatch**:
+   - *Issue*: Passing a secondary options object to `gateway()` caused TypeScript parameter count overload errors.
+   - *Resolution*: Corrected `gateway` signature call to pass only the single model string parameter and migrated fallback to `@ai-sdk/google` instance fallback key (`GEMINI_FALL_BACK_KEY`).
 
 ---
 
 ### 5. What Was Changed Manually
-- **Multi-Tier Fallback Pipeline**: Built explicit fallback routing (Gemini LLM $\rightarrow$ OpenAI LLM $\rightarrow$ Heuristic Text Engine) in `aiService.ts`.
-- **Sanitization Layer**: Authored `stripHtml()` regex sanitizer and `cleanSummary()` normalizer to enforce HTML-free output.
-- **Frontend Refinement**: Designed glassmorphic cards, ambient lighting background gradients, and input field states for Next.js Login and Register pages.
-- **Environment & Routing Alignment**: Aligned port definitions (`PORT=4000`) and CORS credentials headers across client and server.
+- **Multi-Tier Fallback Pipeline**: Built explicit fallback routing (Primary Gemini $\rightarrow$ Fallback Gemini Key $\rightarrow$ Heuristic Text Engine) in `aiService.ts`.
+- **Modular Prompt Extraction**: Refactored prompt logic out of service files into `src/utils/aiPrompts.ts`.
+- **Configurable Rate Limiting**: Added `AUTH_RATE_LIMITER`, `AI_RATE_LIMITER`, and `API_RATE_LIMITER` numeric environment variables in `config.ts` and `rateLimiter.ts`.
+- **Unanswered Questions UI**: Added `unansweredQuestions` parsing, sanitization, heuristic extraction, and empty state rendering in `MeetingDetailModal.tsx`.
 
 ---
 
 ### 6. How Generated Output Was Validated
 - **Static Type Safety**: Executed `npx tsc --noEmit` across Backend and Frontend workspaces to ensure zero compilation or type errors.
-- **Runtime Error Logs**: Monitored `nodemon` backend console output during live API payload execution.
+- **Runtime Error Logs**: Monitored backend console output during live API payload execution.
 - **Schema Validation**: Ensured LLM responses adhere strictly to Zod schemas matching Neon PostgreSQL Drizzle ORM column specifications.
 
 ---
 
 ### 7. Engineering Decisions Made Independently
-- **3-Tier Resilient AI Architecture**: Implemented automatic fallback to secondary LLM and text heuristics so meeting creation never crashes if AI quotas are exceeded or network connectivity drops.
+- **3-Tier Resilient AI Architecture**: Implemented automatic fallback to secondary LLM key and text heuristics so meeting creation never crashes if AI quotas are exceeded or network connectivity drops.
 - **HTTP-Only Cookie Authentication**: Chose secure `auth_token` HTTP-only cookies over `localStorage` to defend against XSS attacks.
-- **Decoupled Service Layer**: Isolated AI processing into `aiService.ts` to keep Express controllers clean and testable.
-
----
-
-### 8. Security, Quality & Architecture Concerns Identified
-- **XSS / HTML Injection Vulnerability**: Raw meeting transcripts may contain malicious HTML script tags; neutralized via regex stripping (`stripHtml`).
-- **Quota & Cost Management**: Unrestricted public access to AI endpoints could cause quota exhaustion; mitigated by API key checks and heuristic fallback.
-- **Type Safety & Maintainability**: Eliminated implicit `any` types and forced explicit return type annotations across all services.
+- **Decoupled Utility Layer**: Isolated AI prompts into `aiPrompts.ts` and rate limiters into `rateLimiter.ts` to keep services clean and maintainable.
 
