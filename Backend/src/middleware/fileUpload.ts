@@ -1,8 +1,3 @@
-/**
- * File Upload Validation & Security Middleware
- * Validates file uploads for size, type, and malicious content
- */
-
 import { Request, Response, NextFunction } from 'express';
 import { ValidationError } from '../utils/errors';
 import { logger } from '../utils/logger';
@@ -34,11 +29,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
  * Validate file upload
  */
 export const validateFileUpload = (req: Request, res: Response, next: NextFunction): void => {
-  // This middleware validates the general request size
-  // For multer integration, add specific file validation
-
   if (req.is('multipart/form-data')) {
-    // File upload request - validate content-length
     const contentLength = req.get('content-length');
     if (contentLength && parseInt(contentLength, 10) > MAX_FILE_SIZE) {
       throw new ValidationError(`File size exceeds maximum allowed size of ${MAX_FILE_SIZE / 1024 / 1024}MB`);
@@ -48,9 +39,6 @@ export const validateFileUpload = (req: Request, res: Response, next: NextFuncti
   next();
 };
 
-/**
- * Validate file type and size after upload
- */
 export const validateUploadedFile = (
   fieldName: string = 'file'
 ) => {
@@ -58,11 +46,9 @@ export const validateUploadedFile = (
     const file = (req as any).file;
 
     if (!file) {
-      // File is optional
       return next();
     }
 
-    // Validate file size
     if (file.size > MAX_FILE_SIZE) {
       logger.warn('File upload rejected: size too large', {
         fieldName,
@@ -74,7 +60,6 @@ export const validateUploadedFile = (
       );
     }
 
-    // Validate MIME type
     if (!ALLOWED_MIME_TYPES.includes(file.mimetype)) {
       logger.warn('File upload rejected: invalid MIME type', {
         fieldName,
@@ -86,7 +71,6 @@ export const validateUploadedFile = (
       );
     }
 
-    // Validate file extension
     const originalName = file.originalname || '';
     const fileExtension = originalName.substring(originalName.lastIndexOf('.')).toLowerCase();
 

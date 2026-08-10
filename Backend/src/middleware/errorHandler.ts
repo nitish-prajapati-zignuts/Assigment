@@ -1,9 +1,3 @@
-/**
- * Centralized Error Handling Middleware
- * Catches all errors from routes and controllers, formats them consistently,
- * logs them, and returns appropriate HTTP responses
- */
-
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '../utils/logger';
 import { isAppError, AppError, ErrorResponse } from '../utils/errors';

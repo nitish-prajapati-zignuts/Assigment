@@ -1,8 +1,3 @@
-/**
- * CSRF (Cross-Site Request Forgery) Protection Middleware
- * Implements token-based CSRF protection using double-submit cookies
- */
-
 import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
 import { ValidationError } from '../utils/errors';
@@ -24,14 +19,13 @@ export const csrfTokenGenerator = (req: Request, res: Response, next: NextFuncti
   if (!token) {
     token = generateCSRFToken();
     res.cookie('_csrf', token, {
-      httpOnly: false, // Must be accessible to JavaScript for form submission
+      httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      maxAge: 24 * 60 * 60 * 1000,
     });
   }
 
-  // Attach token to response locals for template rendering
   (res as any).locals = { ...(res as any).locals, csrfToken: token };
 
   next();
@@ -42,14 +36,12 @@ export const csrfTokenGenerator = (req: Request, res: Response, next: NextFuncti
  * Validates CSRF tokens on state-changing requests (POST, PUT, DELETE, PATCH)
  */
 export const csrfProtect = (req: Request, res: Response, next: NextFunction): void => {
-  // Only validate on state-changing methods
   const statefulMethods = ['POST', 'PUT', 'DELETE', 'PATCH'];
 
   if (!statefulMethods.includes(req.method)) {
     return next();
   }
 
-  // Get token from multiple sources (header > body > query)
   const tokenFromHeader = req.headers['x-csrf-token'] as string;
   const tokenFromBody = (req.body as any)?._csrf;
   const tokenFromQuery = (req.query as any)?._csrf;
@@ -57,7 +49,6 @@ export const csrfProtect = (req: Request, res: Response, next: NextFunction): vo
   const submittedToken = tokenFromHeader || tokenFromBody || tokenFromQuery;
   const cookieToken = req.cookies?._csrf;
 
-  // Verify token exists
   if (!submittedToken) {
     throw new ValidationError('CSRF token is missing');
   }
@@ -66,7 +57,6 @@ export const csrfProtect = (req: Request, res: Response, next: NextFunction): vo
     throw new ValidationError('CSRF token cookie is missing');
   }
 
-  // Verify tokens match
   if (submittedToken !== cookieToken) {
     throw new ValidationError('CSRF token validation failed');
   }

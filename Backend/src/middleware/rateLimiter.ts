@@ -1,9 +1,3 @@
-/**
- * Rate Limiting Middleware
- * Implements in-memory rate limiting to prevent brute force and abuse
- * For production, consider using Redis-based rate limiter
- */
-
 import { Request, Response, NextFunction } from 'express';
 import { RateLimitError } from '../utils/errors';
 import { config } from '../utils/config';
@@ -23,8 +17,6 @@ class RateLimiter {
   constructor(windowMs: number = config.RATE_LIMIT_WINDOW_MS, maxRequests: number = config.RATE_LIMIT_MAX_REQUESTS) {
     this.windowMs = windowMs;
     this.maxRequests = maxRequests;
-
-    // Cleanup old entries every minute
     setInterval(() => this.cleanup(), 60000);
   }
 
@@ -46,7 +38,6 @@ class RateLimiter {
     const key = this.getKey(req, keyPrefix);
     const now = Date.now();
 
-    // Initialize or check if reset needed
     if (!this.store[key] || this.store[key].resetTime < now) {
       this.store[key] = {
         count: 0,
@@ -54,7 +45,6 @@ class RateLimiter {
       };
     }
 
-    // Increment and check limit
     this.store[key].count++;
     return this.store[key].count > this.maxRequests;
   }
