@@ -323,42 +323,46 @@ CRITICAL RULES:
 - Handle missing action item details sensibly (Owner='Unassigned', DueDate='Not specified'). DO NOT invent ungrounded details.
 `;
 
-  // 1. Try Primary Model: Google Gemini
-  if (geminiApiKey) {
-    try {
-      console.log("🤖 Attempting meeting summarization with Primary Model (Google Gemini)...");
-      const google = createGoogleGenerativeAI({ apiKey: geminiApiKey });
-      const { object } = await generateObject({
-        model: google("gemini-3.5-flash"),
-        schema: meetingSummarySchema,
-        prompt: promptText,
-      });
+  try {
+    if (geminiApiKey) {
+      try {
+        // 1. Try Primary Model: Google Gemini
+        console.log("🤖 Attempting meeting summarization with Primary Model (Google Gemini)...");
+        const google = createGoogleGenerativeAI({ apiKey: geminiApiKey });
+        const { object } = await generateObject({
+          model: google("gemini-3.5-flash"),
+          schema: meetingSummarySchema,
+          prompt: promptText,
+        });
 
-      return cleanSummary(object);
-    } catch (geminiError) {
-      console.error("Primary Model (Google Gemini) failed:", geminiError);
+        return cleanSummary(object);
+      } catch (geminiError) {
+        console.error("Primary Model (Google Gemini) failed:", geminiError);
+        throw geminiError; // Re-throw to trigger outer catch block for OpenAI fallback
+      }
+    } else {
+      console.warn("No Gemini/Google AI API Key provided.");
+      throw new Error("No Gemini API key provided");
     }
-  } else {
-    console.warn("No Gemini/Google AI API Key provided.");
-  }
+  } catch (error) {
+    // 2. Try Fallback Model: OpenAI
+    if (openAiApiKey) {
+      try {
+        console.log("🔄 Attempting meeting summarization with Fallback Model (OpenAI gpt-4o-mini)...");
+        const openai = createOpenAI({ apiKey: openAiApiKey });
+        const { object } = await generateObject({
+          model: openai("gpt-4o-mini"),
+          schema: meetingSummarySchema,
+          prompt: promptText,
+        });
 
-  // 2. Try Fallback Model: OpenAI
-  if (openAiApiKey) {
-    try {
-      console.log("🔄 Attempting meeting summarization with Fallback Model (OpenAI gpt-4o-mini)...");
-      const openai = createOpenAI({ apiKey: openAiApiKey });
-      const { object } = await generateObject({
-        model: openai("gpt-4o-mini"),
-        schema: meetingSummarySchema,
-        prompt: promptText,
-      });
-
-      return cleanSummary(object);
-    } catch (openAiError) {
-      console.error("Fallback Model (OpenAI) failed:", openAiError);
+        return cleanSummary(object);
+      } catch (openAiError) {
+        console.error("Fallback Model (OpenAI) failed:", openAiError);
+      }
+    } else {
+      console.warn("No OpenAI API Key provided (OPENAI_API_KEY environment variable missing).");
     }
-  } else {
-    console.warn("No OpenAI API Key provided (OPENAI_API_KEY environment variable missing).");
   }
 
   // 3. Last Resort: Structured Heuristic Generator

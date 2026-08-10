@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -29,9 +29,36 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
+  const [isVerifying, setIsVerifying] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        // Validate session with backend /auth/me route
+        const res = await api.get("/auth/me", {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+
+        if (res.data && res.data.user) {
+          localStorage.setItem("user", JSON.stringify(res.data.user));
+          router.replace("/dashboard");
+          return;
+        }
+      } catch (err) {
+        // Clear invalid token/user state if authentication fails
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      } finally {
+        setIsVerifying(false);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
 
   const {
     register,
@@ -44,6 +71,18 @@ export default function LoginPage() {
       password: "",
     },
   });
+
+  if (isVerifying) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-950 text-zinc-600 dark:text-zinc-400">
+        <div className="flex items-center gap-2 font-medium">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          <span>Verifying authentication...</span>
+        </div>
+      </div>
+    );
+  }
+
 
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
