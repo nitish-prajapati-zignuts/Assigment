@@ -285,7 +285,8 @@ export function generateFallbackSummary(
 export async function generateMeetingSummary(
   rawTranscript: string,
   customApiKey?: string,
-  title?: string
+  title?: string,
+  language?: string
 ): Promise<MeetingSummary> {
   const geminiApiKey = customApiKey || process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY;
   const openAiApiKey = process.env.OPENAI_API_KEY;
@@ -295,9 +296,14 @@ export async function generateMeetingSummary(
     return generateFallbackSummary("", title);
   }
 
+  const languageInstruction = language
+    ? `\nIMPORTANT LANGUAGE REQUIREMENT:\n- Generate all output summary text, topics, concerns, next steps, key decisions, and action item tasks in ${language}.`
+    : "";
+
   const promptText = `You are an expert AI executive assistant. Analyze the following meeting transcript and generate a structured summary.
       
 Meeting Title: ${title || "Team Meeting"}
+${languageInstruction}
 Transcript:
 """
 ${plainTranscript}

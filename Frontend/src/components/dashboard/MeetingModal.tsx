@@ -160,22 +160,109 @@ export function MeetingModal({
     }
   }, [initialData, isOpen, reset]);
 
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState("");
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
   const selectedType = watch("type");
   const transcriptValue = watch("transcript");
   const currentParticipantsStr = watch("participants") || "";
 
-  // Add selected user from dropdown to participants string
+  // Parse already added participant emails/names
+  const alreadySelectedList = currentParticipantsStr
+    .split(",")
+    .map((p) => p.trim().toLowerCase())
+    .filter((p) => p.length > 0);
+
+  // Filter registered users matching query after @ AND exclude already selected users
+  const filteredUsers = appUsers.filter((user) => {
+    const isAlreadySelected = alreadySelectedList.some(
+      (selected) =>
+        selected === user.email.toLowerCase() ||
+        selected === user.name.toLowerCase()
+    );
+    if (isAlreadySelected) return false;
+
+    const q = mentionQuery.toLowerCase();
+    return (
+      user.name.toLowerCase().includes(q) ||
+      user.email.toLowerCase().includes(q)
+    );
+  });
+
+  // Handle Input Change and trigger @ menu
+  const handleParticipantsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setValue("participants", val, { shouldValidate: true });
+
+    const cursor = e.target.selectionStart || val.length;
+    const textBeforeCursor = val.slice(0, cursor);
+    const lastWord = textBeforeCursor.split(/[\s,]+/).pop() || "";
+
+    if (lastWord.startsWith("@")) {
+      setShowSuggestions(true);
+      setMentionQuery(lastWord.slice(1));
+      setSelectedIndex(0);
+    } else {
+      setShowSuggestions(false);
+      setMentionQuery("");
+    }
+  };
+
+  // Select user from Slack-style @ popup
+  const applyUserMention = (userEmail: string) => {
+    const currentVal = watch("participants") || "";
+
+    // Extract all complete emails/tokens without @ prefix
+    const existingParts = currentVal
+      .split(",")
+      .map((p) => p.trim())
+      .filter((p) => p.length > 0 && !p.startsWith("@"));
+
+    if (!existingParts.includes(userEmail)) {
+      existingParts.push(userEmail);
+    }
+
+    // Join all participants with ", " so there is a comma between items, but NO trailing comma at the end
+    const newVal = existingParts.join(", ");
+
+    setValue("participants", newVal, { shouldValidate: true });
+    setShowSuggestions(false);
+    setMentionQuery("");
+  };
+
+  // Keyboard Navigation for Slack-style @ menu
+  const handleParticipantsKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showSuggestions || filteredUsers.length === 0) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setSelectedIndex((prev) => (prev + 1) % filteredUsers.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setSelectedIndex((prev) => (prev - 1 + filteredUsers.length) % filteredUsers.length);
+    } else if (e.key === "Enter" || e.key === "Tab") {
+      e.preventDefault();
+      if (filteredUsers[selectedIndex]) {
+        applyUserMention(filteredUsers[selectedIndex].email);
+      }
+    } else if (e.key === "Escape") {
+      setShowSuggestions(false);
+    }
+  };
+
+  // Add selected user from dropdown button to participants string
   const handleSelectUser = (userEmail: string | null) => {
     if (!userEmail) return;
 
     const existingList = currentParticipantsStr
       .split(",")
       .map((p) => p.trim())
-      .filter((p) => p.length > 0);
+      .filter((p) => p.length > 0 && !p.startsWith("@"));
 
     if (!existingList.includes(userEmail)) {
       const newList = [...existingList, userEmail].join(", ");
-      setValue("participants", newList);
+      setValue("participants", newList, { shouldValidate: true });
     }
   };
 
@@ -352,24 +439,69 @@ export function MeetingModal({
                     </div>
                   </SelectTrigger>
                   <SelectContent>
-                    {appUsers.map((user) => (
-                      <SelectItem key={user.id} value={user.email} className="text-xs">
-                        <div className="flex flex-col">
-                          <span className="font-semibold">{user.name}</span>
-                          <span className="text-[10px] text-zinc-400">{user.email}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
+                    {appUsers
+                      .filter(
+                        (user) =>
+                          !alreadySelectedList.includes(user.email.toLowerCase()) &&
+                          !alreadySelectedList.includes(user.name.toLowerCase())
+                      )
+                      .map((user) => (
+                        <SelectItem key={user.id} value={user.email} className="text-xs">
+                          <div className="flex flex-col">
+                            <span className="font-semibold">{user.name}</span>
+                            <span className="text-[10px] text-zinc-400">{user.email}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
-            <Input
-              id="participants"
-              placeholder="alex@company.com, sarah@company.com"
-              {...register("participants")}
-            />
+            <div className="relative">
+              <Input
+                id="participants"
+                placeholder="Type @ to search & mention registered users (e.g. @john, @sarah)"
+                value={currentParticipantsStr}
+                onChange={handleParticipantsChange}
+                onKeyDown={handleParticipantsKeyDown}
+                onBlur={() => {
+                  setTimeout(() => setShowSuggestions(false), 200);
+                }}
+              />
+
+              {/* Slack-style @ Mention Popup Menu */}
+              {showSuggestions && (
+                <div className="absolute z-50 left-0 right-0 mt-1 max-h-52 overflow-y-auto rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xl py-1">
+                  <div className="px-3 py-1.5 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+                    <span>Select the Participants</span>
+                  </div>
+                  {filteredUsers.length > 0 ? (
+                    filteredUsers.map((user, idx) => (
+                      <button
+                        key={user.id}
+                        type="button"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          applyUserMention(user.email);
+                        }}
+                        className={`w-full text-left px-3 py-2 text-xs flex flex-col transition-colors ${idx === selectedIndex
+                          ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 font-medium"
+                          : "hover:bg-zinc-50 dark:hover:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300"
+                          }`}
+                      >
+                        <span className="font-semibold text-zinc-900 dark:text-zinc-100">{user.name}</span>
+                        <span className="text-[11px] text-zinc-500 dark:text-zinc-400">{user.email}</span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="px-3 py-2 text-xs text-zinc-400 text-center">
+                      No matching user found
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
             {errors.participants && (
               <p className="text-xs text-red-500">
                 {errors.participants.message}
