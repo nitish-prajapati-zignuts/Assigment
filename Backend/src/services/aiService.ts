@@ -1,8 +1,10 @@
 import { gateway, generateObject } from "ai";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createGoogleGenerativeAI, google } from "@ai-sdk/google";
 import { z } from "zod";
 import { MeetingSummary, KeyDecision, ActionItem, SummaryLength } from "../db/schema";
+import { buildMeetingSummaryPrompt } from "../utils/aiPrompts";
 import dotenv from "dotenv";
+import { createXai } from "@ai-sdk/xai";
 
 dotenv.config();
 
@@ -301,56 +303,19 @@ export async function generateMeetingSummary(
   summaryLength: SummaryLength = "Medium"
 ): Promise<MeetingSummary> {
   const geminiApiKey = customApiKey || process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY;
-  const openAiApiKey = process.env.OPENAI_API_KEY;
-  const vercelGateWayKey = process.env.VERCEL_AI_GATEWAY_KEY
+  const geminiFallBackKey = process.env.GEMINI_FALL_BACK_KEY
   const plainTranscript = stripHtml(rawTranscript);
 
   if (!plainTranscript || plainTranscript.trim().length === 0) {
     return generateFallbackSummary("", title);
   }
 
-  const languageInstruction = language
-    ? `\nIMPORTANT LANGUAGE REQUIREMENT:\n- Generate all output summary text, topics, concerns, next steps, key decisions, and action item tasks in ${language}.`
-    : "";
-
-  let lengthInstruction = "";
-  if (summaryLength === "Short") {
-    lengthInstruction = "\nSUMMARY LENGTH REQUIREMENT: Keep the output concise and brief (1-2 bullet points per section, high-level summary only).";
-  } else if (summaryLength === "Long") {
-    lengthInstruction = "\nSUMMARY LENGTH REQUIREMENT: Provide an in-depth, thorough, and highly detailed summary covering all nuanced topics, deep context, key decisions, and comprehensive action items.";
-  } else {
-    lengthInstruction = "\nSUMMARY LENGTH REQUIREMENT: Provide a balanced, medium-length summary with clear key discussion points and action items.";
-  }
-
-  const promptText = `You are an expert AI executive assistant. Analyze the following meeting transcript and generate a structured summary.
-      
-Meeting Title: ${title || "Team Meeting"}
-${languageInstruction}
-${lengthInstruction}
-Transcript:
-"""
-${plainTranscript}
-"""
-
-Ensure the summary strictly covers:
-1. Purpose of the meeting
-2. Important discussion points
-3. Major outcomes
-4. Important concerns
-5. Next steps
-6. Key Decisions Made (Categorize each into e.g., Technology/Platform, Feature Approval/Rejection, Timeline Agreed, Scope Change, Budget/Staffing, Responsibility Assigned, General Decision). 
-7. Action Items Extracted:
-   - task: Clear action task description in simple plain text.
-   - owner: Assignee name or 'Unassigned' if missing.
-   - dueDate: Due date (YYYY-MM-DD or relative like 'Next Friday') or 'Not specified' if missing.
-   - priority: Priority level ('Low', 'Medium', 'High', 'Urgent').
-   - status: Current status ('Pending', 'In Progress', 'Completed').
-
-CRITICAL RULES:
-- The input transcript may contain raw text. All outputs MUST BE in plain text ONLY. DO NOT include any HTML elements (like <div>, <p>, <strong>, <span>) or markdown containers in any output fields.
-- If NO clear decision was made, return an empty array [] for keyDecisions. DO NOT invent decisions.
-- Handle missing action item details sensibly (Owner='Unassigned', DueDate='Not specified'). DO NOT invent ungrounded details.
-`;
+  const promptText = buildMeetingSummaryPrompt({
+    plainTranscript,
+    title,
+    language,
+    summaryLength,
+  });
 
   try {
     if (geminiApiKey) {
@@ -359,27 +324,27 @@ CRITICAL RULES:
         console.log("🤖 Attempting meeting summarization with Primary Model (Google Gemini)...");
         const google = createGoogleGenerativeAI({ apiKey: geminiApiKey });
         const { object } = await generateObject({
-          model: google("gemini-3.5-flash"),
+          model: google("gemini-3.5-flash-lite"),
           schema: meetingSummarySchema,
           prompt: promptText,
         });
         return cleanSummary(object);
       } catch (geminiError) {
         console.error("Primary Model (Google Gemini) failed:", geminiError);
-        throw geminiError; // Re-throw to trigger outer catch block for OpenAI fallback
+        throw geminiError;
       }
     } else {
       console.warn("No Gemini/Google AI API Key provided.");
       throw new Error("No Gemini API key provided");
     }
   } catch (error) {
-    // 2. Try Fallback Model: Vercel AI 
-    if (vercelGateWayKey) {
+    // 2. Try Fallback Model: Google Fallback AI 
+    if (geminiFallBackKey) {
       try {
         console.log("🔄 Attempting meeting summarization with Fallback Model Gateway AI for Vercel...");
-        const gatewayai = gateway("openai/gpt-4.1");
+        const google = createGoogleGenerativeAI({ apiKey: geminiFallBackKey });
         const { object } = await generateObject({
-          model: gatewayai,
+          model: google("gemini-3.5-flash-lite"),
           schema: meetingSummarySchema,
           prompt: promptText,
         });
