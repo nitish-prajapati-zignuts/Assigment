@@ -48,6 +48,7 @@ export const createMeetingSchema = z.object({
     .nullable(),
   type: z.string().optional(),
   summaryLength: z.string().optional(),
+  language: z.string().optional(),
 });
 
 export const updateMeetingSchema = z.object({
@@ -65,6 +66,7 @@ export const updateMeetingSchema = z.object({
     .nullable(),
   type: z.string().optional(),
   summaryLength: z.string().optional(),
+  language: z.string().optional(),
 });
 
 export const meetingQuerySchema = z.object({

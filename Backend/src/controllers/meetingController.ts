@@ -187,7 +187,7 @@ export const createMeeting = asyncHandler(async (
   req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
-  const { title, date, participants, transcript, type } = req.body as CreateMeetingInput;
+  const { title, date, participants, transcript, type, language, summaryLength } = req.body as CreateMeetingInput & { language?: string; summaryLength?: any };
   const userEmail = req.user?.email;
 
   if (!userEmail) {
@@ -231,6 +231,8 @@ export const createMeeting = asyncHandler(async (
         meetingId,
         transcript,
         title,
+        language,
+        summaryLength,
       });
 
       logger.info("Meeting created with async summarization", { 
@@ -266,7 +268,7 @@ export const updateMeeting = asyncHandler(async (
   res: Response
 ): Promise<void> => {
   const targetId = String(req.params.id);
-  const { title, date, type, participants, transcript } = req.body as UpdateMeetingInput;
+  const { title, date, type, participants, transcript, language, summaryLength } = req.body as UpdateMeetingInput & { language?: string; summaryLength?: any };
 
   try {
     const existing = await db
@@ -282,7 +284,13 @@ export const updateMeeting = asyncHandler(async (
 
     // Re-generate summary if transcript changed
     if (transcript !== undefined && transcript!.trim().length > 0) {
-      generatedSummary = await generateMeetingSummary(transcript!);
+      generatedSummary = await generateMeetingSummary(
+        transcript!,
+        title || existing[0].title,
+        undefined,
+        language,
+        summaryLength
+      );
     }
 
     const updated = await db

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import api from "@/lib/axios";
 import { Meeting, MeetingSummary } from "@/types/meeting";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Calendar,
   Users,
@@ -48,9 +55,16 @@ export function MeetingDetailModal({
 }: MeetingDetailModalProps) {
   const [activeTab, setActiveTab] = useState<"summary" | "transcript">("summary");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("English");
   const [currentSummary, setCurrentSummary] = useState<MeetingSummary | null | undefined>(
     meeting?.summary
   );
+
+  // Sync state when meeting prop changes
+  useEffect(() => {
+    setCurrentSummary(meeting?.summary);
+    setActiveTab("summary");
+  }, [meeting]);
 
   if (!meeting) return null;
 
@@ -102,7 +116,9 @@ export function MeetingDetailModal({
   const handleGenerateSummary = async () => {
     setIsGenerating(true);
     try {
-      const res = await api.post(`/meetings/${meeting.id}/summarize`, {});
+      const res = await api.post(`/meetings/${meeting.id}/summarize`, {
+        language: selectedLanguage,
+      });
       if (res.data && res.data.summary) {
         setCurrentSummary(res.data.summary);
         meeting.summary = res.data.summary;
@@ -204,20 +220,26 @@ export function MeetingDetailModal({
                 </TabsTrigger>
               </TabsList>
 
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleGenerateSummary}
-                disabled={isGenerating}
-                className="h-8 text-xs flex items-center gap-1.5"
-              >
-                {isGenerating ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-500" />
-                ) : (
-                  <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-                )}
-                {isGenerating ? "Generating..." : "Re-generate AI Notes"}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Badge key={selectedLanguage} variant="outline" className="text-xs font-normal">
+                  {selectedLanguage}
+                </Badge>
+
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleGenerateSummary}
+                  disabled={isGenerating}
+                  className="h-8 text-xs flex items-center gap-1.5"
+                >
+                  {isGenerating ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-500" />
+                  ) : (
+                    <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                  )}
+                  {isGenerating ? "Generating..." : "Re-generate AI Notes"}
+                </Button>
+              </div>
             </div>
 
             {/* AI Structured Summary View */}

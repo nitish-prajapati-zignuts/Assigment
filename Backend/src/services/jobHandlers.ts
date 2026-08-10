@@ -14,6 +14,8 @@ interface SummarizeMeetingJobData {
   meetingId: string;
   transcript: string;
   title: string;
+  language?: string;
+  summaryLength?: any;
 }
 
 /**
@@ -27,13 +29,19 @@ export const initializeJobHandlers = (): void => {
   jobQueue.registerHandler<SummarizeMeetingJobData>(
     "summarize_meeting",
     async (data) => {
-      const { meetingId, transcript, title } = data;
+      const { meetingId, transcript, title, language, summaryLength } = data;
 
       try {
         logger.info("Starting meeting summarization", { meetingId });
 
         // Generate summary
-        const summary = await generateMeetingSummary(transcript);
+        const summary = await generateMeetingSummary(
+          transcript,
+          title,
+          undefined,
+          language,
+          summaryLength
+        );
 
         // Sync action items
         await syncActionItemsToDb(meetingId, summary);

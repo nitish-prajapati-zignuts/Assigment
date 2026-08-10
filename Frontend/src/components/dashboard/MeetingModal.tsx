@@ -96,6 +96,7 @@ export function MeetingModal({
   const [isDragging, setIsDragging] = useState(false);
   const [appUsers, setAppUsers] = useState<AppUser[]>([]);
   const [summaryLength, setSummaryLength] = useState<SummaryLength>("Medium");
+  const [language, setLanguage] = useState<string>("English");
   const [usersFetched, setUsersFetched] = useState(false);
 
   const todayStr = getTodayDateString();
@@ -351,6 +352,7 @@ export function MeetingModal({
         date: data.date,
         type: data.type,
         summaryLength,
+        language,
         participants: formattedParticipants,
         transcript: data.transcript || "",
       });
@@ -389,7 +391,7 @@ export function MeetingModal({
             )}
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label htmlFor="date">Meeting Date</Label>
               <Input
@@ -443,6 +445,29 @@ export function MeetingModal({
                   <SelectItem value="Short">Short (Concise)</SelectItem>
                   <SelectItem value="Medium">Medium (Standard)</SelectItem>
                   <SelectItem value="Long">Long (Detailed)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="language">Output Language</Label>
+              <Select
+                value={language}
+                onValueChange={(val) => {
+                  if (val) setLanguage(val);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue>{language}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="English">English</SelectItem>
+                  <SelectItem value="Spanish">Spanish (Español)</SelectItem>
+                  <SelectItem value="French">French (Français)</SelectItem>
+                  <SelectItem value="German">German (Deutsch)</SelectItem>
+                  <SelectItem value="Hindi">Hindi (हिंदी)</SelectItem>
+                  <SelectItem value="Japanese">Japanese (日本語)</SelectItem>
+                  <SelectItem value="Chinese">Chinese (中文)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
