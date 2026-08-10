@@ -1,6 +1,5 @@
-import { generateObject } from "ai";
+import { gateway, generateObject } from "ai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { createOpenAI } from "@ai-sdk/openai";
 import { z } from "zod";
 import { MeetingSummary, KeyDecision, ActionItem, SummaryLength } from "../db/schema";
 import dotenv from "dotenv";
@@ -18,8 +17,7 @@ export const keyDecisionSchema = z.object({
     .describe("Clear, concise statement of the decision made during the meeting."),
   context: z
     .string()
-    .optional()
-    .describe("Brief context, background, or rationale for the decision if mentioned."),
+    .describe("Brief context, background, or rationale for the decision if mentioned. Use empty string '' if not mentioned."),
 });
 
 export const actionItemSchema = z.object({
@@ -291,6 +289,7 @@ export async function generateMeetingSummary(
 ): Promise<MeetingSummary> {
   const geminiApiKey = customApiKey || process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY;
   const openAiApiKey = process.env.OPENAI_API_KEY;
+  const vercelGateWayKey = process.env.VERCEL_AI_GATEWAY_KEY
   const plainTranscript = stripHtml(rawTranscript);
 
   if (!plainTranscript || plainTranscript.trim().length === 0) {
@@ -362,20 +361,20 @@ CRITICAL RULES:
       throw new Error("No Gemini API key provided");
     }
   } catch (error) {
-    // 2. Try Fallback Model: OpenAI
-    if (openAiApiKey) {
+    // 2. Try Fallback Model: Vercel AI 
+    if (vercelGateWayKey) {
       try {
-        console.log("🔄 Attempting meeting summarization with Fallback Model (OpenAI gpt-4o-mini)...");
-        const openai = createOpenAI({ apiKey: openAiApiKey });
+        console.log("🔄 Attempting meeting summarization with Fallback Model Gateway AI for Vercel...");
+        const gatewayai = gateway('openai/gpt-4.1');
         const { object } = await generateObject({
-          model: openai("gpt-4o-mini"),
+          model: gatewayai,
           schema: meetingSummarySchema,
           prompt: promptText,
         });
 
         return cleanSummary(object);
       } catch (openAiError) {
-        console.error("Fallback Model (OpenAI) failed:", openAiError);
+        console.error("Fallback Model (Vercel AI) failed:", openAiError);
       }
     } else {
       console.warn("No OpenAI API Key provided (OPENAI_API_KEY environment variable missing).");
