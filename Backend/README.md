@@ -9,6 +9,7 @@ This is the Express & TypeScript backend API for the **AI-Powered Meeting Notes 
 - **Runtime**: Node.js & Express
 - **Language**: TypeScript
 - **Database & ORM**: PostgreSQL (Neon Serverless) managed with Drizzle ORM & Drizzle Kit
+- **Async Job Queue**: Built-in in-memory asynchronous queue (`JobQueue` singleton) for non-blocking AI task processing
 - **AI Integration**: Vercel AI SDK (`ai`, `@ai-sdk/google`, `@ai-sdk/openai`)
 - **Authentication**: JWT (JSON Web Tokens) in HTTP-only cookies (`auth_token`) and `bcryptjs` password hashing
 
@@ -46,14 +47,22 @@ The API will start at `http://localhost:4000`.
 
 ---
 
-## ⚙️ AI Summarization Architecture & Features
+## ⚙️ Core System Architecture & Features
 
-1. **Multi-Tier AI Fallback Pipeline**:
+1. **Async Job Queue (`JobQueue`)**:
+   - Non-blocking background worker processes AI meeting summarization (`summarize_meeting`).
+   - Resilient retry strategy with exponential backoff on failure.
+   - Polling endpoint `GET /api/jobs/:id` allows clients to track job status (`pending`, `processing`, `completed`, `failed`).
+
+2. **Dedicated Dashboard Stats Endpoint (`GET /api/dashboard/stats`)**:
+   - Computes aggregated user statistics directly in the database layer (Total Meetings, Action Items, Open, Completed, Overdue, Blocked, Saved Transcripts).
+   - Returns top 4 recent meetings sorted chronologically.
+
+3. **Multi-Tier AI Fallback Pipeline**:
    - **Primary Model**: Google Gemini (`gemini-1.5-flash`)
-   - **Fallback Model**: OpenAI (`gpt-4o-mini`) if Gemini throws an error or lacks API keys
-   - **Structured Text Heuristics Engine**: Last resort parser if all AI models fail
-2. **Multi-Language Output Engine**:
-   - Accepts `language` parameter in request body (`createMeeting`, `updateMeeting`, `summarizeMeeting`).
-   - Dynamically injects language rules into LLM system prompt to generate structured output fields in the requested language.
-3. **Action Item Relational Sync**:
+   - **Fallback Model**: OpenAI (`gpt-4o-mini`) if Gemini fails or lacks API keys
+   - **Structured Text Heuristic Engine**: Fallback parser if LLMs fail
+
+4. **Action Item Relational Sync**:
    - Automatically syncs extracted action items into PostgreSQL `action_items` table and matches participant emails/names to registered user IDs.
+

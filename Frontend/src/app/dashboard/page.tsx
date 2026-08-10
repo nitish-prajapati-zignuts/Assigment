@@ -37,121 +37,52 @@ import {
   Loader2,
 } from "lucide-react";
 
+interface DashboardMetrics {
+  totalMeetings: number;
+  totalActionItems: number;
+  openActionItems: number;
+  completedActionItems: number;
+  overdueActionItems: number;
+  blockedActionItems: number;
+  savedTranscripts: number;
+}
+
 export default function DashboardPage() {
-  const [meetings, setMeetings] = useState<Meeting[]>([]);
-  const [actionItems, setActionItems] = useState<ActionItem[]>([]);
+  const [metrics, setMetrics] = useState<DashboardMetrics>({
+    totalMeetings: 0,
+    totalActionItems: 0,
+    openActionItems: 0,
+    completedActionItems: 0,
+    overdueActionItems: 0,
+    blockedActionItems: 0,
+    savedTranscripts: 0,
+  });
+  const [recentMeetings, setRecentMeetings] = useState<Meeting[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [viewingMeeting, setViewingMeeting] = useState<Meeting | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
-  // Helper to check if item is overdue
-  const checkIsOverdue = (dueDate: string, status: string): boolean => {
-    if (!dueDate || dueDate === "Not specified" || status === "Completed") {
-      return false;
-    }
-    const today = new Date().toISOString().split("T")[0];
-    return dueDate < today;
-  };
-
-  // Fetch meetings and action items directly from backend API
+  // Fetch dashboard stats from backend /api/dashboard/stats
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchDashboardStats = async () => {
       setIsLoading(true);
       try {
-        const [meetingsRes, actionItemsRes] = await Promise.allSettled([
-          api.get("/meetings"),
-          api.get("/action-items"),
-        ]);
-
-        if (meetingsRes.status === "fulfilled") {
-          const responseData = meetingsRes.value.data;
-
-          // Check if response is paginated (has data property) or direct array
-          const meetingsData = responseData?.data || responseData;
-
-          if (Array.isArray(meetingsData)) {
-            setMeetings(meetingsData);
-          } else {
-            console.warn("⚠️ Meetings data is not an array:", responseData);
-            setMeetings([]);
-          }
-        } else {
-          console.error("❌ Failed to fetch meetings:", meetingsRes.reason);
-          setMeetings([]);
+        const response = await api.get("/dashboard/stats");
+        if (response.data?.metrics) {
+          setMetrics(response.data.metrics);
         }
-
-        if (actionItemsRes.status === "fulfilled") {
-          const responseData = actionItemsRes.value.data;
-
-          // Check if response is paginated (has data property) or direct array
-          const actionItemsData = responseData?.data || responseData;
-
-          if (Array.isArray(actionItemsData)) {
-            setActionItems(actionItemsData);
-          } else {
-            console.warn("⚠️ Action items data is not an array:", responseData);
-            setActionItems([]);
-          }
-        } else {
-          console.error("❌ Failed to fetch action items:", actionItemsRes.reason);
-          setActionItems([]);
+        if (Array.isArray(response.data?.recentMeetings)) {
+          setRecentMeetings(response.data.recentMeetings);
         }
       } catch (err) {
-        console.error("❌ Failed to fetch dashboard data from API:", err);
+        console.error("Failed to fetch dashboard stats from API:", err);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchData();
+    fetchDashboardStats();
   }, []);
-
-  // Compute Required Metrics
-  const metrics = useMemo(() => {
-    const totalMeetings = meetings.length;
-    const totalActionItems = actionItems.length;
-
-    const openActionItems = actionItems.filter(
-      (item) => item.status === "Open" || item.status === "Pending"
-    ).length;
-
-    const completedActionItems = actionItems.filter(
-      (item) => item.status === "Completed"
-    ).length;
-
-    const overdueActionItems = actionItems.filter((item) =>
-      checkIsOverdue(item.dueDate, item.status)
-    ).length;
-
-    const blockedActionItems = actionItems.filter(
-      (item) => item.status === "Blocked"
-    ).length;
-
-    const savedTranscripts = meetings.filter(
-      (m) => m.transcript && m.transcript.trim().length > 0
-    ).length;
-
-    return {
-      totalMeetings,
-      totalActionItems,
-      openActionItems,
-      completedActionItems,
-      overdueActionItems,
-      blockedActionItems,
-      savedTranscripts,
-    };
-  }, [meetings, actionItems]);
-
-  // Top 4 Recently Created Meetings
-  const recentMeetings = useMemo(() => {
-    return [...meetings]
-      .sort(
-        (a, b) =>
-          new Date(b.createdAt || b.date).getTime() -
-          new Date(a.createdAt || a.date).getTime()
-      )
-      .slice(0, 4);
-  }, [meetings]);
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -176,7 +107,7 @@ export default function DashboardPage() {
             </Button>
           </Link>
           <Link href="/dashboard/meetings" className="w-full sm:w-auto">
-            <Button className="w-full sm:w-auto flex items-center justify-center gap-2 shadow-sm bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 font-medium">
+            <Button className="w-full sm:w-auto flex items-center justify-center gap-2 shadow-sm bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 font-medium">
               <Plus className="h-4 w-4" />
               Manage Meetings
             </Button>

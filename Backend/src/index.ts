@@ -108,6 +108,8 @@ if (isDevelopment()) {
 
 import jobRoutes from "./routes/jobRoutes";
 
+import dashboardRoutes from "./routes/dashboardRoutes";
+
 // Auth routes with stricter rate limiting
 app.use("/api/auth", asyncHandler(authRateLimiter), authRoutes);
 
@@ -115,6 +117,7 @@ app.use("/api/auth", asyncHandler(authRateLimiter), authRoutes);
 app.use("/api/meetings", asyncHandler(apiRateLimiter), meetingRoutes);
 app.use("/api/action-items", asyncHandler(apiRateLimiter), actionItemRoutes);
 app.use("/api/jobs", asyncHandler(apiRateLimiter), jobRoutes);
+app.use("/api/dashboard", asyncHandler(apiRateLimiter), dashboardRoutes);
 
 // API documentation endpoint
 app.get("/", asyncHandler((req: Request, res: Response) => {

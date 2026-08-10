@@ -230,7 +230,7 @@ export default function MeetingsPage() {
             setEditingMeeting(null);
             setIsFormModalOpen(true);
           }}
-          className="flex items-center gap-2 shadow-sm bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 font-medium"
+          className="flex items-center gap-2 shadow-sm bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 font-medium"
         >
           <Plus className="h-4 w-4" />
           Create Meeting

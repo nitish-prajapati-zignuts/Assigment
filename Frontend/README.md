@@ -8,7 +8,7 @@ This is the Next.js frontend client for the **AI-Powered Meeting Notes & Action 
 
 - **Framework**: Next.js 16 (App Router) & React 19
 - **Language**: TypeScript
-- **Styling**: Tailwind CSS v4, Modern UI/UX layout with glassmorphic cards and ambient light effects
+- **Styling**: Tailwind CSS v4, Modern OKLCH color theme, responsive mobile-first UI layout
 - **Forms & Validation**: React Hook Form with Zod validation (`@hookform/resolvers/zod`)
 - **HTTP Client**: Axios configured with `withCredentials: true`
 - **Icons & Theme**: Lucide React icons, `next-themes` (Dark/Light mode support)
@@ -41,23 +41,20 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 🔐 Key Features & Workflows
+## 🔐 Key Features & UI Enhancements
 
-1. **Root Path (`/`)**: Automatically redirects to `/login`.
-2. **Login Page (`/login`)**:
-   - On page load, executes an asynchronous authentication check calling `GET /auth/me` on the backend.
-   - Automatically redirects authenticated users to `/dashboard`.
-   - Clears stale token state if authentication check fails.
-   - Enforces React Rules of Hooks with top-level hook declarations.
-3. **Register Page (`/register`)**:
-   - Redirects to `/dashboard` if an active session token is present.
-4. **Protected Dashboard (`/dashboard/*`)**:
-   - Protected layout validating session state. Unauthenticated requests are redirected to `/login`.
-   - Employs browser `popstate` history lock (`window.history.pushState`) to prevent logged-in users from navigating back to login/public pages.
-5. **Slack-Style `@` Mention Tagging**:
-   - Typing `@` in the Participants input field triggers a real-time autocomplete popover menu of registered application users.
-   - Supports keyboard navigation (↑↓ and Enter/Tab to select).
-   - Automatically excludes users already added to avoid duplicate selections.
-   - Formats participants with comma separation without trailing commas.
-6. **Multi-Language AI Summary Output**:
-   - Allows users to select from 10 supported output languages (English, Spanish, French, German, Hindi, Japanese, Chinese, Portuguese, Italian, Dutch).
+1. **Collapsible Mobile Drawer Sidebar**:
+   - Slide-over drawer menu on mobile viewports (`< lg`) with top header bar & backdrop overlay.
+   - Remains persistent and open on desktop screens (`≥ lg`).
+2. **Responsive Card Views for Tables**:
+   - Converts wide tabular data on Meetings and Action Tracker pages into mobile-friendly stacked cards.
+3. **Smart Truncated Pagination (`1 ... N`)**:
+   - Compact pagination bar (`1 ... [prev] [current] [next] ... [totalPages]`) prevents page button overflow on touch devices.
+4. **Real-time Async Job Processing & Summarizing Loader**:
+   - Shows an active `Summarizing...` badge while background AI tasks run.
+   - Displays in-modal loading states and automatically syncs completed summaries into the open view modal.
+5. **Slack-Style `@` Mention Autocomplete**:
+   - Typing `@` in participant input field opens a search menu of registered users with keyboard navigation (`ArrowUp`/`ArrowDown`/`Enter`).
+6. **Harmonious Custom OKLCH Theme**:
+   - Curated indigo/violet accent theme tokens integrated seamlessly across Light & Dark modes.
+

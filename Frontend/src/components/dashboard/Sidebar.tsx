@@ -75,7 +75,7 @@ export function Sidebar() {
       <div>
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-900 text-white dark:bg-zinc-50 dark:text-zinc-900">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 text-white dark:bg-indigo-500 dark:text-white shadow-sm">
               <Video className="h-5 w-5" />
             </div>
             <div>

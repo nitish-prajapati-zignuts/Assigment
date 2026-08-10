@@ -182,7 +182,9 @@ The PostgreSQL database uses three core relational tables defined via **Drizzle 
 
 ---
 
-##  API Overview
+### **Dashboard & Jobs**
+- `GET /api/dashboard/stats` — Retrieve aggregated dashboard metrics & recent meetings
+- `GET /api/jobs/:id` — Query background job queue execution status (`pending`, `processing`, `completed`, `failed`)
 
 ### **Authentication**
 - `POST /api/auth/register` — Register a new user account & set HTTP-only cookie
@@ -192,19 +194,21 @@ The PostgreSQL database uses three core relational tables defined via **Drizzle 
 - `GET /api/auth/users` — Fetch registered user list for participant assignment
 
 ### **Meetings & Summaries**
-- `GET /api/meetings` — Retrieve all meetings
-- `POST /api/meetings` — Create new meeting & trigger automated AI summarization pipeline
+- `GET /api/meetings` — Retrieve paginated meetings
+- `POST /api/meetings` — Create new meeting & trigger async background job summarization
 - `GET /api/meetings/:id` — Get meeting details, transcript, and full summary breakdown
+- `PUT /api/meetings/:id` — Update existing meeting record
 - `DELETE /api/meetings/:id` — Delete meeting record
 
 ### **Action Items**
-- `GET /api/action-items` — Retrieve action items (supports filtering by `meetingId` or `status`)
+- `GET /api/action-items` — Retrieve action items (supports filtering by `status`, `priority`, `owner`, `meetingId`)
 - `POST /api/action-items` — Create manual action item
-- `PATCH /api/action-items/:id` — Update status, assignee, priority, or due date
+- `PUT /api/action-items/:id` — Update status, assignee, priority, or due date
+- `DELETE /api/action-items/:id` — Delete action item
 
 ---
 
-##  Assumptions Made
+## Assumptions Made
 
 1. Users upload or paste meeting transcripts (TXT, DOCX, PDF, or raw text) for AI summarization.
 2. AI summarization uses a resilient 3-tier strategy (Primary Gemini LLM $\rightarrow$ Secondary OpenAI LLM $\rightarrow$ Text Heuristic fallback) returning clean, structured JSON format matching the meeting summary interface.
@@ -212,17 +216,19 @@ The PostgreSQL database uses three core relational tables defined via **Drizzle 
 
 ---
 
-##  Features Completed
+## Features Completed
 
-- [x] **Multi-Language AI Output**: Multi-language support allowing summary output generation in 10 languages (English, Spanish, French, German, Hindi, Japanese, Chinese, Portuguese, Italian, Dutch).
+- [x] **Dedicated Dashboard API Endpoint**: Backend `/api/dashboard/stats` calculates metrics (Total Meetings, Action Items, Open, Completed, Overdue, Blocked, Transcripts) directly in database layer.
+- [x] **Async Background Job Queue System**: In-memory `JobQueue` handles non-blocking AI summarization tasks with polling support (`GET /api/jobs/:id`).
+- [x] **Responsive Mobile Drawer & Mobile Card Views**: Collapsible mobile sidebar drawer and mobile card layouts for Meetings and Action Tracker tables.
+- [x] **Smart Truncated Pagination (`1 ... N`)**: Touch-friendly pagination controls preventing button overflow on mobile screens.
+- [x] **Harmonious Custom OKLCH Theme**: Indigo/violet theme tokens for subtle highlights working seamlessly in Light & Dark modes.
 - [x] **Slack-Style @-Mention Participant Tagging**: Real-time Slack-style `@` mention popover menu with keyboard navigation (↑↓ Enter), duplicate user filtering, and clean comma formatting.
 - [x] **Secure Authentication**: Complete signup and login flow with encrypted passwords and HTTP-only cookie session storage.
-- [x] **Redesigned Auth UI**: Modern glassmorphic Login and Register views featuring subtle ambient light gradients, micro-interactions, and high contrast typography.
 - [x] **Live Database Integration**: Fully decoupled mock data; all views query PostgreSQL via Drizzle ORM.
 - [x] **Multi-Tier AI Meeting Summarization**: Automated key point, outcome, decision, and action item extraction using Google Gemini primary model, OpenAI fallback model, and heuristic fallback parsing.
 - [x] **Participant Assignment**: Dynamic dropdown fetching registered application users for seamless task ownership.
 - [x] **Action Item Management**: Dedicated dashboard view with status toggle, priority filtering, and meeting contextual links.
-- [x] **Modern UI/UX Refinement**: High-contrast, clean typography powered by Plus Jakarta Sans font and customized Tailwind components.
 
 ---
 
