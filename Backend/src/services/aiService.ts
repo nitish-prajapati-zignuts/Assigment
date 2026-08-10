@@ -51,6 +51,9 @@ export const meetingSummarySchema = z.object({
   importantConcerns: z
     .array(z.string())
     .describe("Risks, obstacles, unresolved issues, or critical questions raised."),
+  unansweredQuestions: z
+    .array(z.string())
+    .describe("Questions raised during the meeting that remained unanswered or require follow-up"),
   nextSteps: z
     .array(z.string())
     .describe("Action items, assigned tasks, follow-up deadlines, and next milestones."),
@@ -138,6 +141,9 @@ export function cleanSummary(summary: MeetingSummary): MeetingSummary {
     importantConcerns: (summary.importantConcerns || [])
       .map(stripHtml)
       .filter((s) => s.length > 0),
+    unansweredQuestions: (summary.unansweredQuestions || [])
+      .map(stripHtml)
+      .filter((s) => s.length > 0),
     nextSteps: (summary.nextSteps || [])
       .map(stripHtml)
       .filter((s) => s.length > 0),
@@ -188,6 +194,7 @@ export function generateFallbackSummary(
       discussionPoints: ["Initial overview of project status and updates."],
       majorOutcomes: ["Aligned on current project direction."],
       importantConcerns: ["Ensure timeline deadlines are maintained."],
+      unansweredQuestions: [],
       nextSteps: ["Schedule follow-up sync for next status update."],
       keyDecisions: [],
       actionItems: [],
@@ -196,6 +203,11 @@ export function generateFallbackSummary(
 
   // Extract key sentences or lines for points
   const points = lines.slice(0, 8);
+
+  // Extract questions or unanswered items from transcript lines
+  const extractedQuestions = lines
+    .filter((l) => l.endsWith("?") || l.toLowerCase().includes("unresolved") || l.toLowerCase().includes("tbd") || l.toLowerCase().includes("open question"))
+    .slice(0, 3);
 
   const extractedDecisions: KeyDecision[] = [];
   const lowerText = cleanText.toLowerCase();
@@ -257,6 +269,7 @@ export function generateFallbackSummary(
       points.length > 4
         ? [points[3] || "Monitor progress and address pending dependencies promptly."]
         : ["Keep team aligned on project dependencies and deadlines."],
+    unansweredQuestions: extractedQuestions,
     nextSteps:
       points.length > 5
         ? points.slice(4, 7)
@@ -350,7 +363,6 @@ CRITICAL RULES:
           schema: meetingSummarySchema,
           prompt: promptText,
         });
-
         return cleanSummary(object);
       } catch (geminiError) {
         console.error("Primary Model (Google Gemini) failed:", geminiError);
@@ -365,7 +377,7 @@ CRITICAL RULES:
     if (vercelGateWayKey) {
       try {
         console.log("🔄 Attempting meeting summarization with Fallback Model Gateway AI for Vercel...");
-        const gatewayai = gateway('openai/gpt-4.1');
+        const gatewayai = gateway("openai/gpt-4.1");
         const { object } = await generateObject({
           model: gatewayai,
           schema: meetingSummarySchema,

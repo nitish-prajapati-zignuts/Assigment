@@ -30,6 +30,7 @@ export interface MeetingSummary {
   discussionPoints: string[];
   majorOutcomes: string[];
   importantConcerns: string[];
+  unansweredQuestions?: string[];
   nextSteps: string[];
   keyDecisions?: KeyDecision[];
   actionItems?: ActionItem[];

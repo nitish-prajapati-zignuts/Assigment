@@ -22,6 +22,7 @@ import {
   MessageSquare,
   CheckCircle2,
   AlertTriangle,
+  HelpCircle,
   ArrowRightCircle,
   Gavel,
   CheckSquare,
@@ -277,6 +278,28 @@ export function MeetingDetailModal({
                         </li>
                       ))}
                     </ul>
+                  </div>
+
+                  {/* 5. Unanswered Questions */}
+                  <div className="bg-orange-50/60 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/50 p-4 rounded-lg space-y-2 shadow-sm">
+                    <h5 className="text-xs font-bold text-orange-800 dark:text-orange-400 flex items-center gap-1.5 uppercase tracking-wide">
+                      <HelpCircle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                      5. Unanswered Questions
+                    </h5>
+                    {summaryData.unansweredQuestions && summaryData.unansweredQuestions.length > 0 ? (
+                      <ul className="space-y-1.5 text-sm text-zinc-700 dark:text-zinc-300 list-disc list-inside">
+                        {summaryData.unansweredQuestions.map((uq, i) => (
+                          <li key={i} className="leading-snug pl-1">
+                            {stripHtml(uq)}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="flex items-center gap-2 py-2 text-xs text-orange-700/80 dark:text-orange-400/80 italic">
+                        <HelpCircle className="h-4 w-4 text-orange-400 opacity-60" />
+                        <span>No unanswered questions identified in this meeting.</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* 5. Next Steps */}
