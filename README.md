@@ -239,6 +239,11 @@ The PostgreSQL database uses three core relational tables defined via **Drizzle 
 
 ## Features Completed
 
+- [x] **TanStack Query Client Caching & Cross-Query Invalidation**: Integrated `@tanstack/react-query` v5 with custom `QueryProvider` (stale-time control, auto garbage collection, and automatic cross-query cache invalidations across meetings, action items, and dashboard stats).
+- [x] **Zero-Stale Real-Time Fresh API Fetching**: Set `staleTime: 0` and `refetchOnMount: "always"` on action items & metrics queries to ensure every navigation and component mount fetches fresh live database records.
+- [x] **Comprehensive Action Item Loaders & Visual Sync Badges**: Visual `Loader2` feedback across all action tracker interactions (table rows, mobile cards, status dropdowns, metric cards, and a header `"Syncing live API..."` badge during refetches).
+- [x] **Full Mobile Modal Responsiveness**: Optimized `MeetingDetailModal`, `MeetingModal`, and `CreateActionItemModal` for small smartphone screens (`w-[95vw] sm:max-w-[750px]`, full-width stacked buttons, fluid responsive grid form fields).
+- [x] **Context-Aware Dashboard Shareable Link Concealment**: Conceals the public share link box when opening detail modals from the main overview dashboard while preserving full share functionality in the All Meetings view.
 - [x] **Public Encrypted Shareable Meeting Links**: Toggle public access for any meeting with AES-256-GCM token encryption (`GET /api/meetings/public/share/:token`) and public view page (`/share/[token]`) featuring slide-in loading animations and copy-to-clipboard functionality.
 - [x] **Disabled Re-generation on Published Meetings**: Automatically disables the "Re-generate AI Notes" button when a meeting link is published to prevent accidental overwrite of shared notes.
 - [x] **Modern UI Confirmation Delete Modals**: Custom dark/light mode alert dialog modals for deleting meetings & action items with title context, warning icons, and inline loading indicators.
