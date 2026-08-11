@@ -181,9 +181,13 @@ export default function ActionTrackerPage() {
   const totalPages: number = actionItemsResponse?.pagination?.totalPages || 1;
   const totalItems: number = actionItemsResponse?.pagination?.total || actionItems.length;
 
+  // Track specific item ID currently being updated
+  const [updatingItemId, setUpdatingItemId] = useState<string | null>(null);
+
   // TanStack Mutations for create/update/delete
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: ActionItem["status"] }) => {
+      setUpdatingItemId(id);
       await api.put(`/action-items/${id}`, { status });
     },
     onSuccess: () => {
@@ -191,11 +195,15 @@ export default function ActionTrackerPage() {
       queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] });
       queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
     },
+    onSettled: () => {
+      setUpdatingItemId(null);
+    },
   });
 
   const saveActionItemMutation = useMutation({
     mutationFn: async (itemData: Partial<ActionItem> & { meetingId: string }) => {
       if (itemData.id) {
+        setUpdatingItemId(itemData.id);
         await api.put(`/action-items/${itemData.id}`, itemData);
       } else {
         await api.post("/action-items", itemData);
@@ -206,16 +214,23 @@ export default function ActionTrackerPage() {
       queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] });
       queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
     },
+    onSettled: () => {
+      setUpdatingItemId(null);
+    },
   });
 
   const deleteActionItemMutation = useMutation({
     mutationFn: async (id: string) => {
+      setUpdatingItemId(id);
       await api.delete(`/action-items/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["actionItems"] });
       queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] });
       queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
+    },
+    onSettled: () => {
+      setUpdatingItemId(null);
     },
   });
 
@@ -688,12 +703,20 @@ export default function ActionTrackerPage() {
                   <TableCell className="min-w-[110px] py-3.5">
                     <Select
                       value={item.status}
+                      disabled={updatingItemId === item.id}
                       onValueChange={(val) =>
                         val && handleStatusChange(item.id, val as ActionItem["status"])
                       }
                     >
-                      <SelectTrigger className="h-7 text-xs w-28 border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/50 text-zinc-900 dark:text-zinc-100">
-                        <SelectValue />
+                      <SelectTrigger className="h-7 text-xs w-28 border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/50 text-zinc-900 dark:text-zinc-100 flex items-center justify-between">
+                        {updatingItemId === item.id ? (
+                          <div className="flex items-center gap-1.5 text-amber-500 font-medium">
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            <span className="text-[11px]">Updating...</span>
+                          </div>
+                        ) : (
+                          <SelectValue />
+                        )}
                       </SelectTrigger>
                       <SelectContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
                         <SelectItem value="Open">Open</SelectItem>
@@ -815,12 +838,20 @@ export default function ActionTrackerPage() {
 
                 <Select
                   value={item.status}
+                  disabled={updatingItemId === item.id}
                   onValueChange={(val) =>
                     val && handleStatusChange(item.id, val as ActionItem["status"])
                   }
                 >
-                  <SelectTrigger className="h-7 text-xs w-28 border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/50 text-zinc-900 dark:text-zinc-100">
-                    <SelectValue />
+                  <SelectTrigger className="h-7 text-xs w-28 border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/50 text-zinc-900 dark:text-zinc-100 flex items-center justify-between">
+                    {updatingItemId === item.id ? (
+                      <div className="flex items-center gap-1.5 text-amber-500 font-medium">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        <span className="text-[11px]">Updating...</span>
+                      </div>
+                    ) : (
+                      <SelectValue />
+                    )}
                   </SelectTrigger>
                   <SelectContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
                     <SelectItem value="Open">Open</SelectItem>
