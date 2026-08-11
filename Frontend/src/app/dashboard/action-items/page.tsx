@@ -59,22 +59,19 @@ interface ActionItemWithContext extends ActionItem {
   meetingTitle: string;
   isOverdue: boolean;
 }
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function ActionTrackerPage() {
-  const [meetings, setMeetings] = useState<Meeting[]>([]);
-  const [actionItems, setActionItems] = useState<ActionItemWithContext[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string>("All");
   const [selectedPriority, setSelectedPriority] = useState<string>("All");
   const [selectedOwner, setSelectedOwner] = useState<string>("All");
   const [showOverdueOnly, setShowOverdueOnly] = useState(false);
 
-  // Pagination state (Server-side pagination)
+  // Pagination constant
   const ITEMS_PER_PAGE = 10;
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -85,34 +82,30 @@ export default function ActionTrackerPage() {
   // Delete modal states
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<ActionItemWithContext | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Reset to page 1 whenever any filter or search query changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [
-    searchQuery,
-    selectedStatus,
-    selectedPriority,
-    selectedOwner,
-    showOverdueOnly,
-  ]);
+  // TanStack Query for Meetings (referenced by action items)
+  const { data: meetingsData } = useQuery({
+    queryKey: ["meetingsList"],
+    queryFn: async () => {
+      const res = await api.get("/meetings");
+      return res.data?.data || res.data;
+    },
+    staleTime: 1000 * 60 * 5,
+  });
 
-  // Fetch real meetings from API
-  useEffect(() => {
-    const fetchMeetings = async () => {
-      try {
-        const res = await api.get("/meetings");
-        const meetingsData = res.data?.data || res.data;
-        if (Array.isArray(meetingsData)) {
-          setMeetings(meetingsData);
-        }
-      } catch (err) {
-        console.error("Failed to fetch meetings for action tracker:", err);
-      }
-    };
-    fetchMeetings();
-  }, []);
+  const meetings: Meeting[] = Array.isArray(meetingsData) ? meetingsData : [];
+
+  // TanStack Query for Action Items with Caching
+  const { data: actionItemsResponse, isLoading } = useQuery({
+    queryKey: ["actionItems", currentPage],
+    queryFn: async () => {
+      const res = await api.get("/action-items", {
+        params: { page: currentPage, limit: ITEMS_PER_PAGE },
+      });
+      return res.data;
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes cache
+  });
 
   // Helper to check if item is overdue
   const checkIsOverdue = (dueDate: string, status: string): boolean => {
@@ -166,74 +159,67 @@ export default function ActionTrackerPage() {
     return str;
   };
 
-  // Build aggregated action items from API with server-side pagination
-  // Fetch action items from backend API with server-side pagination
-  const fetchActionItems = useCallback(async (page: number) => {
-    try {
-      setIsLoading(true);
-      const res = await api.get("/action-items", {
-        params: {
-          page,
-          limit: ITEMS_PER_PAGE,
-        },
-      });
+  const rawItems = Array.isArray(actionItemsResponse?.data)
+    ? actionItemsResponse.data
+    : Array.isArray(actionItemsResponse)
+      ? actionItemsResponse
+      : [];
 
-      console.log("Action Items API Response:", res.data);
+  const actionItems: ActionItemWithContext[] = rawItems.map((item: any) => ({
+    id: item.id || `item-${Math.random()}`,
+    meetingId: item.meetingId || "1",
+    meetingTitle:
+      meetings.find((m) => m.id === item.meetingId)?.title || "General Meeting",
+    task: stripHtml(item.task),
+    owner: stripHtml(item.owner) || "Unassigned",
+    dueDate: stripHtml(item.dueDate) || "Not specified",
+    priority: item.priority || "Medium",
+    status: item.status || "Open",
+    isOverdue: checkIsOverdue(item.dueDate, item.status),
+  }));
 
-      if (res.data.data && res.data.pagination) {
-        // Server-side paginated response
-        const formatted = res.data.data.map((item: any) => ({
-          id: item.id || `item-${Math.random()}`,
-          meetingId: item.meetingId || "1",
-          meetingTitle:
-            meetings.find((m) => m.id === item.meetingId)?.title ||
-            "General Meeting",
-          task: stripHtml(item.task),
-          owner: stripHtml(item.owner) || "Unassigned",
-          dueDate: stripHtml(item.dueDate) || "Not specified",
-          priority: item.priority || "Medium",
-          status: item.status || "Open",
-          isOverdue: checkIsOverdue(item.dueDate, item.status),
-        }));
-        setActionItems(formatted);
-        setTotalPages(res.data.pagination.totalPages);
-        setTotalItems(res.data.pagination.total);
-      } else if (Array.isArray(res.data)) {
-        // Fallback for non-paginated response
-        const formatted = res.data.map((item: any) => ({
-          id: item.id || `item-${Math.random()}`,
-          meetingId: item.meetingId || "1",
-          meetingTitle:
-            meetings.find((m) => m.id === item.meetingId)?.title ||
-            "General Meeting",
-          task: stripHtml(item.task),
-          owner: stripHtml(item.owner) || "Unassigned",
-          dueDate: stripHtml(item.dueDate) || "Not specified",
-          priority: item.priority || "Medium",
-          status: item.status || "Open",
-          isOverdue: checkIsOverdue(item.dueDate, item.status),
-        }));
-        setActionItems(formatted);
-        setTotalPages(1);
-        setTotalItems(formatted.length);
+  const totalPages: number = actionItemsResponse?.pagination?.totalPages || 1;
+  const totalItems: number = actionItemsResponse?.pagination?.total || actionItems.length;
+
+  // TanStack Mutations for create/update/delete
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: ActionItem["status"] }) => {
+      await api.put(`/action-items/${id}`, { status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["actionItems"] });
+      queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
+    },
+  });
+
+  const saveActionItemMutation = useMutation({
+    mutationFn: async (itemData: Partial<ActionItem> & { meetingId: string }) => {
+      if (itemData.id) {
+        await api.put(`/action-items/${itemData.id}`, itemData);
       } else {
-        setActionItems([]);
-        setTotalPages(1);
-        setTotalItems(0);
+        await api.post("/action-items", itemData);
       }
-    } catch (err) {
-      console.error("Failed to fetch action items from API:", err);
-      setActionItems([]);
-      setTotalPages(1);
-      setTotalItems(0);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [meetings]);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["actionItems"] });
+      queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
+    },
+  });
 
-  useEffect(() => {
-    fetchActionItems(currentPage);
-  }, [currentPage, fetchActionItems]);
+  const deleteActionItemMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/action-items/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["actionItems"] });
+      queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
+    },
+  });
+
+  const isDeleting = deleteActionItemMutation.isPending;
 
   // Extract unique owners for filter dropdown
   const uniqueOwners = useMemo(() => {
@@ -283,45 +269,32 @@ export default function ActionTrackerPage() {
   // Use filtered items for display
   const displayItems = filteredItems;
 
-  // Summary Metrics (based on all action items, not just current page)
-  const [allActionItems, setAllActionItems] = useState<ActionItemWithContext[]>([]);
-  const [isMetricsLoading, setIsMetricsLoading] = useState(true);
-
-  // Fetch all action items for metrics (without pagination)
-  const fetchAllMetricsItems = useCallback(async () => {
-    try {
-      setIsMetricsLoading(true);
+  // TanStack Query for all action items metrics (unpaginated count)
+  const { data: allMetricsData, isLoading: isMetricsLoading } = useQuery({
+    queryKey: ["allActionItemsMetrics"],
+    queryFn: async () => {
       const res = await api.get("/action-items", {
-        params: {
-          page: 1,
-          limit: 1000, // Get all items for metrics
-        },
+        params: { page: 1, limit: 1000 },
       });
+      return res.data?.data || res.data || [];
+    },
+    staleTime: 1000 * 60 * 5,
+  });
 
-      if (res.data.data) {
-        const formatted = res.data.data.map((item: any) => ({
-          id: item.id || `item-${Math.random()}`,
-          meetingId: item.meetingId || "1",
-          meetingTitle: "General Meeting",
-          task: stripHtml(item.task),
-          owner: stripHtml(item.owner) || "Unassigned",
-          dueDate: stripHtml(item.dueDate) || "Not specified",
-          priority: item.priority || "Medium",
-          status: item.status || "Open",
-          isOverdue: checkIsOverdue(item.dueDate, item.status),
-        }));
-        setAllActionItems(formatted);
-      }
-    } catch (err) {
-      console.error("Failed to fetch all action items for metrics:", err);
-    } finally {
-      setIsMetricsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchAllMetricsItems();
-  }, [fetchAllMetricsItems]);
+  const allActionItems: ActionItemWithContext[] = useMemo(() => {
+    const raw = Array.isArray(allMetricsData) ? allMetricsData : [];
+    return raw.map((item: any) => ({
+      id: item.id || `item-${Math.random()}`,
+      meetingId: item.meetingId || "1",
+      meetingTitle: "General Meeting",
+      task: stripHtml(item.task),
+      owner: stripHtml(item.owner) || "Unassigned",
+      dueDate: stripHtml(item.dueDate) || "Not specified",
+      priority: item.priority || "Medium",
+      status: item.status || "Open",
+      isOverdue: checkIsOverdue(item.dueDate, item.status),
+    }));
+  }, [allMetricsData]);
 
   const metrics = useMemo(() => {
     const total = allActionItems.length;
@@ -357,19 +330,7 @@ export default function ActionTrackerPage() {
     newStatus: ActionItem["status"]
   ) => {
     try {
-      await api.put(`/action-items/${id}`, { status: newStatus });
-      setActionItems((prev) =>
-        prev.map((item) =>
-          item.id === id
-            ? {
-              ...item,
-              status: newStatus,
-              isOverdue: checkIsOverdue(item.dueDate, newStatus),
-            }
-            : item
-        )
-      );
-      await fetchAllMetricsItems();
+      await updateStatusMutation.mutateAsync({ id, status: newStatus });
     } catch (err) {
       console.error("Failed to update status:", err);
     }
@@ -380,50 +341,15 @@ export default function ActionTrackerPage() {
     itemData: Partial<ActionItem> & { meetingId: string }
   ) => {
     try {
-      if (itemData.id && !itemData.id.includes("-item-")) {
-        const res = await api.put(`/action-items/${itemData.id}`, itemData);
-        setActionItems((prev) =>
-          prev.map((item) =>
-            item.id === itemData.id
-              ? {
-                ...item,
-                task: stripHtml(res.data.task),
-                owner: stripHtml(res.data.owner),
-                dueDate: stripHtml(res.data.dueDate),
-                priority: res.data.priority,
-                status: res.data.status,
-                isOverdue: checkIsOverdue(res.data.dueDate, res.data.status),
-              }
-              : item
-          )
-        );
-      } else {
-        const res = await api.post("/action-items", itemData);
-        const meetingObj = meetings.find((m) => m.id === itemData.meetingId);
-        const newItemWithContext: ActionItemWithContext = {
-          id: res.data.id || `item-${Date.now()}`,
-          meetingId: itemData.meetingId,
-          meetingTitle: meetingObj ? meetingObj.title : "General Meeting",
-          task: stripHtml(res.data.task || itemData.task),
-          owner: stripHtml(res.data.owner || itemData.owner) || "Unassigned",
-          dueDate:
-            stripHtml(res.data.dueDate || itemData.dueDate) || "Not specified",
-          priority: res.data.priority || itemData.priority || "Medium",
-          status: res.data.status || itemData.status || "Open",
-          isOverdue: checkIsOverdue(
-            res.data.dueDate || itemData.dueDate || "",
-            res.data.status || itemData.status || "Open"
-          ),
-        };
-        setActionItems((prev) => [newItemWithContext, ...prev]);
-      }
-      await fetchAllMetricsItems();
+      await saveActionItemMutation.mutateAsync(itemData);
+      setIsModalOpen(false);
+      setEditingItem(null);
     } catch (err) {
       console.error("Failed to save action item:", err);
     }
   };
 
-  // Open delete confirmation modal
+  // Open delete modal
   const handleOpenDeleteModal = (item: ActionItemWithContext) => {
     setItemToDelete(item);
     setIsDeleteModalOpen(true);
@@ -433,17 +359,11 @@ export default function ActionTrackerPage() {
   const handleConfirmDelete = async () => {
     if (!itemToDelete) return;
     try {
-      setIsDeleting(true);
-      await api.delete(`/action-items/${itemToDelete.id}`);
+      await deleteActionItemMutation.mutateAsync(itemToDelete.id);
       setIsDeleteModalOpen(false);
       setItemToDelete(null);
-      // Re-fetch action items & metrics from backend API
-      await fetchActionItems(currentPage);
-      await fetchAllMetricsItems();
     } catch (err) {
       console.error("Failed to delete action item:", err);
-    } finally {
-      setIsDeleting(false);
     }
   };
 
@@ -834,8 +754,8 @@ export default function ActionTrackerPage() {
             <div
               key={item.id}
               className={`p-4 rounded-xl border bg-white dark:bg-zinc-900 shadow-sm space-y-3 transition-colors ${item.isOverdue
-                  ? "border-red-200 dark:border-red-900/50 bg-red-50/20 dark:bg-red-950/10"
-                  : "border-zinc-200/80 dark:border-zinc-800/80"
+                ? "border-red-200 dark:border-red-900/50 bg-red-50/20 dark:bg-red-950/10"
+                : "border-zinc-200/80 dark:border-zinc-800/80"
                 }`}
             >
               <div className="flex items-start justify-between gap-2">
@@ -974,8 +894,8 @@ export default function ActionTrackerPage() {
                         size="sm"
                         onClick={() => setCurrentPage(page)}
                         className={`h-7 w-7 text-xs p-0 font-medium ${currentPage === page
-                            ? "bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
-                            : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                          ? "bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+                          : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
                           }`}
                       >
                         {page}

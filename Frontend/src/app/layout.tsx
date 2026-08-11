@@ -5,6 +5,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { NotificationProvider } from "@/components/ErrorNotification";
 
+import { QueryProvider } from "@/components/providers/QueryProvider";
+
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
   subsets: ["latin"],
@@ -39,7 +41,9 @@ export default function RootLayout({
         >
           <ErrorBoundary>
             <NotificationProvider>
-              {children}
+              <QueryProvider>
+                {children}
+              </QueryProvider>
             </NotificationProvider>
           </ErrorBoundary>
         </ThemeProvider>

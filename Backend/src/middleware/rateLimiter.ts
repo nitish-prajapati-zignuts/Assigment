@@ -90,10 +90,10 @@ export const generalRateLimiter = (req: Request, res: Response, next: NextFuncti
  * Login/Register Rate Limiter
  * Stricter limits for authentication endpoints
  */
-const authLimiter = new RateLimiter(15 * 60 * 1000, Number(process.env.AUTH_RATE_LIMITER)); // 5 attempts per 15 minutes
+const authLimiter = new RateLimiter(15 * 60 * 1000, Number(process.env.AUTH_RATE_LIMITER || 100));
 
-export const authRateLimiter = (req: Request, res: Response, next: NextFunction) => {
-  if (!config.ENABLE_RATE_LIMITER) return next();
+export const authRateLimiter = (req: Request, res: Response, Next: NextFunction) => {
+  if (!config.ENABLE_RATE_LIMITER) return Next();
 
   if (authLimiter.isRateLimited(req, 'auth')) {
     const resetTime = authLimiter.getResetTime(req, 'auth');
@@ -101,21 +101,21 @@ export const authRateLimiter = (req: Request, res: Response, next: NextFunction)
     throw new RateLimitError('Too many login attempts. Please try again later.');
   }
 
-  res.setHeader('X-RateLimit-Limit', 5);
+  res.setHeader('X-RateLimit-Limit', Number(process.env.AUTH_RATE_LIMITER || 100));
   res.setHeader('X-RateLimit-Remaining', authLimiter.getRemainingRequests(req, 'auth'));
   res.setHeader('X-RateLimit-Reset', authLimiter.getResetTime(req, 'auth'));
 
-  next();
+  Next();
 };
 
 /**
  * AI Service Rate Limiter
  * Prevent excessive AI API calls
  */
-const aiLimiter = new RateLimiter(60 * 60 * 1000, Number(process.env.AI_RATE_LIMITER))
+const aiLimiter = new RateLimiter(60 * 60 * 1000, Number(process.env.AI_RATE_LIMITER || 100));
 
-export const aiRateLimiter = (req: Request, res: Response, next: NextFunction) => {
-  if (!config.ENABLE_RATE_LIMITER) return next();
+export const aiRateLimiter = (req: Request, res: Response, Next: NextFunction) => {
+  if (!config.ENABLE_RATE_LIMITER) return Next();
 
   if (aiLimiter.isRateLimited(req, 'ai')) {
     const resetTime = aiLimiter.getResetTime(req, 'ai');
@@ -123,21 +123,21 @@ export const aiRateLimiter = (req: Request, res: Response, next: NextFunction) =
     throw new RateLimitError('AI service rate limit exceeded. Please try again later.');
   }
 
-  res.setHeader('X-RateLimit-Limit', 10);
+  res.setHeader('X-RateLimit-Limit', Number(process.env.AI_RATE_LIMITER || 100));
   res.setHeader('X-RateLimit-Remaining', aiLimiter.getRemainingRequests(req, 'ai'));
   res.setHeader('X-RateLimit-Reset', aiLimiter.getResetTime(req, 'ai'));
 
-  next();
+  Next();
 };
 
 /**
  * API Rate Limiter
  * Standard rate limit for normal API endpoints
  */
-const apiLimiter = new RateLimiter(5 * 60 * 1000, Number(process.env.API_RATE_LIMITER));
+const apiLimiter = new RateLimiter(5 * 60 * 1000, Number(process.env.API_RATE_LIMITER || 1000));
 
-export const apiRateLimiter = (req: Request, res: Response, next: NextFunction) => {
-  if (!config.ENABLE_RATE_LIMITER) return next();
+export const apiRateLimiter = (req: Request, res: Response, Next: NextFunction) => {
+  if (!config.ENABLE_RATE_LIMITER) return Next();
 
   if (apiLimiter.isRateLimited(req, 'api')) {
     const resetTime = apiLimiter.getResetTime(req, 'api');
@@ -145,9 +145,9 @@ export const apiRateLimiter = (req: Request, res: Response, next: NextFunction) 
     throw new RateLimitError('API rate limit exceeded. Please try again later.');
   }
 
-  res.setHeader('X-RateLimit-Limit', 30);
+  res.setHeader('X-RateLimit-Limit', Number(process.env.API_RATE_LIMITER || 1000));
   res.setHeader('X-RateLimit-Remaining', apiLimiter.getRemainingRequests(req, 'api'));
   res.setHeader('X-RateLimit-Reset', apiLimiter.getResetTime(req, 'api'));
 
-  next();
+  Next();
 };

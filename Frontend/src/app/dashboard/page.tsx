@@ -50,8 +50,23 @@ interface DashboardMetrics {
   savedTranscripts: number;
 }
 
+import { useQuery } from "@tanstack/react-query";
+
 export default function DashboardPage() {
-  const [metrics, setMetrics] = useState<DashboardMetrics>({
+  const [viewingMeeting, setViewingMeeting] = useState<Meeting | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  // TanStack Query for Dashboard Overview Stats with Caching
+  const { data: dashboardData, isLoading } = useQuery({
+    queryKey: ["dashboardStats"],
+    queryFn: async () => {
+      const res = await api.get("/dashboard/stats");
+      return res.data;
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes cache
+  });
+
+  const metrics: DashboardMetrics = dashboardData?.metrics || {
     totalMeetings: 0,
     totalActionItems: 0,
     openActionItems: 0,
@@ -59,37 +74,10 @@ export default function DashboardPage() {
     overdueActionItems: 0,
     blockedActionItems: 0,
     savedTranscripts: 0,
-  });
-  const [recentMeetings, setRecentMeetings] = useState<Meeting[]>([]);
-  const [chartsData, setChartsData] = useState<DashboardChartsData>({});
-  const [isLoading, setIsLoading] = useState(true);
-  const [viewingMeeting, setViewingMeeting] = useState<Meeting | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  };
 
-  // Fetch dashboard stats from backend /api/dashboard/stats
-  useEffect(() => {
-    const fetchDashboardStats = async () => {
-      setIsLoading(true);
-      try {
-        const response = await api.get("/dashboard/stats");
-        if (response.data?.metrics) {
-          setMetrics(response.data.metrics);
-        }
-        if (Array.isArray(response.data?.recentMeetings)) {
-          setRecentMeetings(response.data.recentMeetings);
-        }
-        if (response.data?.charts) {
-          setChartsData(response.data.charts);
-        }
-      } catch (err) {
-        console.error("Failed to fetch dashboard stats from API:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchDashboardStats();
-  }, []);
+  const recentMeetings: Meeting[] = dashboardData?.recentMeetings || [];
+  const chartsData: DashboardChartsData = dashboardData?.charts || {};
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

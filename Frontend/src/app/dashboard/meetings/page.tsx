@@ -45,98 +45,45 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import api from "@/lib/axios";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function MeetingsPage() {
-  const [meetings, setMeetings] = useState<Meeting[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string>("All");
-
-  // Pagination state (Server-side pagination)
-  const ITEMS_PER_PAGE = 10;
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
 
-  // Modal states
+  // Pagination constant
+  const ITEMS_PER_PAGE = 10;
+
+  // Modals state
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingMeeting, setEditingMeeting] = useState<Meeting | null>(null);
-
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [viewingMeeting, setViewingMeeting] = useState<Meeting | null>(null);
-
-  // Delete modal state
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [meetingToDelete, setMeetingToDelete] = useState<Meeting | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  // Reset to page 1 whenever filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, selectedType]);
-
-  // Fetch meetings from backend API with server-side pagination
-  const fetchMeetings = useCallback(async (page: number) => {
-    try {
-      setIsLoading(true);
-      const response = await api.get("/meetings", {
-        params: {
-          page,
-          limit: ITEMS_PER_PAGE,
-        },
+  // TanStack Query for Meetings with Caching
+  const { data: meetingsResponse, isLoading } = useQuery({
+    queryKey: ["meetings", currentPage],
+    queryFn: async () => {
+      const res = await api.get("/meetings", {
+        params: { page: currentPage, limit: ITEMS_PER_PAGE },
       });
+      return res.data;
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes cache
+  });
 
-      console.log("Meetings API Response:", response.data);
+  const meetings: Meeting[] = Array.isArray(meetingsResponse?.data)
+    ? meetingsResponse.data
+    : Array.isArray(meetingsResponse)
+      ? meetingsResponse
+      : [];
 
-      // Handle paginated response
-      if (response.data.data && response.data.pagination) {
-        setMeetings(response.data.data);
-        setTotalPages(response.data.pagination.totalPages);
-        setTotalItems(response.data.pagination.total);
-      } else if (Array.isArray(response.data)) {
-        // Fallback for non-paginated response
-        setMeetings(response.data);
-        setTotalPages(1);
-        setTotalItems(response.data.length);
-      } else {
-        setMeetings([]);
-        setTotalPages(1);
-        setTotalItems(0);
-      }
-    } catch (error) {
-      console.error("Failed to fetch meetings from database:", error);
-      setMeetings([]);
-      setTotalPages(1);
-      setTotalItems(0);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchMeetings(currentPage);
-  }, [currentPage, fetchMeetings]);
-
-  // Client-side filtering (for search and type filter)
-  const filteredMeetings = useMemo(() => {
-    return meetings.filter((meeting) => {
-      const matchesSearch =
-        meeting.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        meeting.participants.some((p) =>
-          p.toLowerCase().includes(searchQuery.toLowerCase())
-        ) ||
-        (meeting.transcript &&
-          meeting.transcript.toLowerCase().includes(searchQuery.toLowerCase()));
-
-      const matchesType =
-        selectedType === "All" || meeting.type === selectedType;
-
-      return matchesSearch && matchesType;
-    });
-  }, [meetings, searchQuery, selectedType]);
-
-  // Use filtered meetings for display
-  const displayMeetings = filteredMeetings;
+  const totalPages: number = meetingsResponse?.pagination?.totalPages || 1;
+  const totalItems: number = meetingsResponse?.pagination?.total || meetings.length;
 
   // Active background jobs being processed
   const [activeJobIds, setActiveJobIds] = useState<string[]>([]);
@@ -160,59 +107,92 @@ export default function MeetingsPage() {
             remainingJobIds.push(jobId);
           }
         } catch (err) {
-          console.error(`Error checking job status for ${jobId}:`, err);
+          console.error("Failed checking job status:", err);
         }
       }
 
       setActiveJobIds(remainingJobIds);
 
       if (shouldRefresh) {
-        // Fetch current page data without resetting currentPage
-        const res = await api.get("/meetings", {
-          params: { page: currentPage, limit: ITEMS_PER_PAGE },
-        });
-        if (res.data?.data) {
-          setMeetings(res.data.data);
-          // If a meeting detail modal is open, update its viewingMeeting reference to reflect newly completed summary
-          if (viewingMeeting) {
-            const updatedMatch = res.data.data.find((m: Meeting) => m.id === viewingMeeting.id);
-            if (updatedMatch) {
-              setViewingMeeting(updatedMatch);
-            }
-          }
-        }
+        queryClient.invalidateQueries({ queryKey: ["meetings"] });
+        queryClient.invalidateQueries({ queryKey: ["meetingsList"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
+        queryClient.invalidateQueries({ queryKey: ["actionItems"] });
+        queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] });
       }
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [activeJobIds, currentPage, fetchMeetings, viewingMeeting]);
+  }, [activeJobIds, queryClient]);
 
-  // Create or Update meeting in Database
-  const handleSaveMeeting = async (meetingData: Partial<Meeting>) => {
-    try {
+  // TanStack Mutation for Save / Create Meeting
+  const saveMeetingMutation = useMutation<{ jobId?: string }, Error, Partial<Meeting>>({
+    mutationFn: async (meetingData: Partial<Meeting>) => {
       if (meetingData.id) {
-        // Edit existing meeting
-        const response = await api.put<Meeting>(
-          `/meetings/${meetingData.id}`,
-          meetingData
-        );
-        // Refresh current page to show updated data
-        await fetchMeetings(currentPage);
+        const res = await api.put<Meeting>(`/meetings/${meetingData.id}`, meetingData);
+        return res.data as { jobId?: string };
       } else {
-        // Create new meeting
-        const response = await api.post<{ jobId?: string } & Meeting>("/meetings", meetingData);
-        if (response.data?.jobId) {
-          setActiveJobIds((prev) => [...prev, response.data.jobId!]);
-        }
-        // Go to page 1 to see the newly created meeting
-        await fetchMeetings(1);
-        setCurrentPage(1);
+        const res = await api.post<{ jobId?: string } & Meeting>("/meetings", meetingData);
+        return res.data;
       }
-    } catch (error) {
+    },
+    onSuccess: (data, variables) => {
+      if (data?.jobId) {
+        setActiveJobIds((prev) => [...prev, data.jobId!]);
+      }
+      queryClient.invalidateQueries({ queryKey: ["meetings"] });
+      queryClient.invalidateQueries({ queryKey: ["meetingsList"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
+      queryClient.invalidateQueries({ queryKey: ["actionItems"] });
+      queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] });
+      if (!variables.id) setCurrentPage(1);
+    },
+    onError: (error) => {
       console.error("Failed to save meeting to database:", error);
       alert("Failed to save meeting. Please check network/server logs.");
-    }
+    },
+  });
+
+  const handleSaveMeeting = async (meetingData: Partial<Meeting>) => {
+    await saveMeetingMutation.mutateAsync(meetingData);
+    setIsFormModalOpen(false);
   };
+
+  // TanStack Mutation for Delete Meeting
+  const deleteMeetingMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/meetings/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["meetings"] });
+      queryClient.invalidateQueries({ queryKey: ["meetingsList"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
+      queryClient.invalidateQueries({ queryKey: ["actionItems"] });
+      queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] });
+    },
+  });
+
+  const isDeleting = deleteMeetingMutation.isPending;
+
+  // Client-side filtering (for search and type filter)
+  const filteredMeetings = useMemo(() => {
+    return meetings.filter((meeting) => {
+      const matchesSearch =
+        meeting.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        meeting.participants.some((p) =>
+          p.toLowerCase().includes(searchQuery.toLowerCase())
+        ) ||
+        (meeting.transcript &&
+          meeting.transcript.toLowerCase().includes(searchQuery.toLowerCase()));
+
+      const matchesType =
+        selectedType === "All" || meeting.type === selectedType;
+
+      return matchesSearch && matchesType;
+    });
+  }, [meetings, searchQuery, selectedType]);
+
+  const displayMeetings = filteredMeetings;
 
   // Open delete confirmation modal
   const handleOpenDeleteModal = (meeting: Meeting) => {
@@ -224,16 +204,11 @@ export default function MeetingsPage() {
   const handleConfirmDelete = async () => {
     if (!meetingToDelete) return;
     try {
-      setIsDeleting(true);
-      await api.delete(`/meetings/${meetingToDelete.id}`);
+      await deleteMeetingMutation.mutateAsync(meetingToDelete.id);
       setIsDeleteModalOpen(false);
       setMeetingToDelete(null);
-      // Refresh the current page
-      await fetchMeetings(currentPage);
     } catch (error) {
       console.error("Failed to delete meeting from database:", error);
-    } finally {
-      setIsDeleting(false);
     }
   };
 
@@ -412,11 +387,10 @@ export default function MeetingsPage() {
                           setViewingMeeting(meeting);
                           setIsDetailModalOpen(true);
                         }}
-                        className={`h-8 w-8 rounded-md ${
-                          meeting.isMeetingPublished
+                        className={`h-8 w-8 rounded-md ${meeting.isMeetingPublished
                             ? "text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
                             : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                        }`}
+                          }`}
                         title={meeting.isMeetingPublished ? "Shareable Link Active" : "Share Meeting"}
                       >
                         <Share2 className="h-5 w-5" />
@@ -622,11 +596,10 @@ export default function MeetingsPage() {
                       variant={currentPage === page ? "default" : "ghost"}
                       size="sm"
                       onClick={() => setCurrentPage(page)}
-                      className={`h-7 w-7 text-xs p-0 font-medium ${
-                        currentPage === page
+                      className={`h-7 w-7 text-xs p-0 font-medium ${currentPage === page
                           ? "bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
                           : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                      }`}
+                        }`}
                     >
                       {page}
                     </Button>
