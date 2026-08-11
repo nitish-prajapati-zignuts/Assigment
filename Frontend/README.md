@@ -44,25 +44,34 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 🔐 Key Features & UI Enhancements
 
-1. **Tabbed Dashboard Interface (`Overview` vs `Analytics`)**:
+1. **Public Encrypted Shareable Meeting Page (`/share/[token]`)**:
+   - Secure encrypted token resolution using AES-256-GCM without requiring login.
+   - Smooth left-to-right message slide animations and animated gradient progress bar during loading state.
+2. **Disabled Re-generation on Published Meetings**:
+   - Disables the "Re-generate AI Notes" button in `MeetingDetailModal` when published with a helpful tooltip to protect public notes.
+3. **Modern Delete Confirmation Modals**:
+   - Replaced browser `confirm()` with custom Shadcn/Radix alert dialog modals featuring item titles, warning indicators, and inline deletion spinners.
+4. **Dynamic Action Tracker Metrics & Loading States**:
+   - Automatically recalculates and re-fetches total, in-progress, blocked, and overdue metrics during task CRUD operations with dedicated inline card loading spinners (`Loader2`).
+5. **125% Scaled Icon Design Hierarchy**:
+   - Scaled Lucide React icons by 125% across dashboard cards, header actions, data tables, detail modals, and share views for optimal readability.
+6. **Tabbed Dashboard Interface (`Overview` vs `Analytics`)**:
    - Uses Radix Tabs to separate core KPI metrics & recent meetings from visual analytics charts into dedicated views.
-2. **Interactive Visual Analytics Charts (`AnalyticsCharts.tsx`)**:
+7. **Interactive Visual Analytics Charts (`AnalyticsCharts.tsx`)**:
    - **Meeting Velocity & Transcripts**: Dual Area Chart tracking meeting volume and transcript frequency over time.
    - **Task Status Distribution**: Donut chart visualizing task status completion ratios.
    - **Task Priority Breakdown**: Bar chart showing tasks grouped by urgency (`Urgent`, `High`, `Medium`, `Low`).
    - **Key Decisions Breakdown**: Horizontal bar chart mapping decision categories (`Technology/Platform`, `Timeline Agreed`, `Scope Change`, etc.).
-3. **Collapsible Mobile Drawer Sidebar**:
+8. **Collapsible Mobile Drawer Sidebar**:
    - Slide-over drawer menu on mobile viewports (`< lg`) with top header bar & backdrop overlay.
-   - Remains persistent and open on desktop screens (`≥ lg`).
-4. **Responsive Card Views for Tables**:
+9. **Responsive Card Views for Tables**:
    - Converts wide tabular data on Meetings and Action Tracker pages into mobile-friendly stacked cards.
-5. **Smart Truncated Pagination (`1 ... N`)**:
-   - Compact pagination bar (`1 ... [prev] [current] [next] ... [totalPages]`) prevents page button overflow on touch devices.
-6. **Real-time Async Job Processing & Summarizing Loader**:
-   - Shows an active `Summarizing...` badge while background AI tasks run.
-   - Displays in-modal loading states and automatically syncs completed summaries into the open view modal.
-7. **Slack-Style `@` Mention Autocomplete**:
-   - Typing `@` in participant input field opens a search menu of registered users with keyboard navigation (`ArrowUp`/`ArrowDown`/`Enter`).
-8. **Harmonious Custom OKLCH Theme**:
-   - Curated indigo/violet accent theme tokens integrated seamlessly across Light & Dark modes.
+10. **Smart Truncated Pagination (`1 ... N`)**:
+    - Compact pagination bar preventing button overflow on touch devices.
+11. **Real-time Async Job Processing & Summarizing Loader**:
+    - Shows an active `Summarizing...` badge while background AI tasks run.
+12. **Slack-Style `@` Mention Autocomplete**:
+    - Typing `@` in participant input field opens a search menu of registered users with keyboard navigation (`ArrowUp`/`ArrowDown`/`Enter`).
+13. **Harmonious Custom OKLCH Theme**:
+    - Curated indigo/violet accent theme tokens integrated seamlessly across Light & Dark modes.
 

@@ -184,6 +184,7 @@ The PostgreSQL database uses three core relational tables defined via **Drizzle 
 | `participants` | JSONB | Array of participant strings |
 | `transcript` | TEXT | Full transcript text |
 | `summary` | JSONB | Structured JSON (Purposes, Outcomes, Concerns, Unanswered Questions, Next Steps, Key Decisions) |
+| `is_meeting_published` | BOOLEAN | DEFAULT FALSE (Public share access toggle) |
 | `created_at` | TIMESTAMP | DEFAULT NOW() |
 
 ### `action_items`
@@ -212,11 +213,13 @@ The PostgreSQL database uses three core relational tables defined via **Drizzle 
 - `GET /api/auth/users` — Fetch registered user list for participant assignment
 
 ### **Meetings & Summaries**
-- `GET /api/meetings` — Retrieve paginated meetings
+- `GET /api/meetings` — Retrieve paginated meetings ordered by `created_at` descending (newest first)
 - `POST /api/meetings` — Create new meeting & trigger async background job summarization
 - `GET /api/meetings/:id` — Get meeting details, transcript, and full summary breakdown
 - `PUT /api/meetings/:id` — Update existing meeting record
 - `DELETE /api/meetings/:id` — Delete meeting record
+- `PATCH /api/meetings/:id/publish` — Toggle public shareable access state & return encrypted token
+- `GET /api/meetings/public/share/:token` — Unprotected public endpoint to view shared meeting notes via AES-256-GCM token
 
 ### **Action Items**
 - `GET /api/action-items` — Retrieve action items (supports filtering by `status`, `priority`, `owner`, `meetingId`)
@@ -236,6 +239,12 @@ The PostgreSQL database uses three core relational tables defined via **Drizzle 
 
 ## Features Completed
 
+- [x] **Public Encrypted Shareable Meeting Links**: Toggle public access for any meeting with AES-256-GCM token encryption (`GET /api/meetings/public/share/:token`) and public view page (`/share/[token]`) featuring slide-in loading animations and copy-to-clipboard functionality.
+- [x] **Disabled Re-generation on Published Meetings**: Automatically disables the "Re-generate AI Notes" button when a meeting link is published to prevent accidental overwrite of shared notes.
+- [x] **Modern UI Confirmation Delete Modals**: Custom dark/light mode alert dialog modals for deleting meetings & action items with title context, warning icons, and inline loading indicators.
+- [x] **Dynamic Real-Time Action Tracker Metrics**: Re-fetches total, in-progress, blocked, and overdue metrics dynamically upon CRUD operations (status update, edit, creation, deletion) with dedicated inline card loading spinners (`Loader2`).
+- [x] **Chronological Newest-First Ordering**: Meetings database queries and API results are strictly ordered by `createdAt` descending (newest created meeting appears first).
+- [x] **125% Scaled Lucide Icon Standard**: Enhanced visual hierarchy across all dashboard cards, headers, tables, detail modals, and public share views with 125% larger, legible Lucide React icons.
 - [x] **Interactive Recharts Visual Analytics**: Integrated 4 dynamic chart components (Area Chart for meeting velocity, Donut Chart for status, Bar Chart for priorities, Horizontal Bar Chart for decision categories).
 - [x] **Tabbed Dashboard Navigation**: Radix Tabs interface separating high-level KPI overview & table from visual analytics charts.
 - [x] **API Key Rotation & Retry Policy**: Built-in support for multiple API keys (`GEMINI_API_KEYS`) with automated retry loops across candidate keys.
