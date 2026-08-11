@@ -6,6 +6,8 @@ import {
   updateMeeting,
   summarizeMeeting,
   deleteMeeting,
+  toggleMeetingPublish,
+  getPublicMeetingByToken,
 } from "../controllers/meetingController";
 import { protect } from "../middleware/authMiddleware";
 import { validateBody, validateQuery, validateParams } from "../middleware/validation";
@@ -18,7 +20,10 @@ import {
 
 const router = Router();
 
-// Protect all meeting endpoints
+// PUBLIC Endpoint (no auth required) - Get meeting details via encrypted share token
+router.get("/public/share/:token", getPublicMeetingByToken);
+
+// Protect all remaining meeting endpoints
 router.use(protect);
 
 // GET /api/meetings - Fetch all meetings with filtering
@@ -32,6 +37,9 @@ router.post("/", validateBody(createMeetingSchema), createMeeting);
 
 // PUT /api/meetings/:id - Update existing meeting
 router.put("/:id", validateParams(idSchema), validateBody(updateMeetingSchema), updateMeeting);
+
+// PATCH /api/meetings/:id/publish - Toggle public link status
+router.patch("/:id/publish", validateParams(idSchema), toggleMeetingPublish);
 
 // POST /api/meetings/:id/summarize - Generate AI summary
 router.post("/:id/summarize", validateParams(idSchema), summarizeMeeting);

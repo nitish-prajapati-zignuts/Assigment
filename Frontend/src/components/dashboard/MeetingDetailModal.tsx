@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import {
   Calendar,
   Users,
@@ -36,6 +37,9 @@ import {
   User,
   Loader2,
   Info,
+  Share2,
+  Copy,
+  Lock,
 } from "lucide-react";
 
 interface MeetingDetailModalProps {
@@ -60,11 +64,74 @@ export function MeetingDetailModal({
     meeting?.summary
   );
 
+  // Share state
+  const [isPublished, setIsPublished] = useState<boolean>(!!meeting?.isMeetingPublished);
+  const [shareToken, setShareToken] = useState<string | null>(null);
+  const [isPublishing, setIsPublishing] = useState<boolean>(false);
+  const [copied, setCopied] = useState<boolean>(false);
+
   // Sync state when meeting prop changes
   useEffect(() => {
     setCurrentSummary(meeting?.summary);
+    setIsPublished(!!meeting?.isMeetingPublished);
+    setShareToken(null);
     setActiveTab("summary");
   }, [meeting]);
+
+  const handleTogglePublish = async () => {
+    if (!meeting) return;
+    try {
+      setIsPublishing(true);
+      const res = await api.patch(`/meetings/${meeting.id}/publish`, {
+        isMeetingPublished: !isPublished,
+      });
+
+      const updatedStatus = res.data.isMeetingPublished;
+      setIsPublished(updatedStatus);
+      meeting.isMeetingPublished = updatedStatus;
+
+      if (res.data.shareToken) {
+        setShareToken(res.data.shareToken);
+      }
+    } catch (err) {
+      console.error("Failed to update publish state:", err);
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
+  const getShareUrl = () => {
+    if (typeof window === "undefined") return "";
+    const origin = window.location.origin;
+    if (shareToken) {
+      return `${origin}/share/${shareToken}`;
+    }
+    return `${origin}/share/loading`;
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      let urlToCopy = getShareUrl();
+      if (!shareToken && meeting) {
+        setIsPublishing(true);
+        const res = await api.patch(`/meetings/${meeting.id}/publish`, {
+          isMeetingPublished: true,
+        });
+        setIsPublished(true);
+        meeting.isMeetingPublished = true;
+        setShareToken(res.data.shareToken);
+        urlToCopy = `${window.location.origin}/share/${res.data.shareToken}`;
+        setIsPublishing(false);
+      }
+
+      await navigator.clipboard.writeText(urlToCopy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy link:", err);
+      setIsPublishing(false);
+    }
+  };
 
   if (!meeting) return null;
 
@@ -174,13 +241,13 @@ export function MeetingDetailModal({
           {/* Metadata Bar */}
           <div className="grid grid-cols-2 gap-4 text-sm bg-zinc-50 p-3 rounded-lg dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
             <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
-              <Calendar className="h-4 w-4 text-zinc-500" />
+              <Calendar className="h-5 w-5 text-zinc-500" />
               <span>
                 <strong>Date:</strong> {meeting.date}
               </span>
             </div>
             <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
-              <Clock className="h-4 w-4 text-zinc-500" />
+              <Clock className="h-5 w-5 text-zinc-500" />
               <span>
                 <strong>Created:</strong> {meeting.createdAt}
               </span>
@@ -190,7 +257,7 @@ export function MeetingDetailModal({
           {/* Participants */}
           <div>
             <h4 className="text-xs font-semibold flex items-center gap-2 mb-2 text-zinc-500 uppercase tracking-wider">
-              <Users className="h-3.5 w-3.5" />
+              <Users className="h-4.5 w-4.5" />
               Participants
             </h4>
             <div className="flex flex-wrap gap-2">
@@ -202,6 +269,71 @@ export function MeetingDetailModal({
             </div>
           </div>
 
+          {/* Shareable Link Section */}
+          <div className="bg-gradient-to-r from-amber-500/10 via-zinc-500/5 to-purple-500/10 p-4 rounded-xl border border-amber-200/60 dark:border-amber-900/40 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Share2 className="h-5 w-5 text-amber-500" />
+                <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-200">
+                  Shareable Public Access
+                </h4>
+              </div>
+              <Button
+                size="sm"
+                variant={isPublished ? "default" : "outline"}
+                onClick={handleTogglePublish}
+                disabled={isPublishing}
+                className={`h-7 text-xs ${isPublished
+                    ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                    : "border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300"
+                  }`}
+              >
+                {isPublishing ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                ) : isPublished ? (
+                  <CheckCircle2 className="h-4 w-4 mr-1" />
+                ) : (
+                  <Lock className="h-4 w-4 mr-1" />
+                )}
+                {isPublished ? "Link Active (Published)" : "Publish & Share"}
+              </Button>
+            </div>
+
+            {isPublished && (
+              <div className="space-y-2 pt-1">
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                  Anyone with this encrypted link can view the meeting summary & outcomes without logging in:
+                </p>
+                <div className="flex items-center gap-2">
+                  <Input
+                    readOnly
+                    value={shareToken ? `${window.location.origin}/share/${shareToken}` : "Generating encrypted link..."}
+                    className="h-8 text-xs font-mono bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 select-all"
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleCopyLink}
+                    disabled={isPublishing}
+                    className="h-8 text-xs shrink-0 flex items-center gap-1 border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-300 dark:hover:bg-amber-950/40"
+                  >
+                    {copied ? (
+                      <>
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4" />
+                        Copy Link
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Structured Summary & Transcript Tabs */}
           <Tabs
             value={activeTab}
@@ -211,11 +343,11 @@ export function MeetingDetailModal({
             <div className="flex items-center justify-between">
               <TabsList className="grid w-64 grid-cols-2">
                 <TabsTrigger value="summary" className="flex items-center gap-1.5 text-xs">
-                  <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                  <Sparkles className="h-4 w-4 text-amber-500" />
                   AI Summary
                 </TabsTrigger>
                 <TabsTrigger value="transcript" className="flex items-center gap-1.5 text-xs">
-                  <FileText className="h-3.5 w-3.5 text-blue-500" />
+                  <FileText className="h-4 w-4 text-blue-500" />
                   Transcript
                 </TabsTrigger>
               </TabsList>
@@ -229,13 +361,16 @@ export function MeetingDetailModal({
                   size="sm"
                   variant="outline"
                   onClick={handleGenerateSummary}
-                  disabled={isGenerating}
-                  className="h-8 text-xs flex items-center gap-1.5"
+                  disabled={isGenerating || isPublished}
+                  title={isPublished ? "Unpublish meeting to re-generate AI notes" : "Re-generate AI notes"}
+                  className={`h-8 text-xs flex items-center gap-1.5 ${
+                    isPublished ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                 >
                   {isGenerating ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-500" />
+                    <Loader2 className="h-4 w-4 animate-spin text-amber-500" />
                   ) : (
-                    <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                    <Sparkles className="h-4 w-4 text-amber-500" />
                   )}
                   {isGenerating ? "Generating..." : "Re-generate AI Notes"}
                 </Button>
@@ -249,7 +384,7 @@ export function MeetingDetailModal({
                   {/* 1. Purpose of the Meeting */}
                   <div className="bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 p-4 rounded-lg space-y-1.5 shadow-sm">
                     <h5 className="text-xs font-bold text-amber-800 dark:text-amber-400 flex items-center gap-1.5 uppercase tracking-wide">
-                      <Target className="h-4 w-4" />
+                      <Target className="h-5 w-5" />
                       1. Purpose of the Meeting
                     </h5>
                     <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">
@@ -260,7 +395,7 @@ export function MeetingDetailModal({
                   {/* 2. Important Discussion Points */}
                   <div className="bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 p-4 rounded-lg space-y-2 shadow-sm">
                     <h5 className="text-xs font-bold text-blue-800 dark:text-blue-400 flex items-center gap-1.5 uppercase tracking-wide">
-                      <MessageSquare className="h-4 w-4" />
+                      <MessageSquare className="h-5 w-5" />
                       2. Important Discussion Points
                     </h5>
                     <ul className="space-y-1.5 text-sm text-zinc-700 dark:text-zinc-300 list-disc list-inside">
@@ -275,7 +410,7 @@ export function MeetingDetailModal({
                   {/* 3. Major Outcomes */}
                   <div className="bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50 p-4 rounded-lg space-y-2 shadow-sm">
                     <h5 className="text-xs font-bold text-emerald-800 dark:text-emerald-400 flex items-center gap-1.5 uppercase tracking-wide">
-                      <CheckCircle2 className="h-4 w-4" />
+                      <CheckCircle2 className="h-5 w-5" />
                       3. Major Outcomes
                     </h5>
                     <ul className="space-y-1.5 text-sm text-zinc-700 dark:text-zinc-300 list-disc list-inside">
@@ -290,7 +425,7 @@ export function MeetingDetailModal({
                   {/* 4. Important Concerns */}
                   <div className="bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/50 p-4 rounded-lg space-y-2 shadow-sm">
                     <h5 className="text-xs font-bold text-rose-800 dark:text-rose-400 flex items-center gap-1.5 uppercase tracking-wide">
-                      <AlertTriangle className="h-4 w-4" />
+                      <AlertTriangle className="h-5 w-5" />
                       4. Important Concerns
                     </h5>
                     <ul className="space-y-1.5 text-sm text-zinc-700 dark:text-zinc-300 list-disc list-inside">
@@ -305,7 +440,7 @@ export function MeetingDetailModal({
                   {/* 5. Unanswered Questions */}
                   <div className="bg-orange-50/60 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-900/50 p-4 rounded-lg space-y-2 shadow-sm">
                     <h5 className="text-xs font-bold text-orange-800 dark:text-orange-400 flex items-center gap-1.5 uppercase tracking-wide">
-                      <HelpCircle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                      <HelpCircle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                       5. Unanswered Questions
                     </h5>
                     {summaryData.unansweredQuestions && summaryData.unansweredQuestions.length > 0 ? (
@@ -318,7 +453,7 @@ export function MeetingDetailModal({
                       </ul>
                     ) : (
                       <div className="flex items-center gap-2 py-2 text-xs text-orange-700/80 dark:text-orange-400/80 italic">
-                        <HelpCircle className="h-4 w-4 text-orange-400 opacity-60" />
+                        <HelpCircle className="h-5 w-5 text-orange-400 opacity-60" />
                         <span>No unanswered questions identified in this meeting.</span>
                       </div>
                     )}
@@ -327,7 +462,7 @@ export function MeetingDetailModal({
                   {/* 5. Next Steps */}
                   <div className="bg-indigo-50/60 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-900/50 p-4 rounded-lg space-y-2 shadow-sm">
                     <h5 className="text-xs font-bold text-indigo-800 dark:text-indigo-400 flex items-center gap-1.5 uppercase tracking-wide">
-                      <ArrowRightCircle className="h-4 w-4" />
+                      <ArrowRightCircle className="h-5 w-5" />
                       5. Next Steps
                     </h5>
                     <ul className="space-y-1.5 text-sm text-zinc-700 dark:text-zinc-300 list-disc list-inside">
@@ -342,7 +477,7 @@ export function MeetingDetailModal({
                   {/* 6. Key Decisions Made */}
                   <div className="bg-purple-50/70 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900/50 p-4 rounded-lg space-y-3 shadow-sm">
                     <h5 className="text-xs font-bold text-purple-800 dark:text-purple-300 flex items-center gap-1.5 uppercase tracking-wide">
-                      <Gavel className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                      <Gavel className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                       6. Key Decisions Made
                     </h5>
 
@@ -375,7 +510,7 @@ export function MeetingDetailModal({
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 text-xs text-zinc-500 bg-white/70 dark:bg-zinc-900/70 p-3 rounded border border-purple-100 dark:border-purple-900/30">
-                        <Info className="h-4 w-4 text-purple-400 shrink-0" />
+                        <Info className="h-5 w-5 text-purple-400 shrink-0" />
                         <span>
                           No explicit key decisions were recorded during this meeting.
                         </span>
@@ -386,7 +521,7 @@ export function MeetingDetailModal({
                   {/* 7. AI Extracted Action Items */}
                   <div className="bg-teal-50/70 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-900/50 p-4 rounded-lg space-y-3 shadow-sm">
                     <h5 className="text-xs font-bold text-teal-800 dark:text-teal-300 flex items-center gap-1.5 uppercase tracking-wide">
-                      <CheckSquare className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                      <CheckSquare className="h-5 w-5 text-teal-600 dark:text-teal-400" />
                       7. Extracted Action Items
                     </h5>
 
@@ -420,11 +555,11 @@ export function MeetingDetailModal({
 
                             <div className="flex items-center gap-4 text-xs text-zinc-500 dark:text-zinc-400 pl-3">
                               <span className="flex items-center gap-1">
-                                <User className="h-3 w-3 text-zinc-400" />
+                                <User className="h-4 w-4 text-zinc-400" />
                                 Owner: <strong className="text-zinc-700 dark:text-zinc-300">{stripHtml(item.owner)}</strong>
                               </span>
                               <span className="flex items-center gap-1">
-                                <Calendar className="h-3 w-3 text-zinc-400" />
+                                <Calendar className="h-4 w-4 text-zinc-400" />
                                 Due: <strong className="text-zinc-700 dark:text-zinc-300">{stripHtml(item.dueDate)}</strong>
                               </span>
                             </div>
@@ -433,7 +568,7 @@ export function MeetingDetailModal({
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 text-xs text-zinc-500 bg-white/70 dark:bg-zinc-900/70 p-3 rounded border border-teal-100 dark:border-teal-900/30">
-                        <Info className="h-4 w-4 text-teal-400 shrink-0" />
+                        <Info className="h-5 w-5 text-teal-400 shrink-0" />
                         <span>No actionable tasks were extracted from this transcript.</span>
                       </div>
                     )}
@@ -442,8 +577,8 @@ export function MeetingDetailModal({
               ) : isSummarizing || isGenerating ? (
                 <div className="text-center py-10 border border-amber-200 dark:border-amber-900/50 bg-amber-50/30 dark:bg-amber-950/10 rounded-lg space-y-3">
                   <div className="flex items-center justify-center gap-2 text-amber-600 dark:text-amber-400">
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                    <Sparkles className="h-6 w-6 text-amber-500 animate-pulse" />
+                    <Loader2 className="h-7 w-7 animate-spin" />
+                    <Sparkles className="h-7 w-7 text-amber-500 animate-pulse" />
                   </div>
                   <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                     AI Summary Job is Processing
@@ -454,7 +589,7 @@ export function MeetingDetailModal({
                 </div>
               ) : (
                 <div className="text-center py-8 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg">
-                  <Sparkles className="mx-auto h-8 w-8 text-amber-400 mb-2" />
+                  <Sparkles className="mx-auto h-10 w-10 text-amber-400 mb-2" />
                   <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                     No AI Summary generated yet
                   </p>
@@ -467,7 +602,7 @@ export function MeetingDetailModal({
                     disabled={isGenerating}
                     className="flex items-center gap-2 mx-auto"
                   >
-                    {isGenerating && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {isGenerating && <Loader2 className="h-5 w-5 animate-spin" />}
                     Generate AI Summary
                   </Button>
                 </div>

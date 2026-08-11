@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import api from "@/lib/axios";
 import { ActionItem, Meeting } from "@/types/meeting";
 import { CreateActionItemModal } from "@/components/dashboard/CreateActionItemModal";
@@ -28,6 +28,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Plus,
   Search,
@@ -73,6 +81,11 @@ export default function ActionTrackerPage() {
   const [editingItem, setEditingItem] = useState<
     (ActionItem & { meetingId?: string; id?: string }) | null
   >(null);
+
+  // Delete modal states
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<ActionItemWithContext | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Reset to page 1 whenever any filter or search query changes
   useEffect(() => {
@@ -154,72 +167,73 @@ export default function ActionTrackerPage() {
   };
 
   // Build aggregated action items from API with server-side pagination
-  useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        setIsLoading(true);
-        const res = await api.get("/action-items", {
-          params: {
-            page: currentPage,
-            limit: ITEMS_PER_PAGE,
-          },
-        });
+  // Fetch action items from backend API with server-side pagination
+  const fetchActionItems = useCallback(async (page: number) => {
+    try {
+      setIsLoading(true);
+      const res = await api.get("/action-items", {
+        params: {
+          page,
+          limit: ITEMS_PER_PAGE,
+        },
+      });
 
-        console.log("Action Items API Response:", res.data);
+      console.log("Action Items API Response:", res.data);
 
-        if (res.data.data && res.data.pagination) {
-          // Server-side paginated response
-          const formatted = res.data.data.map((item: any) => ({
-            id: item.id || `item-${Math.random()}`,
-            meetingId: item.meetingId || "1",
-            meetingTitle:
-              meetings.find((m) => m.id === item.meetingId)?.title ||
-              "General Meeting",
-            task: stripHtml(item.task),
-            owner: stripHtml(item.owner) || "Unassigned",
-            dueDate: stripHtml(item.dueDate) || "Not specified",
-            priority: item.priority || "Medium",
-            status: item.status || "Open",
-            isOverdue: checkIsOverdue(item.dueDate, item.status),
-          }));
-          setActionItems(formatted);
-          setTotalPages(res.data.pagination.totalPages);
-          setTotalItems(res.data.pagination.total);
-        } else if (Array.isArray(res.data)) {
-          // Fallback for non-paginated response
-          const formatted = res.data.map((item: any) => ({
-            id: item.id || `item-${Math.random()}`,
-            meetingId: item.meetingId || "1",
-            meetingTitle:
-              meetings.find((m) => m.id === item.meetingId)?.title ||
-              "General Meeting",
-            task: stripHtml(item.task),
-            owner: stripHtml(item.owner) || "Unassigned",
-            dueDate: stripHtml(item.dueDate) || "Not specified",
-            priority: item.priority || "Medium",
-            status: item.status || "Open",
-            isOverdue: checkIsOverdue(item.dueDate, item.status),
-          }));
-          setActionItems(formatted);
-          setTotalPages(1);
-          setTotalItems(formatted.length);
-        } else {
-          setActionItems([]);
-          setTotalPages(1);
-          setTotalItems(0);
-        }
-      } catch (err) {
-        console.error("Failed to fetch action items from API:", err);
+      if (res.data.data && res.data.pagination) {
+        // Server-side paginated response
+        const formatted = res.data.data.map((item: any) => ({
+          id: item.id || `item-${Math.random()}`,
+          meetingId: item.meetingId || "1",
+          meetingTitle:
+            meetings.find((m) => m.id === item.meetingId)?.title ||
+            "General Meeting",
+          task: stripHtml(item.task),
+          owner: stripHtml(item.owner) || "Unassigned",
+          dueDate: stripHtml(item.dueDate) || "Not specified",
+          priority: item.priority || "Medium",
+          status: item.status || "Open",
+          isOverdue: checkIsOverdue(item.dueDate, item.status),
+        }));
+        setActionItems(formatted);
+        setTotalPages(res.data.pagination.totalPages);
+        setTotalItems(res.data.pagination.total);
+      } else if (Array.isArray(res.data)) {
+        // Fallback for non-paginated response
+        const formatted = res.data.map((item: any) => ({
+          id: item.id || `item-${Math.random()}`,
+          meetingId: item.meetingId || "1",
+          meetingTitle:
+            meetings.find((m) => m.id === item.meetingId)?.title ||
+            "General Meeting",
+          task: stripHtml(item.task),
+          owner: stripHtml(item.owner) || "Unassigned",
+          dueDate: stripHtml(item.dueDate) || "Not specified",
+          priority: item.priority || "Medium",
+          status: item.status || "Open",
+          isOverdue: checkIsOverdue(item.dueDate, item.status),
+        }));
+        setActionItems(formatted);
+        setTotalPages(1);
+        setTotalItems(formatted.length);
+      } else {
         setActionItems([]);
         setTotalPages(1);
         setTotalItems(0);
-      } finally {
-        setIsLoading(false);
       }
-    };
+    } catch (err) {
+      console.error("Failed to fetch action items from API:", err);
+      setActionItems([]);
+      setTotalPages(1);
+      setTotalItems(0);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [meetings]);
 
-    fetchItems();
-  }, [meetings, currentPage]);
+  useEffect(() => {
+    fetchActionItems(currentPage);
+  }, [currentPage, fetchActionItems]);
 
   // Extract unique owners for filter dropdown
   const uniqueOwners = useMemo(() => {
@@ -271,39 +285,43 @@ export default function ActionTrackerPage() {
 
   // Summary Metrics (based on all action items, not just current page)
   const [allActionItems, setAllActionItems] = useState<ActionItemWithContext[]>([]);
+  const [isMetricsLoading, setIsMetricsLoading] = useState(true);
 
   // Fetch all action items for metrics (without pagination)
-  useEffect(() => {
-    const fetchAllItems = async () => {
-      try {
-        const res = await api.get("/action-items", {
-          params: {
-            page: 1,
-            limit: 1000, // Get all items for metrics
-          },
-        });
+  const fetchAllMetricsItems = useCallback(async () => {
+    try {
+      setIsMetricsLoading(true);
+      const res = await api.get("/action-items", {
+        params: {
+          page: 1,
+          limit: 1000, // Get all items for metrics
+        },
+      });
 
-        if (res.data.data) {
-          const formatted = res.data.data.map((item: any) => ({
-            id: item.id || `item-${Math.random()}`,
-            meetingId: item.meetingId || "1",
-            meetingTitle: "General Meeting",
-            task: stripHtml(item.task),
-            owner: stripHtml(item.owner) || "Unassigned",
-            dueDate: stripHtml(item.dueDate) || "Not specified",
-            priority: item.priority || "Medium",
-            status: item.status || "Open",
-            isOverdue: checkIsOverdue(item.dueDate, item.status),
-          }));
-          setAllActionItems(formatted);
-        }
-      } catch (err) {
-        console.error("Failed to fetch all action items for metrics:", err);
+      if (res.data.data) {
+        const formatted = res.data.data.map((item: any) => ({
+          id: item.id || `item-${Math.random()}`,
+          meetingId: item.meetingId || "1",
+          meetingTitle: "General Meeting",
+          task: stripHtml(item.task),
+          owner: stripHtml(item.owner) || "Unassigned",
+          dueDate: stripHtml(item.dueDate) || "Not specified",
+          priority: item.priority || "Medium",
+          status: item.status || "Open",
+          isOverdue: checkIsOverdue(item.dueDate, item.status),
+        }));
+        setAllActionItems(formatted);
       }
-    };
-
-    fetchAllItems();
+    } catch (err) {
+      console.error("Failed to fetch all action items for metrics:", err);
+    } finally {
+      setIsMetricsLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchAllMetricsItems();
+  }, [fetchAllMetricsItems]);
 
   const metrics = useMemo(() => {
     const total = allActionItems.length;
@@ -351,6 +369,7 @@ export default function ActionTrackerPage() {
             : item
         )
       );
+      await fetchAllMetricsItems();
     } catch (err) {
       console.error("Failed to update status:", err);
     }
@@ -398,20 +417,33 @@ export default function ActionTrackerPage() {
         };
         setActionItems((prev) => [newItemWithContext, ...prev]);
       }
+      await fetchAllMetricsItems();
     } catch (err) {
       console.error("Failed to save action item:", err);
     }
   };
 
-  // Delete Handler
-  const handleDeleteItem = async (id: string) => {
-    if (confirm("Are you sure you want to delete this action item?")) {
-      try {
-        await api.delete(`/action-items/${id}`);
-        setActionItems((prev) => prev.filter((item) => item.id !== id));
-      } catch (err) {
-        console.error("Failed to delete action item:", err);
-      }
+  // Open delete confirmation modal
+  const handleOpenDeleteModal = (item: ActionItemWithContext) => {
+    setItemToDelete(item);
+    setIsDeleteModalOpen(true);
+  };
+
+  // Confirm delete action
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
+    try {
+      setIsDeleting(true);
+      await api.delete(`/action-items/${itemToDelete.id}`);
+      setIsDeleteModalOpen(false);
+      setItemToDelete(null);
+      // Re-fetch action items & metrics from backend API
+      await fetchActionItems(currentPage);
+      await fetchAllMetricsItems();
+    } catch (err) {
+      console.error("Failed to delete action item:", err);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -435,7 +467,7 @@ export default function ActionTrackerPage() {
           }}
           className="flex items-center gap-2 shadow-sm bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 font-medium"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-5 w-5" />
           Add Action Item
         </Button>
       </div>
@@ -448,13 +480,20 @@ export default function ActionTrackerPage() {
               Total Action Items
             </CardTitle>
             <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800/80">
-              <CheckSquare className="h-4 w-4 text-zinc-600 dark:text-zinc-300" />
+              <CheckSquare className="h-5 w-5 text-zinc-600 dark:text-zinc-300" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-              {metrics.total}
-            </div>
+            {isMetricsLoading ? (
+              <div className="flex items-center gap-2 text-zinc-400 py-1">
+                <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
+                <span className="text-xs font-medium">Updating...</span>
+              </div>
+            ) : (
+              <div className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+                {metrics.total}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -464,13 +503,20 @@ export default function ActionTrackerPage() {
               In Progress Tasks
             </CardTitle>
             <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">
-              <Clock className="h-4 w-4" />
+              <Clock className="h-5 w-5" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
-              {metrics.inProgress}
-            </div>
+            {isMetricsLoading ? (
+              <div className="flex items-center gap-2 text-blue-400 py-1">
+                <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+                <span className="text-xs font-medium">Updating...</span>
+              </div>
+            ) : (
+              <div className="text-3xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
+                {metrics.inProgress}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -480,13 +526,20 @@ export default function ActionTrackerPage() {
               Blocked Tasks
             </CardTitle>
             <div className="p-2 rounded-lg bg-rose-500/10 text-rose-500">
-              <AlertCircle className="h-4 w-4" />
+              <AlertCircle className="h-5 w-5" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold tracking-tight text-rose-600 dark:text-rose-400">
-              {metrics.blocked}
-            </div>
+            {isMetricsLoading ? (
+              <div className="flex items-center gap-2 text-rose-400 py-1">
+                <Loader2 className="h-6 w-6 animate-spin text-rose-500" />
+                <span className="text-xs font-medium">Updating...</span>
+              </div>
+            ) : (
+              <div className="text-3xl font-bold tracking-tight text-rose-600 dark:text-rose-400">
+                {metrics.blocked}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -501,13 +554,20 @@ export default function ActionTrackerPage() {
               Overdue Tasks
             </CardTitle>
             <div className="p-2 rounded-lg bg-red-500/10 text-red-500">
-              <AlertTriangle className="h-4 w-4 animate-pulse" />
+              <AlertTriangle className="h-5 w-5 animate-pulse" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold tracking-tight text-red-600 dark:text-red-400">
-              {metrics.overdue}
-            </div>
+            {isMetricsLoading ? (
+              <div className="flex items-center gap-2 text-red-400 py-1">
+                <Loader2 className="h-6 w-6 animate-spin text-red-500" />
+                <span className="text-xs font-medium">Updating...</span>
+              </div>
+            ) : (
+              <div className="text-3xl font-bold tracking-tight text-red-600 dark:text-red-400">
+                {metrics.overdue}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -516,7 +576,7 @@ export default function ActionTrackerPage() {
       <div className="flex flex-col gap-4 bg-white dark:bg-zinc-900 p-4 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-sm">
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
           <div className="relative w-full sm:w-96">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
+            <Search className="absolute left-3 top-2.5 h-5 w-5 text-zinc-400" />
             <Input
               placeholder="Search task, owner, meeting..."
               value={searchQuery}
@@ -532,7 +592,7 @@ export default function ActionTrackerPage() {
               onClick={() => setShowOverdueOnly(!showOverdueOnly)}
               className="flex items-center gap-1.5 text-xs h-9 border-zinc-200 dark:border-zinc-800"
             >
-              <AlertTriangle className="h-3.5 w-3.5" />
+              <AlertTriangle className="h-4.5 w-4.5" />
               {showOverdueOnly ? "Showing Overdue Only" : "Filter Overdue"}
             </Button>
           </div>
@@ -630,7 +690,7 @@ export default function ActionTrackerPage() {
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-16">
                   <div className="flex flex-col items-center justify-center gap-2 text-zinc-500">
-                    <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
+                    <Loader2 className="h-7 w-7 animate-spin text-zinc-400" />
                     <span className="text-xs font-medium">Loading action items...</span>
                   </div>
                 </TableCell>
@@ -674,7 +734,7 @@ export default function ActionTrackerPage() {
                   {/* Owner */}
                   <TableCell className="min-w-[120px] py-3.5">
                     <span className="flex items-center gap-1.5 text-xs text-zinc-700 dark:text-zinc-300 font-medium">
-                      <User className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                      <User className="h-4.5 w-4.5 text-zinc-400 shrink-0" />
                       <span className="truncate">{item.owner}</span>
                     </span>
                   </TableCell>
@@ -683,7 +743,7 @@ export default function ActionTrackerPage() {
                   <TableCell className="min-w-[130px] py-3.5">
                     <div className="flex flex-col gap-1">
                       <span className="flex items-center gap-1 text-xs text-zinc-600 dark:text-zinc-400 font-medium">
-                        <Calendar className="h-3.5 w-3.5 text-zinc-400 shrink-0" />
+                        <Calendar className="h-4.5 w-4.5 text-zinc-400 shrink-0" />
                         <span>{item.dueDate}</span>
                       </span>
                       {item.isOverdue && (
@@ -737,16 +797,16 @@ export default function ActionTrackerPage() {
                         className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-md"
                         title="Edit Action Item"
                       >
-                        <Edit className="h-4 w-4" />
+                        <Edit className="h-5 w-5" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleDeleteItem(item.id)}
+                        onClick={() => handleOpenDeleteModal(item)}
                         className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md"
                         title="Delete Action Item"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-5 w-5" />
                       </Button>
                     </div>
                   </TableCell>
@@ -797,7 +857,7 @@ export default function ActionTrackerPage() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleDeleteItem(item.id)}
+                    onClick={() => handleOpenDeleteModal(item)}
                     className="h-7 w-7 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -968,6 +1028,65 @@ export default function ActionTrackerPage() {
         meetings={meetings}
         initialData={editingItem}
       />
+
+      {/* Modern Delete Confirmation Modal */}
+      <Dialog
+        open={isDeleteModalOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsDeleteModalOpen(false);
+            setItemToDelete(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[420px] p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl">
+          <DialogHeader className="space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-950/50 flex items-center justify-center text-red-600 dark:text-red-400 border border-red-200/60 dark:border-red-900/40">
+              <AlertTriangle className="h-6 w-6" />
+            </div>
+            <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+              Delete Action Item
+            </DialogTitle>
+            <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+              Are you sure you want to delete <span className="font-semibold text-zinc-900 dark:text-zinc-100">&quot;{itemToDelete?.task}&quot;</span>? This action item task and status will be permanently removed.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="flex items-center justify-end gap-2 pt-4 border-t border-zinc-100 dark:border-zinc-800/80">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setIsDeleteModalOpen(false);
+                setItemToDelete(null);
+              }}
+              disabled={isDeleting}
+              className="h-9 text-xs font-medium border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-xl"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleConfirmDelete}
+              disabled={isDeleting}
+              className="h-9 text-xs font-medium bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-sm flex items-center gap-1.5"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Delete Task
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

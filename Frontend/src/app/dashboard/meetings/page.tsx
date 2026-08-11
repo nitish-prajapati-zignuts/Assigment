@@ -23,6 +23,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
   Plus,
   Search,
   Eye,
@@ -33,6 +41,8 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
+  Share2,
+  AlertTriangle,
 } from "lucide-react";
 import api from "@/lib/axios";
 
@@ -54,6 +64,11 @@ export default function MeetingsPage() {
 
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [viewingMeeting, setViewingMeeting] = useState<Meeting | null>(null);
+
+  // Delete modal state
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [meetingToDelete, setMeetingToDelete] = useState<Meeting | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Reset to page 1 whenever filters change
   useEffect(() => {
@@ -199,17 +214,26 @@ export default function MeetingsPage() {
     }
   };
 
-  // Delete meeting from Database
-  const handleDeleteMeeting = async (id: string) => {
-    if (confirm("Are you sure you want to delete this meeting?")) {
-      try {
-        await api.delete(`/meetings/${id}`);
-        // Refresh the current page
-        await fetchMeetings(currentPage);
-      } catch (error) {
-        console.error("Failed to delete meeting from database:", error);
-        alert("Failed to delete meeting. Please try again.");
-      }
+  // Open delete confirmation modal
+  const handleOpenDeleteModal = (meeting: Meeting) => {
+    setMeetingToDelete(meeting);
+    setIsDeleteModalOpen(true);
+  };
+
+  // Confirm delete action
+  const handleConfirmDelete = async () => {
+    if (!meetingToDelete) return;
+    try {
+      setIsDeleting(true);
+      await api.delete(`/meetings/${meetingToDelete.id}`);
+      setIsDeleteModalOpen(false);
+      setMeetingToDelete(null);
+      // Refresh the current page
+      await fetchMeetings(currentPage);
+    } catch (error) {
+      console.error("Failed to delete meeting from database:", error);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -232,7 +256,7 @@ export default function MeetingsPage() {
           }}
           className="flex items-center gap-2 shadow-sm bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 font-medium"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-5 w-5" />
           Create Meeting
         </Button>
       </div>
@@ -240,7 +264,7 @@ export default function MeetingsPage() {
       {/* Controls: Search and Filter */}
       <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-white dark:bg-zinc-900 p-4 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-sm">
         <div className="relative w-full sm:w-96">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-400" />
+          <Search className="absolute left-3 top-2.5 h-5 w-5 text-zinc-400" />
           <Input
             placeholder="Search by title, participant, transcript..."
             value={searchQuery}
@@ -251,7 +275,7 @@ export default function MeetingsPage() {
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hidden sm:block">
-            <Filter className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+            <Filter className="h-5 w-5 text-zinc-500 dark:text-zinc-400" />
           </div>
           <Select
             value={selectedType}
@@ -305,7 +329,7 @@ export default function MeetingsPage() {
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-12">
                   <div className="flex items-center justify-center gap-2 text-zinc-500">
-                    <Loader2 className="h-5 w-5 animate-spin text-zinc-400" />
+                    <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
                     <span className="text-sm font-medium">Loading meetings...</span>
                   </div>
                 </TableCell>
@@ -350,7 +374,7 @@ export default function MeetingsPage() {
                           variant="secondary"
                           className="text-[10px] font-medium bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 animate-pulse flex items-center gap-1"
                         >
-                          <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                          <Loader2 className="h-3 w-3 animate-spin" />
                           Summarizing...
                         </Badge>
                       )}
@@ -358,7 +382,7 @@ export default function MeetingsPage() {
                   </TableCell>
                   <TableCell className="py-3.5">
                     <span className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400 font-medium">
-                      <Calendar className="h-3.5 w-3.5 text-zinc-400" />
+                      <Calendar className="h-4.5 w-4.5 text-zinc-400" />
                       {meeting.date}
                     </span>
                   </TableCell>
@@ -388,10 +412,26 @@ export default function MeetingsPage() {
                           setViewingMeeting(meeting);
                           setIsDetailModalOpen(true);
                         }}
+                        className={`h-8 w-8 rounded-md ${
+                          meeting.isMeetingPublished
+                            ? "text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                            : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                        }`}
+                        title={meeting.isMeetingPublished ? "Shareable Link Active" : "Share Meeting"}
+                      >
+                        <Share2 className="h-5 w-5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setViewingMeeting(meeting);
+                          setIsDetailModalOpen(true);
+                        }}
                         className="h-8 w-8 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md"
                         title="View Details"
                       >
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-5 w-5" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -403,16 +443,16 @@ export default function MeetingsPage() {
                         className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-md"
                         title="Edit Meeting"
                       >
-                        <Edit className="h-4 w-4" />
+                        <Edit className="h-5 w-5" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleDeleteMeeting(meeting.id)}
+                        onClick={() => handleOpenDeleteModal(meeting)}
                         className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md"
                         title="Delete Meeting"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-5 w-5" />
                       </Button>
                     </div>
                   </TableCell>
@@ -427,7 +467,7 @@ export default function MeetingsPage() {
       <div className="md:hidden space-y-3">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center p-8 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-500">
-            <Loader2 className="h-6 w-6 animate-spin text-zinc-400 mb-2" />
+            <Loader2 className="h-7 w-7 animate-spin text-zinc-400 mb-2" />
             <span className="text-xs font-medium">Loading meetings...</span>
           </div>
         ) : displayMeetings.length === 0 ? (
@@ -461,7 +501,7 @@ export default function MeetingsPage() {
                     }}
                     className="h-7 w-7 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                   >
-                    <Eye className="h-3.5 w-3.5" />
+                    <Eye className="h-4.5 w-4.5" />
                   </Button>
                   <Button
                     variant="ghost"
@@ -472,15 +512,15 @@ export default function MeetingsPage() {
                     }}
                     className="h-7 w-7 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30"
                   >
-                    <Edit className="h-3.5 w-3.5" />
+                    <Edit className="h-4.5 w-4.5" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleDeleteMeeting(meeting.id)}
+                    onClick={() => handleOpenDeleteModal(meeting)}
                     className="h-7 w-7 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <Trash2 className="h-4.5 w-4.5" />
                   </Button>
                 </div>
               </div>
@@ -497,7 +537,7 @@ export default function MeetingsPage() {
                     variant="secondary"
                     className="text-[10px] font-medium bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 animate-pulse flex items-center gap-1"
                   >
-                    <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                    <Loader2 className="h-3 w-3 animate-spin" />
                     Summarizing...
                   </Badge>
                 )}
@@ -505,7 +545,7 @@ export default function MeetingsPage() {
 
               <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800 text-xs">
                 <span className="flex items-center gap-1 text-zinc-600 dark:text-zinc-400 font-medium">
-                  <Calendar className="h-3.5 w-3.5 text-zinc-400" />
+                  <Calendar className="h-4.5 w-4.5 text-zinc-400" />
                   {meeting.date}
                 </span>
                 <div className="flex flex-wrap gap-1 max-w-[200px] items-center justify-end">
@@ -648,6 +688,65 @@ export default function MeetingsPage() {
           setIsFormModalOpen(true);
         }}
       />
+
+      {/* Modern Delete Confirmation Modal */}
+      <Dialog
+        open={isDeleteModalOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsDeleteModalOpen(false);
+            setMeetingToDelete(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[420px] p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl">
+          <DialogHeader className="space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-950/50 flex items-center justify-center text-red-600 dark:text-red-400 border border-red-200/60 dark:border-red-900/40">
+              <AlertTriangle className="h-6 w-6" />
+            </div>
+            <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+              Delete Meeting
+            </DialogTitle>
+            <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+              Are you sure you want to delete <span className="font-semibold text-zinc-900 dark:text-zinc-100">&quot;{meetingToDelete?.title}&quot;</span>? This will permanently remove the meeting transcript, AI summary, and action items.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="flex items-center justify-end gap-2 pt-4 border-t border-zinc-100 dark:border-zinc-800/80">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setIsDeleteModalOpen(false);
+                setMeetingToDelete(null);
+              }}
+              disabled={isDeleting}
+              className="h-9 text-xs font-medium border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-xl"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleConfirmDelete}
+              disabled={isDeleting}
+              className="h-9 text-xs font-medium bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-sm flex items-center gap-1.5"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Delete Meeting
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

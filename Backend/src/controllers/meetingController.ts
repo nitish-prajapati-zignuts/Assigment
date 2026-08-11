@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import db from "../db";
 import { meetings, actionItems, users, MeetingSummary } from "../db/schema";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, desc } from "drizzle-orm";
 import { generateMeetingSummary } from "../services/aiService";
 import { AuthenticatedRequest } from "../middleware/authMiddleware";
 import { asyncHandler } from "../middleware/errorHandler";
@@ -89,8 +89,8 @@ export const getMeetings = asyncHandler(async (
   }
 
   try {
-    // Fetch all meetings (in production, use database query with WHERE on participants)
-    const allMeetings = await db.select().from(meetings);
+    // Fetch all meetings ordered by createdAt descending (newest first)
+    const allMeetings = await db.select().from(meetings).orderBy(desc(meetings.createdAt));
 
     // Filter meetings where user is a participant
     let userMeetings = allMeetings.filter(
@@ -116,6 +116,13 @@ export const getMeetings = asyncHandler(async (
     if (type && (type as string) !== "All") {
       filtered = filtered.filter((m: { type: string; }) => m.type === type);
     }
+
+    // Ensure strict sorting by createdAt descending (newest first)
+    filtered.sort((a, b) => {
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return timeB - timeA;
+    });
 
     // Calculate pagination
     const offset = getPaginationOffset(page, limit);
@@ -395,5 +402,105 @@ export const deleteMeeting = asyncHandler(async (
   } catch (error) {
     logger.error("Error deleting meeting", error as Error, { meetingId: targetId });
     throw error instanceof (Error as any) ? error : new InternalServerError("Failed to delete meeting");
+  }
+});
+
+/**
+ * PATCH /api/meetings/:id/publish
+ * Toggles or sets the isMeetingPublished state and returns an encrypted share link.
+ */
+export const toggleMeetingPublish = asyncHandler(async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  const targetId = String(req.params.id);
+  const { isMeetingPublished } = req.body as { isMeetingPublished?: boolean };
+
+  try {
+    const existing = await db.select().from(meetings).where(eq(meetings.id, targetId));
+    if (existing.length === 0) {
+      throw new NotFoundError("Meeting");
+    }
+
+    const currentMeeting = existing[0];
+    const nextPublishedState =
+      typeof isMeetingPublished === "boolean"
+        ? isMeetingPublished
+        : !currentMeeting.isMeetingPublished;
+
+    const updated = await db
+      .update(meetings)
+      .set({
+        isMeetingPublished: nextPublishedState,
+        updatedAt: new Date(),
+      })
+      .where(eq(meetings.id, targetId))
+      .returning();
+
+    const { encryptShareToken } = await import("../utils/shareUtils");
+    const shareToken = encryptShareToken(targetId);
+
+    logger.info("Meeting publish status updated", {
+      meetingId: targetId,
+      isMeetingPublished: nextPublishedState,
+    });
+
+    res.json({
+      meeting: updated[0],
+      isMeetingPublished: nextPublishedState,
+      shareToken,
+    });
+  } catch (error) {
+    logger.error("Error toggling meeting publish status", error as Error, { meetingId: targetId });
+    throw error instanceof (Error as any) ? error : new InternalServerError("Failed to update publish status");
+  }
+});
+
+/**
+ * GET /api/meetings/public/share/:token
+ * Public endpoint to fetch a meeting via an encrypted share token (if published).
+ */
+export const getPublicMeetingByToken = asyncHandler(async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const token = String(req.params.token);
+
+  try {
+    const { decryptShareToken } = await import("../utils/shareUtils");
+    const payload = decryptShareToken(token);
+
+    if (!payload || !payload.meetingId) {
+      throw new NotFoundError("Shared meeting link is invalid or expired");
+    }
+
+    const result = await db.select().from(meetings).where(eq(meetings.id, payload.meetingId));
+    if (result.length === 0) {
+      throw new NotFoundError("Meeting");
+    }
+
+    const meeting = result[0];
+    if (!meeting.isMeetingPublished) {
+      throw new AuthorizationError("This meeting link is not publicly accessible");
+    }
+
+    logger.debug("Public meeting accessed via token", { meetingId: meeting.id });
+
+    // Return sanitized public meeting object (excluding private raw transcript if needed, or including summary)
+    res.json({
+      id: meeting.id,
+      title: meeting.title,
+      date: meeting.date,
+      type: meeting.type,
+      participants: meeting.participants,
+      summary: meeting.summary,
+      transcript: meeting.transcript,
+      createdAt: meeting.createdAt,
+      updatedAt: meeting.updatedAt,
+      isMeetingPublished: meeting.isMeetingPublished,
+    });
+  } catch (error) {
+    logger.error("Error fetching public meeting by token", error as Error);
+    throw error instanceof (Error as any) ? error : new InternalServerError("Failed to load shared meeting");
   }
 });

@@ -46,4 +46,5 @@ export interface Meeting {
   summary?: MeetingSummary | null;
   createdAt: string;
   updatedAt: string;
+  isMeetingPublished?: boolean;
 }

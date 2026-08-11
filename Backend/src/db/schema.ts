@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, varchar, jsonb, index, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, varchar, jsonb, index, uniqueIndex, boolean } from "drizzle-orm/pg-core";
 
 export type SummaryLength = "Short" | "Medium" | "Long";
 
@@ -63,6 +63,8 @@ export const meetings = pgTable(
     summary: jsonb("summary").$type<MeetingSummary>(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+    isMeetingPublished: boolean("is_meeting_published").notNull().default(false),
+
   },
   (table) => [
     index("meetings_date_idx").on(table.date),

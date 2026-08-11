@@ -109,13 +109,13 @@ export default function DashboardPage() {
               variant="outline"
               className="w-full sm:w-auto flex items-center justify-center gap-2 shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
             >
-              <ListTodo className="h-4 w-4 text-zinc-500" />
+              <ListTodo className="h-5 w-5 text-zinc-500" />
               Action Tracker
             </Button>
           </Link>
           <Link href="/dashboard/meetings" className="w-full sm:w-auto">
             <Button className="w-full sm:w-auto flex items-center justify-center gap-2 shadow-sm bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 font-medium">
-              <Plus className="h-4 w-4" />
+              <Plus className="h-5 w-5" />
               Manage Meetings
             </Button>
           </Link>
@@ -129,14 +129,14 @@ export default function DashboardPage() {
             value="overview"
             className="flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg transition-all text-zinc-600 dark:text-zinc-400 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-900 dark:data-[state=active]:text-zinc-100 data-[state=active]:shadow-sm cursor-pointer"
           >
-            <LayoutDashboard className="h-4 w-4" />
+            <LayoutDashboard className="h-5 w-5" />
             Overview & Metrics
           </TabsTrigger>
           <TabsTrigger
             value="analytics"
             className="flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg transition-all text-zinc-600 dark:text-zinc-400 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-900 dark:data-[state=active]:text-zinc-100 data-[state=active]:shadow-sm cursor-pointer"
           >
-            <BarChart3 className="h-4 w-4" />
+            <BarChart3 className="h-5 w-5" />
             Visual Analytics & Charts
           </TabsTrigger>
         </TabsList>
@@ -153,12 +153,12 @@ export default function DashboardPage() {
               Total Meetings
             </CardTitle>
             <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800/80">
-              <Calendar className="h-4 w-4 text-zinc-600 dark:text-zinc-300" />
+              <Calendar className="h-5 w-5 text-zinc-600 dark:text-zinc-300" />
             </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <Loader2 className="h-6 w-6 animate-spin text-zinc-400 my-1" />
+              <Loader2 className="h-7 w-7 animate-spin text-zinc-400 my-1" />
             ) : (
               <div className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
                 {metrics.totalMeetings}
@@ -177,12 +177,12 @@ export default function DashboardPage() {
               Total Action Items
             </CardTitle>
             <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800/80">
-              <CheckSquare className="h-4 w-4 text-zinc-600 dark:text-zinc-300" />
+              <CheckSquare className="h-5 w-5 text-zinc-600 dark:text-zinc-300" />
             </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <Loader2 className="h-6 w-6 animate-spin text-zinc-400 my-1" />
+              <Loader2 className="h-7 w-7 animate-spin text-zinc-400 my-1" />
             ) : (
               <div className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
                 {metrics.totalActionItems}
@@ -201,12 +201,12 @@ export default function DashboardPage() {
               Open Action Items
             </CardTitle>
             <div className="p-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
-              <Clock className="h-4 w-4" />
+              <Clock className="h-5 w-5" />
             </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <Loader2 className="h-6 w-6 animate-spin text-zinc-400 my-1" />
+              <Loader2 className="h-7 w-7 animate-spin text-zinc-400 my-1" />
             ) : (
               <div className="text-3xl font-bold tracking-tight text-amber-600 dark:text-amber-400">
                 {metrics.openActionItems}
@@ -225,12 +225,12 @@ export default function DashboardPage() {
               Completed Items
             </CardTitle>
             <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-              <CheckCircle2 className="h-4 w-4" />
+              <CheckCircle2 className="h-5 w-5" />
             </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <Loader2 className="h-6 w-6 animate-spin text-zinc-400 my-1" />
+              <Loader2 className="h-7 w-7 animate-spin text-zinc-400 my-1" />
             ) : (
               <div className="text-3xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
                 {metrics.completedActionItems}
@@ -254,12 +254,12 @@ export default function DashboardPage() {
               Overdue Items
             </CardTitle>
             <div className="p-2 rounded-lg bg-red-500/10 text-red-500">
-              <AlertTriangle className="h-4 w-4 animate-pulse" />
+              <AlertTriangle className="h-5 w-5 animate-pulse" />
             </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <Loader2 className="h-6 w-6 animate-spin text-zinc-400 my-1" />
+              <Loader2 className="h-7 w-7 animate-spin text-zinc-400 my-1" />
             ) : (
               <div className="text-3xl font-bold tracking-tight text-red-600 dark:text-red-400">
                 {metrics.overdueActionItems}
@@ -285,7 +285,7 @@ export default function DashboardPage() {
               </CardDescription>
             </div>
             <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800">
-              <FileText className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+              <FileText className="h-5 w-5 text-zinc-500 dark:text-zinc-400" />
             </div>
           </CardHeader>
           <CardContent className="flex items-center justify-between pt-2">
@@ -298,7 +298,7 @@ export default function DashboardPage() {
                 size="sm"
                 className="text-xs flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
               >
-                View Meetings <ArrowRight className="h-3.5 w-3.5" />
+                View Meetings <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
           </CardContent>
@@ -315,7 +315,7 @@ export default function DashboardPage() {
               </CardDescription>
             </div>
             <div className="p-2 rounded-lg bg-rose-500/10">
-              <AlertCircle className="h-4 w-4 text-rose-500" />
+              <AlertCircle className="h-5 w-5 text-rose-500" />
             </div>
           </CardHeader>
           <CardContent className="flex items-center justify-between pt-2">
@@ -328,7 +328,7 @@ export default function DashboardPage() {
                 size="sm"
                 className="text-xs gap-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
               >
-                Manage Tasks <ArrowRight className="h-3.5 w-3.5" />
+                Manage Tasks <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
           </CardContent>
@@ -352,7 +352,7 @@ export default function DashboardPage() {
                 size="sm"
                 className="text-xs flex items-center gap-1.5 border-zinc-200 dark:border-zinc-800 shadow-sm text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
               >
-                View All <ArrowRight className="h-3.5 w-3.5" />
+                View All <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
           </CardHeader>
@@ -383,7 +383,7 @@ export default function DashboardPage() {
                     <TableRow>
                       <TableCell colSpan={5} className="text-center py-12">
                         <div className="flex items-center justify-center gap-2 text-zinc-500">
-                          <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+                          <Loader2 className="h-5 w-5 animate-spin text-zinc-400" />
                           <span className="text-sm font-medium">Loading recent meetings...</span>
                         </div>
                       </TableCell>
@@ -422,7 +422,7 @@ export default function DashboardPage() {
                         </TableCell>
                         <TableCell className="py-3.5">
                           <span className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400 font-medium">
-                            <Calendar className="h-3.5 w-3.5 text-zinc-400" />
+                            <Calendar className="h-4.5 w-4.5 text-zinc-400" />
                             {meeting.date}
                           </span>
                         </TableCell>
@@ -453,7 +453,7 @@ export default function DashboardPage() {
                             }}
                             className="h-8 text-xs font-medium flex items-center gap-1.5 ml-auto text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                           >
-                            <Eye className="h-3.5 w-3.5 text-zinc-500" />
+                            <Eye className="h-4 w-4 text-zinc-500" />
                             Details
                           </Button>
                         </TableCell>
