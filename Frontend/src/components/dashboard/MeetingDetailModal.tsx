@@ -48,6 +48,7 @@ interface MeetingDetailModalProps {
   onClose: () => void;
   onEdit: (meeting: Meeting) => void;
   isSummarizing?: boolean;
+  hideShareableSection?: boolean;
 }
 
 export function MeetingDetailModal({
@@ -56,6 +57,7 @@ export function MeetingDetailModal({
   onClose,
   onEdit,
   isSummarizing = false,
+  hideShareableSection = false,
 }: MeetingDetailModalProps) {
   const [activeTab, setActiveTab] = useState<"summary" | "transcript">("summary");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -70,12 +72,25 @@ export function MeetingDetailModal({
   const [isPublishing, setIsPublishing] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
 
-  // Sync state when meeting prop changes
+  // Sync state when meeting prop changes & auto-fetch token if published
   useEffect(() => {
     setCurrentSummary(meeting?.summary);
-    setIsPublished(!!meeting?.isMeetingPublished);
+    const published = !!meeting?.isMeetingPublished;
+    setIsPublished(published);
     setShareToken(null);
     setActiveTab("summary");
+
+    if (published && meeting?.id) {
+      setIsPublishing(true);
+      api.patch(`/meetings/${meeting.id}/publish`, { isMeetingPublished: true })
+        .then((res) => {
+          if (res.data?.shareToken) {
+            setShareToken(res.data.shareToken);
+          }
+        })
+        .catch((err) => console.error("Failed to fetch share token on modal open:", err))
+        .finally(() => setIsPublishing(false));
+    }
   }, [meeting]);
 
   const handleTogglePublish = async () => {
@@ -225,30 +240,30 @@ export function MeetingDetailModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[750px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center justify-between pr-4">
-            <Badge variant="secondary" className="mb-2">
+      <DialogContent className="sm:max-w-[750px] w-[95vw] max-h-[90vh] overflow-y-auto p-4 sm:p-6 rounded-2xl">
+        <DialogHeader className="pr-6">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <Badge variant="secondary" className="mb-1 text-xs">
               {meeting.type}
             </Badge>
           </div>
-          <DialogTitle className="text-xl font-bold">
+          <DialogTitle className="text-lg sm:text-xl font-bold leading-tight">
             {meeting.title}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-5 py-2">
+        <div className="space-y-4 sm:space-y-5 py-2">
           {/* Metadata Bar */}
-          <div className="grid grid-cols-2 gap-4 text-sm bg-zinc-50 p-3 rounded-lg dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4 text-xs sm:text-sm bg-zinc-50 p-3 rounded-xl dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
             <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
-              <Calendar className="h-5 w-5 text-zinc-500" />
-              <span>
+              <Calendar className="h-4 sm:h-5 w-4 sm:w-5 text-zinc-500 shrink-0" />
+              <span className="truncate">
                 <strong>Date:</strong> {meeting.date}
               </span>
             </div>
             <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
-              <Clock className="h-5 w-5 text-zinc-500" />
-              <span>
+              <Clock className="h-4 sm:h-5 w-4 sm:w-5 text-zinc-500 shrink-0" />
+              <span className="truncate">
                 <strong>Created:</strong> {meeting.createdAt}
               </span>
             </div>
@@ -257,12 +272,12 @@ export function MeetingDetailModal({
           {/* Participants */}
           <div>
             <h4 className="text-xs font-semibold flex items-center gap-2 mb-2 text-zinc-500 uppercase tracking-wider">
-              <Users className="h-4.5 w-4.5" />
+              <Users className="h-4 w-4 sm:h-4.5 sm:w-4.5 shrink-0" />
               Participants
             </h4>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {meeting.participants.map((email) => (
-                <Badge key={email} variant="outline" className="text-xs font-normal">
+                <Badge key={email} variant="outline" className="text-[11px] sm:text-xs font-normal">
                   {email}
                 </Badge>
               ))}
@@ -270,69 +285,84 @@ export function MeetingDetailModal({
           </div>
 
           {/* Shareable Link Section */}
-          <div className="bg-gradient-to-r from-amber-500/10 via-zinc-500/5 to-purple-500/10 p-4 rounded-xl border border-amber-200/60 dark:border-amber-900/40 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Share2 className="h-5 w-5 text-amber-500" />
-                <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-200">
-                  Shareable Public Access
-                </h4>
-              </div>
-              <Button
-                size="sm"
-                variant={isPublished ? "default" : "outline"}
-                onClick={handleTogglePublish}
-                disabled={isPublishing}
-                className={`h-7 text-xs ${isPublished
-                    ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                    : "border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300"
-                  }`}
-              >
-                {isPublishing ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                ) : isPublished ? (
-                  <CheckCircle2 className="h-4 w-4 mr-1" />
-                ) : (
-                  <Lock className="h-4 w-4 mr-1" />
-                )}
-                {isPublished ? "Link Active (Published)" : "Publish & Share"}
-              </Button>
-            </div>
-
-            {isPublished && (
-              <div className="space-y-2 pt-1">
-                <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                  Anyone with this encrypted link can view the meeting summary & outcomes without logging in:
-                </p>
+          {!hideShareableSection && (
+            <div className="bg-gradient-to-r from-amber-500/10 via-zinc-500/5 to-purple-500/10 p-3.5 sm:p-4 rounded-xl border border-amber-200/60 dark:border-amber-900/40 space-y-3">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
                 <div className="flex items-center gap-2">
-                  <Input
-                    readOnly
-                    value={shareToken ? `${window.location.origin}/share/${shareToken}` : "Generating encrypted link..."}
-                    className="h-8 text-xs font-mono bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 select-all"
-                  />
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleCopyLink}
-                    disabled={isPublishing}
-                    className="h-8 text-xs shrink-0 flex items-center gap-1 border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-300 dark:hover:bg-amber-950/40"
-                  >
-                    {copied ? (
-                      <>
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                        Copied!
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-4 w-4" />
-                        Copy Link
-                      </>
-                    )}
-                  </Button>
+                  <Share2 className="h-4 sm:h-5 w-4 sm:w-5 text-amber-500 shrink-0" />
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-200">
+                    Shareable Public Access
+                  </h4>
                 </div>
+                <Button
+                  size="sm"
+                  variant={isPublished ? "default" : "outline"}
+                  onClick={handleTogglePublish}
+                  disabled={isPublishing}
+                  className={`h-8 sm:h-7 text-xs w-full sm:w-auto flex items-center justify-center ${isPublished
+                      ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                      : "border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300"
+                    }`}
+                >
+                  {isPublishing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-1.5 shrink-0" />
+                      <span className="truncate">Checking publish status...</span>
+                    </>
+                  ) : isPublished ? (
+                    <>
+                      <CheckCircle2 className="h-4 w-4 mr-1.5 shrink-0" />
+                      <span>Link Active (Published)</span>
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="h-4 w-4 mr-1.5 shrink-0" />
+                      <span>Publish & Share</span>
+                    </>
+                  )}
+                </Button>
               </div>
-            )}
-          </div>
+
+              {isPublished && (
+                <div className="space-y-2 pt-1">
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                    Anyone with this encrypted link can view the meeting summary & outcomes without logging in:
+                  </p>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <Input
+                      readOnly
+                      value={shareToken ? `${window.location.origin}/share/${shareToken}` : "Generating encrypted link..."}
+                      className="h-8 text-xs font-mono bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 select-all flex-1"
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleCopyLink}
+                      disabled={isPublishing || !shareToken}
+                      className="h-8 text-xs shrink-0 flex items-center justify-center gap-1 border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-300 dark:hover:bg-amber-950/40"
+                    >
+                      {isPublishing && !shareToken ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin text-amber-500" />
+                          Generating...
+                        </>
+                      ) : copied ? (
+                        <>
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-4 w-4" />
+                          Copy Link
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Structured Summary & Transcript Tabs */}
           <Tabs
@@ -340,19 +370,19 @@ export function MeetingDetailModal({
             onValueChange={(v) => setActiveTab(v as "summary" | "transcript")}
             className="w-full"
           >
-            <div className="flex items-center justify-between">
-              <TabsList className="grid w-64 grid-cols-2">
-                <TabsTrigger value="summary" className="flex items-center gap-1.5 text-xs">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <TabsList className="grid w-full sm:w-64 grid-cols-2">
+                <TabsTrigger value="summary" className="flex items-center justify-center gap-1.5 text-xs">
                   <Sparkles className="h-4 w-4 text-amber-500" />
                   AI Summary
                 </TabsTrigger>
-                <TabsTrigger value="transcript" className="flex items-center gap-1.5 text-xs">
+                <TabsTrigger value="transcript" className="flex items-center justify-center gap-1.5 text-xs">
                   <FileText className="h-4 w-4 text-blue-500" />
                   Transcript
                 </TabsTrigger>
               </TabsList>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between sm:justify-end gap-2">
                 <Badge key={selectedLanguage} variant="outline" className="text-xs font-normal">
                   {selectedLanguage}
                 </Badge>

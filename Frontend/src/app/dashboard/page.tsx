@@ -481,6 +481,7 @@ export default function DashboardPage() {
           setViewingMeeting(null);
         }}
         meeting={viewingMeeting}
+        hideShareableSection={true}
         onEdit={() => {
           setIsDetailModalOpen(false);
         }}

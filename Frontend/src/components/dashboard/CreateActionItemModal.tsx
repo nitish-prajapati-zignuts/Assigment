@@ -118,12 +118,12 @@ export function CreateActionItemModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="sm:max-w-[500px] w-[95vw] max-h-[90vh] overflow-y-auto p-4 sm:p-6 rounded-2xl">
+        <DialogHeader className="pr-6">
+          <DialogTitle className="text-lg sm:text-xl font-bold">
             {initialData ? "Edit Action Item" : "Create Action Item"}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-xs sm:text-sm">
             {initialData
               ? "Update task details, assignment, or status."
               : "Add a new task manually to the central action tracker."}
@@ -132,27 +132,28 @@ export function CreateActionItemModal({
 
         <form onSubmit={handleSubmit} className="space-y-4 py-2">
           {/* Task Description */}
-          <div className="space-y-2">
-            <Label htmlFor="task">Task Description</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="task" className="text-xs sm:text-sm">Task Description</Label>
             <Input
               id="task"
               placeholder="e.g. Set up database backup cron job"
               value={task}
               onChange={(e) => setTask(e.target.value)}
               required
+              className="text-xs sm:text-sm h-9"
             />
           </div>
 
           {/* Meeting Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="meeting">Associated Meeting</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="meeting" className="text-xs sm:text-sm">Associated Meeting</Label>
             <Select
               value={meetingId}
               onValueChange={(val) => {
                 if (val && typeof val === "string") setMeetingId(val);
               }}
             >
-              <SelectTrigger id="meeting" className="w-full">
+              <SelectTrigger id="meeting" className="w-full text-xs sm:text-sm h-9">
                 <SelectValue placeholder="Select meeting">
                   {meetings.find((m) => String(m.id) === String(meetingId))
                     ? `${meetings.find((m) => String(m.id) === String(meetingId))?.title} (${meetings.find((m) => String(m.id) === String(meetingId))?.date})`
@@ -161,7 +162,7 @@ export function CreateActionItemModal({
               </SelectTrigger>
               <SelectContent>
                 {meetings.map((m) => (
-                  <SelectItem key={m.id} value={m.id}>
+                  <SelectItem key={m.id} value={m.id} className="text-xs sm:text-sm">
                     {m.title} ({m.date})
                   </SelectItem>
                 ))}
@@ -169,23 +170,23 @@ export function CreateActionItemModal({
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {/* Owner / Assignee Select Dropdown */}
-            <div className="space-y-2">
-              <Label htmlFor="owner">Assignee / Owner</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="owner" className="text-xs sm:text-sm">Assignee / Owner</Label>
               <Select
                 value={owner}
                 onValueChange={(val) => {
                   if (val && typeof val === "string") setOwner(val);
                 }}
               >
-                <SelectTrigger id="owner" className="w-full">
+                <SelectTrigger id="owner" className="w-full text-xs sm:text-sm h-9">
                   <SelectValue placeholder="Select assignee">{owner}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Unassigned">Unassigned</SelectItem>
+                  <SelectItem value="Unassigned" className="text-xs sm:text-sm">Unassigned</SelectItem>
                   {appUsers.map((user) => (
-                    <SelectItem key={user.id} value={user.name}>
+                    <SelectItem key={user.id} value={user.name} className="text-xs sm:text-sm">
                       <div className="flex flex-col text-left">
                         <span className="font-semibold text-xs">{user.name}</span>
                         <span className="text-[10px] text-zinc-400">{user.email}</span>
@@ -197,66 +198,67 @@ export function CreateActionItemModal({
             </div>
 
             {/* Due Date */}
-            <div className="space-y-2">
-              <Label htmlFor="dueDate">Due Date</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="dueDate" className="text-xs sm:text-sm">Due Date</Label>
               <Input
                 id="dueDate"
                 type="date"
                 value={dueDate.includes("-") ? dueDate : ""}
                 onChange={(e) => setDueDate(e.target.value)}
+                className="text-xs sm:text-sm h-9"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {/* Priority */}
-            <div className="space-y-2">
-              <Label htmlFor="priority">Priority</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="priority" className="text-xs sm:text-sm">Priority</Label>
               <Select
                 value={priority}
                 onValueChange={(val) =>
                   val && setPriority(val as ActionItem["priority"])
                 }
               >
-                <SelectTrigger id="priority">
+                <SelectTrigger id="priority" className="text-xs sm:text-sm h-9">
                   <SelectValue placeholder="Select priority" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Low">Low</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
-                  <SelectItem value="Urgent">Urgent</SelectItem>
+                  <SelectItem value="Low" className="text-xs sm:text-sm">Low</SelectItem>
+                  <SelectItem value="Medium" className="text-xs sm:text-sm">Medium</SelectItem>
+                  <SelectItem value="High" className="text-xs sm:text-sm">High</SelectItem>
+                  <SelectItem value="Urgent" className="text-xs sm:text-sm">Urgent</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {/* Status */}
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="status" className="text-xs sm:text-sm">Status</Label>
               <Select
                 value={status}
                 onValueChange={(val) =>
                   val && setStatus(val as ActionItem["status"])
                 }
               >
-                <SelectTrigger id="status">
+                <SelectTrigger id="status" className="text-xs sm:text-sm h-9">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Open">Open</SelectItem>
-                  <SelectItem value="In Progress">In Progress</SelectItem>
-                  <SelectItem value="Blocked">Blocked</SelectItem>
-                  <SelectItem value="Completed">Completed</SelectItem>
+                  <SelectItem value="Open" className="text-xs sm:text-sm">Open</SelectItem>
+                  <SelectItem value="In Progress" className="text-xs sm:text-sm">In Progress</SelectItem>
+                  <SelectItem value="Blocked" className="text-xs sm:text-sm">Blocked</SelectItem>
+                  <SelectItem value="Completed" className="text-xs sm:text-sm">Completed</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          <DialogFooter className="pt-2">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting || localSubmitting}>
+          <DialogFooter className="pt-3 flex flex-col-reverse sm:flex-row gap-2 sm:gap-0">
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting || localSubmitting} className="w-full sm:w-auto h-9 text-xs sm:text-sm">
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting || localSubmitting}>
+            <Button type="submit" disabled={isSubmitting || localSubmitting} className="w-full sm:w-auto h-9 text-xs sm:text-sm">
               {(isSubmitting || localSubmitting) && (
                 <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
               )}

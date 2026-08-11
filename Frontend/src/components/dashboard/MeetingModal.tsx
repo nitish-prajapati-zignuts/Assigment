@@ -366,12 +366,12 @@ export function MeetingModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[620px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="sm:max-w-[620px] w-[95vw] max-h-[90vh] overflow-y-auto p-4 sm:p-6 rounded-2xl">
+        <DialogHeader className="pr-6">
+          <DialogTitle className="text-lg sm:text-xl font-bold">
             {initialData ? "Edit Meeting" : "Create New Meeting"}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-xs sm:text-sm">
             {initialData
               ? "Update the details of your meeting."
               : "Fill in the information below to schedule a new meeting."}
@@ -380,46 +380,48 @@ export function MeetingModal({
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-2">
           <div className="space-y-2">
-            <Label htmlFor="title">Meeting Title</Label>
+            <Label htmlFor="title" className="text-xs sm:text-sm">Meeting Title</Label>
             <Input
               id="title"
               placeholder="e.g. Q3 Sprint Planning"
               {...register("title")}
+              className="text-xs sm:text-sm h-9"
             />
             {errors.title && (
               <p className="text-xs text-red-500">{errors.title.message}</p>
             )}
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="date">Meeting Date</Label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="date" className="text-xs sm:text-sm">Meeting Date</Label>
               <Input
                 id="date"
                 type="date"
                 min={initialData?.date && initialData.date < todayStr ? initialData.date : todayStr}
                 max={todayStr}
                 {...register("date")}
+                className="text-xs sm:text-sm h-9"
               />
               {errors.date && (
                 <p className="text-xs text-red-500">{errors.date.message}</p>
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="type">Meeting Type</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="type" className="text-xs sm:text-sm">Meeting Type</Label>
               <Select
                 value={selectedType}
                 onValueChange={(val) => {
                   if (val) setValue("type", val as MeetingType);
                 }}
               >
-                <SelectTrigger>
+                <SelectTrigger className="text-xs sm:text-sm h-9">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
                   {meetingTypes.map((t) => (
-                    <SelectItem key={t} value={t}>
+                    <SelectItem key={t} value={t} className="text-xs sm:text-sm">
                       {t}
                     </SelectItem>
                   ))}
@@ -430,21 +432,21 @@ export function MeetingModal({
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="summaryLength">Summary Length</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="summaryLength" className="text-xs sm:text-sm">Summary Length</Label>
               <Select
                 value={summaryLength}
                 onValueChange={(val) => {
                   if (val) setSummaryLength(val as SummaryLength);
                 }}
               >
-                <SelectTrigger>
+                <SelectTrigger className="text-xs sm:text-sm h-9">
                   <SelectValue placeholder="Select length" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Short">Short (Concise)</SelectItem>
-                  <SelectItem value="Medium">Medium (Standard)</SelectItem>
-                  <SelectItem value="Long">Long (Detailed)</SelectItem>
+                  <SelectItem value="Short" className="text-xs sm:text-sm">Short (Concise)</SelectItem>
+                  <SelectItem value="Medium" className="text-xs sm:text-sm">Medium (Standard)</SelectItem>
+                  <SelectItem value="Long" className="text-xs sm:text-sm">Long (Detailed)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
