@@ -545,8 +545,8 @@ export default function MeetingsPage() {
 
       {/* Pagination Controls */}
       {!searchQuery && selectedType === "All" && totalItems > 0 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-zinc-900 px-5 py-3.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-sm text-xs">
-          <div className="text-zinc-500 dark:text-zinc-400 text-center sm:text-left">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white dark:bg-zinc-900 p-4 sm:px-5 sm:py-3.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-sm text-xs">
+          <div className="text-zinc-500 dark:text-zinc-400 text-center sm:text-left text-[11px] sm:text-xs">
             Showing <span className="font-semibold text-zinc-900 dark:text-zinc-100">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> to{" "}
             <span className="font-semibold text-zinc-900 dark:text-zinc-100">
               {Math.min(currentPage * ITEMS_PER_PAGE, totalItems)}
@@ -554,19 +554,19 @@ export default function MeetingsPage() {
             of <span className="font-semibold text-zinc-900 dark:text-zinc-100">{totalItems}</span> meetings
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-1.5 w-full sm:w-auto">
+          <div className="flex items-center justify-center gap-1 sm:gap-1.5 w-full sm:w-auto">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="h-8 text-xs flex items-center gap-1 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+              className="h-8 px-2 sm:px-3 text-xs flex items-center gap-1 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 shrink-0"
             >
               <ChevronLeft className="h-3.5 w-3.5" />
-              Previous
+              <span className="hidden xs:inline sm:inline">Previous</span>
             </Button>
 
-            <div className="flex items-center gap-1 px-1">
+            <div className="flex items-center gap-0.5 sm:gap-1 px-1 overflow-x-auto max-w-[200px] xs:max-w-none justify-center">
               {(() => {
                 const pages: (number | string)[] = [];
                 if (totalPages <= 5) {
@@ -596,7 +596,7 @@ export default function MeetingsPage() {
                       variant={currentPage === page ? "default" : "ghost"}
                       size="sm"
                       onClick={() => setCurrentPage(page)}
-                      className={`h-7 w-7 text-xs p-0 font-medium ${currentPage === page
+                      className={`h-7 w-7 text-xs p-0 font-medium shrink-0 ${currentPage === page
                           ? "bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
                           : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
                         }`}
@@ -604,7 +604,7 @@ export default function MeetingsPage() {
                       {page}
                     </Button>
                   ) : (
-                    <span key={idx} className="px-1 text-xs text-zinc-400 font-medium">
+                    <span key={idx} className="px-0.5 text-xs text-zinc-400 font-medium shrink-0">
                       ...
                     </span>
                   )
@@ -617,9 +617,9 @@ export default function MeetingsPage() {
               size="sm"
               onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
-              className="h-8 text-xs flex items-center gap-1 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100"
+              className="h-8 px-2 sm:px-3 text-xs flex items-center gap-1 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 shrink-0"
             >
-              Next
+              <span className="hidden xs:inline sm:inline">Next</span>
               <ChevronRight className="h-3.5 w-3.5" />
             </Button>
           </div>
