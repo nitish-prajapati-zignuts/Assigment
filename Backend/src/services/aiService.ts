@@ -8,6 +8,23 @@ import { createXai } from "@ai-sdk/xai";
 
 dotenv.config();
 
+/**
+ * Rotation Policy Implementation (RPI):
+ * Parses process.env.GEMINI_API_KEYS as a comma-separated string of API keys.
+ * Cleans quotes, whitespace, and de-duplicates key values.
+ */
+function getRotationPolicyApiKeys(): string[] {
+  const rawKeysString = process.env.GEMINI_API_KEYS;
+  if (!rawKeysString) return [];
+
+  const keys = rawKeysString
+    .split(",")
+    .map((key) => key.replace(/^["']|["']$/g, "").trim())
+    .filter((key) => key.length > 0);
+
+  return Array.from(new Set(keys));
+}
+
 export const keyDecisionSchema = z.object({
   category: z
     .string()
@@ -286,9 +303,11 @@ export function generateFallbackSummary(
 
 /**
  * Primary meeting summarization function using AI LLMs (Vercel AI SDK).
- * Executes primary (Google Gemini) LLM summarization if API key is provided,
- * falls back to OpenAI (gpt-4o-mini) if Gemini fails or is missing,
- * and uses heuristic fallback generation if all LLM options are unavailable.
+ * Priority execution order:
+ * 1. Primary Google Gemini Key (customApiKey or GOOGLE_GENERATIVE_AI_API_KEY / GEMINI_API_KEY)
+ * 2. Rotating Keys Policy (GEMINI_API_KEYS)
+ * 3. Fallback Model Key (GEMINI_FALL_BACK_KEY in error catch block)
+ * 4. Last Resort Heuristic Summary Generator
  * 
  * @param rawTranscript - Raw transcript string.
  * @param customApiKey - Optional custom API key provided by user.
@@ -302,8 +321,8 @@ export async function generateMeetingSummary(
   language?: string,
   summaryLength: SummaryLength = "Medium"
 ): Promise<MeetingSummary> {
-  const geminiApiKey = customApiKey || process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY;
-  const geminiFallBackKey = process.env.GEMINI_FALL_BACK_KEY
+  const primaryGoogleKey = customApiKey || process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY;
+  const geminiFallBackKey = process.env.GEMINI_FALL_BACK_KEY;
   const plainTranscript = stripHtml(rawTranscript);
 
   if (!plainTranscript || plainTranscript.trim().length === 0) {
@@ -318,30 +337,61 @@ export async function generateMeetingSummary(
   });
 
   try {
-    if (geminiApiKey) {
+    // ========================================================
+    // 1. TRY PRIMARY GOOGLE KEY FIRST
+    // ========================================================
+    if (primaryGoogleKey) {
       try {
-        // 1. Try Primary Model: Google Gemini
-        console.log("🤖 Attempting meeting summarization with Primary Model (Google Gemini)...");
-        const google = createGoogleGenerativeAI({ apiKey: geminiApiKey });
+        console.log("🤖 [Step 1] Attempting meeting summarization with Primary Google Key...");
+        const google = createGoogleGenerativeAI({ apiKey: primaryGoogleKey });
         const { object } = await generateObject({
           model: google("gemini-3.5-flash-lite"),
           schema: meetingSummarySchema,
           prompt: promptText,
         });
         return cleanSummary(object);
-      } catch (geminiError) {
-        console.error("Primary Model (Google Gemini) failed:", geminiError);
-        throw geminiError;
+      } catch (primaryError: any) {
+        console.warn(`Primary Google Key failed: ${primaryError?.message || primaryError}. Proceeding to Key Rotation policy...`);
       }
-    } else {
-      console.warn("No Gemini/Google AI API Key provided.");
-      throw new Error("No Gemini API key provided");
     }
-  } catch (error) {
-    // 2. Try Fallback Model: Google Fallback AI 
+
+    // ========================================================
+    // 2. TRY ROTATING KEYS POLICY (RPI: GEMINI_API_KEYS)
+    // ========================================================
+    const rotationKeys = getRotationPolicyApiKeys().filter((k) => k !== primaryGoogleKey);
+
+    if (rotationKeys.length > 0) {
+      console.log(`[Step 2] Attempting Key Rotation Policy across ${rotationKeys.length} key(s)...`);
+
+      for (let i = 0; i < rotationKeys.length; i++) {
+        const apiKey = rotationKeys[i];
+        const maskedKey = apiKey.length > 8 ? `${apiKey.substring(0, 4)}...${apiKey.slice(-4)}` : "key";
+
+        try {
+          console.log(`Rotating Key #${i + 1} (${maskedKey})...`);
+          const google = createGoogleGenerativeAI({ apiKey });
+          const { object } = await generateObject({
+            model: google("gemini-3.5-flash-lite"),
+            schema: meetingSummarySchema,
+            prompt: promptText,
+          });
+          return cleanSummary(object);
+        } catch (rotError: any) {
+          console.warn(` Rotating Key #${i + 1} (${maskedKey}) failed: ${rotError?.message || rotError}`);
+        }
+      }
+    }
+
+    // If both Primary and Rotation Keys failed/exhausted, throw error to trigger Fallback catch block
+    throw new Error("All Primary and Rotating Gemini API keys failed or were exhausted.");
+
+  } catch (error: any) {
+    // ========================================================
+    // 3. FALLBACK PLAN (GEMINI_FALL_BACK_KEY in Error Catch Block)
+    // ========================================================
     if (geminiFallBackKey) {
       try {
-        console.log("🔄 Attempting meeting summarization with Fallback Model Gateway AI for Vercel...");
+        console.log("🆘 [Step 3] Primary & Rotating keys failed. Attempting Fallback Model Key (GEMINI_FALL_BACK_KEY)...");
         const google = createGoogleGenerativeAI({ apiKey: geminiFallBackKey });
         const { object } = await generateObject({
           model: google("gemini-3.5-flash-lite"),
@@ -350,15 +400,17 @@ export async function generateMeetingSummary(
         });
 
         return cleanSummary(object);
-      } catch (openAiError) {
-        console.error("Fallback Model (Vercel AI) failed:", openAiError);
+      } catch (fallbackError: any) {
+        console.error("❌ Fallback Model Key (GEMINI_FALL_BACK_KEY) failed:", fallbackError?.message || fallbackError);
       }
     } else {
-      console.warn("No OpenAI API Key provided (OPENAI_API_KEY environment variable missing).");
+      console.warn("⚠️ No Fallback Model Key configured (GEMINI_FALL_BACK_KEY missing).");
     }
   }
 
-  // 3. Last Resort: Structured Heuristic Generator
-  console.warn("Both primary AI model and fallback AI model were unavailable or failed. Using structured heuristic fallback.");
+  // ========================================================
+  // 4. LAST RESORT: HEURISTIC GENERATOR
+  // ========================================================
+  console.warn("🚨 [Step 4] Primary Google Key, Key Rotation pool, and Fallback Key all failed. Using structured heuristic fallback.");
   return generateFallbackSummary(plainTranscript, title);
 }

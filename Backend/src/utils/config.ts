@@ -13,6 +13,8 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters for production').default(''),
   JWT_EXPIRES_IN: z.string().default('7d'),
   GOOGLE_GENERATIVE_AI_API_KEY: z.string().optional(),
+  GEMINI_FALL_BACK_KEY: z.string().optional(),
+  GEMINI_API_KEYS: z.string().optional(), // Comma-separated string for Rotation Policy Implementation (RPI)
   OPENAI_API_KEY: z.string().optional(),
   CORS_ORIGINS: z.string().default('http://localhost:3000,http://localhost:3001'),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
@@ -41,7 +43,7 @@ function validateEnv(): EnvConfig {
         );
       }
 
-      if (!env.GOOGLE_GENERATIVE_AI_API_KEY && !env.OPENAI_API_KEY) {
+      if (!env.GOOGLE_GENERATIVE_AI_API_KEY && !env.GEMINI_API_KEYS && !env.GEMINI_FALL_BACK_KEY && !env.OPENAI_API_KEY) {
         logger.warn('No AI API keys configured. Meeting summarization will use fallback heuristics.', {
           environment: 'production',
         });

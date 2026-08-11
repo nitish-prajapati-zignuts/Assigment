@@ -36,6 +36,9 @@ import {
   AlertCircle,
   Loader2,
 } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@radix-ui/react-tabs";
+import { BarChart3, LayoutDashboard } from "lucide-react";
+import AnalyticsCharts, { DashboardChartsData } from "@/components/AnalyticsCharts";
 
 interface DashboardMetrics {
   totalMeetings: number;
@@ -58,6 +61,7 @@ export default function DashboardPage() {
     savedTranscripts: 0,
   });
   const [recentMeetings, setRecentMeetings] = useState<Meeting[]>([]);
+  const [chartsData, setChartsData] = useState<DashboardChartsData>({});
   const [isLoading, setIsLoading] = useState(true);
   const [viewingMeeting, setViewingMeeting] = useState<Meeting | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -73,6 +77,9 @@ export default function DashboardPage() {
         }
         if (Array.isArray(response.data?.recentMeetings)) {
           setRecentMeetings(response.data.recentMeetings);
+        }
+        if (response.data?.charts) {
+          setChartsData(response.data.charts);
         }
       } catch (err) {
         console.error("Failed to fetch dashboard stats from API:", err);
@@ -114,6 +121,28 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
+
+      {/* Tabs Navigation */}
+      <Tabs defaultValue="overview" className="w-full space-y-6">
+        <TabsList className="flex w-fit items-center gap-2 p-1 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
+          <TabsTrigger
+            value="overview"
+            className="flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg transition-all text-zinc-600 dark:text-zinc-400 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-900 dark:data-[state=active]:text-zinc-100 data-[state=active]:shadow-sm cursor-pointer"
+          >
+            <LayoutDashboard className="h-4 w-4" />
+            Overview & Metrics
+          </TabsTrigger>
+          <TabsTrigger
+            value="analytics"
+            className="flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg transition-all text-zinc-600 dark:text-zinc-400 data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-900 dark:data-[state=active]:text-zinc-100 data-[state=active]:shadow-sm cursor-pointer"
+          >
+            <BarChart3 className="h-4 w-4" />
+            Visual Analytics & Charts
+          </TabsTrigger>
+        </TabsList>
+
+        {/* TAB 1: Overview & Metrics */}
+        <TabsContent value="overview" className="space-y-8 outline-none">
 
       {/* Required Statistics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -297,145 +326,152 @@ export default function DashboardPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-xs flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                className="text-xs gap-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
               >
-                View Tracker <ArrowRight className="h-3.5 w-3.5" />
+                Manage Tasks <ArrowRight className="h-3.5 w-3.5" />
               </Button>
             </Link>
           </CardContent>
         </Card>
       </div>
 
-      {/* 6. Recently Created Meetings Section */}
-      <Card className="rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden">
-        <CardHeader className="flex flex-row items-center justify-between border-b border-zinc-100 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/50 py-4 px-6">
-          <div className="space-y-0.5">
-            <CardTitle className="text-base font-bold text-zinc-900 dark:text-zinc-100">
-              Recently Created Meetings
-            </CardTitle>
-            <CardDescription className="text-xs text-zinc-500 dark:text-zinc-400">
-              Latest meeting notes and transcripts uploaded to MeetNotes.
-            </CardDescription>
-          </div>
-          <Link href="/dashboard/meetings">
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-xs flex items-center gap-1.5 border-zinc-200 dark:border-zinc-800 shadow-sm text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-            >
-              View All <ArrowRight className="h-3.5 w-3.5" />
-            </Button>
-          </Link>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-b border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/30 hover:bg-transparent">
-                  <TableHead className="font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider pl-6 py-3">
-                    Meeting Title
-                  </TableHead>
-                  <TableHead className="font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3">
-                    Type
-                  </TableHead>
-                  <TableHead className="font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3">
-                    Date
-                  </TableHead>
-                  <TableHead className="font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3">
-                    Participants
-                  </TableHead>
-                  <TableHead className="font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider pr-6 py-3 text-right">
-                    Action
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-12">
-                      <div className="flex items-center justify-center gap-2 text-zinc-500">
-                        <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
-                        <span className="text-sm font-medium">Loading recent meetings...</span>
-                      </div>
-                    </TableCell>
+        {/* 6. Recently Created Meetings Section */}
+        <Card className="rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between border-b border-zinc-100 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/50 py-4 px-6">
+            <div className="space-y-0.5">
+              <CardTitle className="text-base font-bold text-zinc-900 dark:text-zinc-100">
+                Recently Created Meetings
+              </CardTitle>
+              <CardDescription className="text-xs text-zinc-500 dark:text-zinc-400">
+                Latest meeting notes and transcripts uploaded to MeetNotes.
+              </CardDescription>
+            </div>
+            <Link href="/dashboard/meetings">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs flex items-center gap-1.5 border-zinc-200 dark:border-zinc-800 shadow-sm text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              >
+                View All <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            </Link>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-b border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/30 hover:bg-transparent">
+                    <TableHead className="font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider pl-6 py-3">
+                      Meeting Title
+                    </TableHead>
+                    <TableHead className="font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3">
+                      Type
+                    </TableHead>
+                    <TableHead className="font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3">
+                      Date
+                    </TableHead>
+                    <TableHead className="font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3">
+                      Participants
+                    </TableHead>
+                    <TableHead className="font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider pr-6 py-3 text-right">
+                      Action
+                    </TableHead>
                   </TableRow>
-                ) : recentMeetings.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-12 text-zinc-500 dark:text-zinc-400">
-                      <p className="text-sm">No meetings recorded yet.</p>
-                      <p className="text-xs text-zinc-400 mt-1">Click &quot;Manage Meetings&quot; to get started.</p>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  recentMeetings.map((meeting) => (
-                    <TableRow
-                      key={meeting.id}
-                      className="border-b border-zinc-100 dark:border-zinc-800/50 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 transition-colors"
-                    >
-                      <TableCell className="font-medium pl-6 py-3.5">
-                        <button
-                          onClick={() => {
-                            setViewingMeeting(meeting);
-                            setIsDetailModalOpen(true);
-                          }}
-                          className="hover:underline text-left font-semibold text-zinc-900 dark:text-zinc-100 transition-colors"
-                        >
-                          {meeting.title}
-                        </button>
-                      </TableCell>
-                      <TableCell className="py-3.5">
-                        <Badge
-                          variant="outline"
-                          className="text-xs font-normal border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 rounded-md"
-                        >
-                          {meeting.type}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="py-3.5">
-                        <span className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400 font-medium">
-                          <Calendar className="h-3.5 w-3.5 text-zinc-400" />
-                          {meeting.date}
-                        </span>
-                      </TableCell>
-                      <TableCell className="py-3.5">
-                        <div className="flex flex-wrap gap-1 items-center">
-                          {meeting.participants.slice(0, 2).map((p) => (
-                            <span
-                              key={p}
-                              className="text-[11px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 py-0.5 rounded-full border border-zinc-200/60 dark:border-zinc-700/60"
-                            >
-                              {p.split("@")[0]}
-                            </span>
-                          ))}
-                          {meeting.participants.length > 2 && (
-                            <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium ml-0.5">
-                              +{meeting.participants.length - 2}
-                            </span>
-                          )}
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-12">
+                        <div className="flex items-center justify-center gap-2 text-zinc-500">
+                          <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+                          <span className="text-sm font-medium">Loading recent meetings...</span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right pr-6 py-3.5">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setViewingMeeting(meeting);
-                            setIsDetailModalOpen(true);
-                          }}
-                          className="h-8 text-xs font-medium flex items-center gap-1.5 ml-auto text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                        >
-                          <Eye className="h-3.5 w-3.5 text-zinc-500" />
-                          Details
-                        </Button>
+                    </TableRow>
+                  ) : recentMeetings.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-12 text-zinc-500 dark:text-zinc-400">
+                        <p className="text-sm">No meetings recorded yet.</p>
+                        <p className="text-xs text-zinc-400 mt-1">Click &quot;Manage Meetings&quot; to get started.</p>
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                  ) : (
+                    recentMeetings.map((meeting) => (
+                      <TableRow
+                        key={meeting.id}
+                        className="border-b border-zinc-100 dark:border-zinc-800/50 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 transition-colors"
+                      >
+                        <TableCell className="font-medium pl-6 py-3.5">
+                          <button
+                            onClick={() => {
+                              setViewingMeeting(meeting);
+                              setIsDetailModalOpen(true);
+                            }}
+                            className="hover:underline text-left font-semibold text-zinc-900 dark:text-zinc-100 transition-colors"
+                          >
+                            {meeting.title}
+                          </button>
+                        </TableCell>
+                        <TableCell className="py-3.5">
+                          <Badge
+                            variant="outline"
+                            className="text-xs font-normal border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 rounded-md"
+                          >
+                            {meeting.type}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="py-3.5">
+                          <span className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400 font-medium">
+                            <Calendar className="h-3.5 w-3.5 text-zinc-400" />
+                            {meeting.date}
+                          </span>
+                        </TableCell>
+                        <TableCell className="py-3.5">
+                          <div className="flex flex-wrap gap-1 items-center">
+                            {meeting.participants.slice(0, 2).map((p) => (
+                              <span
+                                key={p}
+                                className="text-[11px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 py-0.5 rounded-full border border-zinc-200/60 dark:border-zinc-700/60"
+                              >
+                                {p.split("@")[0]}
+                              </span>
+                            ))}
+                            {meeting.participants.length > 2 && (
+                              <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium ml-0.5">
+                                +{meeting.participants.length - 2}
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right pr-6 py-3.5">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setViewingMeeting(meeting);
+                              setIsDetailModalOpen(true);
+                            }}
+                            className="h-8 text-xs font-medium flex items-center gap-1.5 ml-auto text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                          >
+                            <Eye className="h-3.5 w-3.5 text-zinc-500" />
+                            Details
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+        </TabsContent>
+
+        {/* TAB 2: Visual Analytics & Charts */}
+        <TabsContent value="analytics" className="outline-none">
+          <AnalyticsCharts data={chartsData} />
+        </TabsContent>
+      </Tabs>
 
       {/* Meeting Detail Modal */}
       <MeetingDetailModal

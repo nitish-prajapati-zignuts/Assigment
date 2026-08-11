@@ -16,18 +16,21 @@ The **AI Meeting Notes Summarizer** streamlines post-meeting workflows by transf
 - **Framework**: Next.js 16 (App Router) & React 19
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS v4, Modern UI/UX layout with glassmorphic cards and ambient lighting effects
+- **Visual Data Charts**: `recharts` for rich time-series and distribution charts
 - **Typography**: Plus Jakarta Sans (`next/font/google`)
 - **HTTP Client**: Axios (configured with `withCredentials: true` for HTTP-only cookie authentication)
-- **Icons & Components**: Lucide React, Radix UI primitives, Base UI, TinyMCE Editor
+- **Icons & Components**: Lucide React, Radix UI primitives (`@radix-ui/react-tabs`), Base UI, TinyMCE Editor
 
 ### **Backend**
 - **Runtime**: Node.js & Express
 - **Language**: TypeScript
 - **Database & ORM**: PostgreSQL (Neon Serverless) managed with Drizzle ORM & Drizzle Kit
-- **AI Integration**: Vercel AI SDK (`ai`, `@ai-sdk/google`) powered by a multi-tiered pipeline:
-  1. **Primary Model**: Google Gemini (`gemini-3.5-flash-lite`)
-  2. **Fallback Model**: Google Gemini Fallback Key (`gemini-3.5-flash-lite`)
-  3. **Last Resort**: Structured Heuristic Text Parser & Question Extractor
+- **AI Integration**: Vercel AI SDK (`ai`, `@ai-sdk/google`) powered by an automated multi-key rotation retry engine:
+  1. **User Custom Key**: Key passed in request headers
+  2. **Multi-Key Array**: Comma-separated keys from `GEMINI_API_KEYS`
+  3. **Primary Model Key**: Google Gemini (`GOOGLE_GENERATIVE_AI_API_KEY` or `GEMINI_API_KEY`)
+  4. **Fallback Model Key**: Backup Gemini Key (`GEMINI_FALL_BACK_KEY`)
+  5. **Last Resort**: Structured Heuristic Text Parser & Question Extractor
 - **Prompt Architecture**: Modular prompt builder (`buildMeetingSummaryPrompt`) in `src/utils/aiPrompts.ts`
 - **Rate Limiting**: Configurable middleware for Auth (`AUTH_RATE_LIMITER`), AI endpoints (`AI_RATE_LIMITER`), and API routes (`API_RATE_LIMITER`)
 - **Authentication**: JWT (JSON Web Tokens) stored securely in HTTP-only cookies (`auth_token`) and `bcryptjs` password hashing
@@ -40,7 +43,7 @@ The **AI Meeting Notes Summarizer** streamlines post-meeting workflows by transf
 - Node.js (v18 or higher)
 - npm or yarn package manager
 - PostgreSQL Database URL (Neon DB instance recommended)
-- Google Gemini API Key (`GOOGLE_GENERATIVE_AI_API_KEY` or `GEMINI_API_KEY`) and optional Fallback Key (`GEMINI_FALL_BACK_KEY`)
+- Google Gemini API Key (`GOOGLE_GENERATIVE_AI_API_KEY` or `GEMINI_API_KEY`) and optional Fallback Keys (`GEMINI_API_KEYS`, `GEMINI_FALL_BACK_KEY`)
 
 ---
 
@@ -57,6 +60,7 @@ Create a `.env` file inside the `Backend/` directory:
 PORT=4000
 DATABASE_URL=postgresql://<user>:<password>@<host>/<dbname>?sslmode=require
 JWT_SECRET=your_jwt_secret_key_here
+GEMINI_API_KEYS=key1,key2,key3
 GOOGLE_GENERATIVE_AI_API_KEY=your_google_gemini_api_key
 GEMINI_FALL_BACK_KEY=your_backup_gemini_api_key_optional
 ENABLE_RATE_LIMITER=true
@@ -110,6 +114,7 @@ The client application will run at `http://localhost:3000`.
 | `PORT` | Backend server port (Default: `4000`) | Backend `.env` |
 | `DATABASE_URL` | PostgreSQL connection string | Backend `.env` |
 | `JWT_SECRET` | Secret key used for signing authentication JWT tokens | Backend `.env` |
+| `GEMINI_API_KEYS` | Optional comma-separated list of Gemini API keys for rotation | Backend `.env` |
 | `GOOGLE_GENERATIVE_AI_API_KEY` | Primary API Key for Google Gemini model | Backend `.env` |
 | `GEMINI_FALL_BACK_KEY` | Fallback API Key for backup Google Gemini quota/account | Backend `.env` |
 | `ENABLE_RATE_LIMITER` | Toggle rate limiting middleware (`true`/`false`) | Backend `.env` |
@@ -129,7 +134,8 @@ The system follows a modern decoupled client-server architecture:
 ┌─────────────────────────────────────────────────────────────┐
 │                    Next.js Frontend (3000)                  │
 │  - User Auth (Login/Register)                               │
-│  - Responsive Dashboard & Analytics                         │
+│  - Tabbed Dashboard (Overview & Visual Analytics)           │
+│  - Interactive Recharts Visual Analytics (Area, Donut, Bar)  │
 │  - Meeting Management & File Transcript Upload               │
 │  - Action Item Tracker & Priority Filter                    │
 │  - Unanswered Questions Empty State UI Display              │
@@ -141,14 +147,15 @@ The system follows a modern decoupled client-server architecture:
 │  - Controllers & Routes (Auth, Meetings, Action Items, AI)  │
 │  - JWT Verification & Dynamic Rate Limiting Middleware      │
 │  - Modular AI Prompt Engine (buildMeetingSummaryPrompt)     │
+│  - Key Rotator & Retry Loop Pipeline                        │
 └──────────────┬──────────────────────────────┬───────────────┘
                │                              │
                ▼                              ▼
 ┌──────────────────────────────┐┌─────────────────────────────┐
-│    PostgreSQL (Neon DB)      ││     Multi-Tier AI Pipeline  │
-│  - Drizzle ORM Schema        ││  - Primary: Gemini Flash    │
-│                              ││  - Fallback: Gemini Backup  │
-│                              ││  - Text & Question Parser  │
+│    PostgreSQL (Neon DB)      ││    API Key Rotator Pipeline │
+│  - Drizzle ORM Schema        ││  - Multi-Key Array Rotation │
+│                              ││  - Primary/Fallback Keys    │
+│                              ││  - Text & Question Parser   │
 └──────────────────────────────┘└─────────────────────────────┘
 ```
 
@@ -194,7 +201,7 @@ The PostgreSQL database uses three core relational tables defined via **Drizzle 
 ---
 
 ### **Dashboard & Jobs**
-- `GET /api/dashboard/stats` — Retrieve aggregated dashboard metrics & recent meetings
+- `GET /api/dashboard/stats` — Retrieve aggregated dashboard metrics, timeline charts, status distributions, decision categories & recent meetings
 - `GET /api/jobs/:id` — Query background job queue execution status (`pending`, `processing`, `completed`, `failed`)
 
 ### **Authentication**
@@ -222,14 +229,17 @@ The PostgreSQL database uses three core relational tables defined via **Drizzle 
 ## Assumptions Made
 
 1. Users upload or paste meeting transcripts (TXT, DOCX, PDF, or raw text) for AI summarization.
-2. AI summarization uses a resilient 3-tier strategy (Primary Gemini LLM $\rightarrow$ Backup Gemini LLM $\rightarrow$ Text Heuristic fallback with Unanswered Questions extraction) returning clean, structured JSON format matching the meeting summary interface.
+2. AI summarization uses a resilient key rotation pipeline (Custom Key $\rightarrow$ Multi-Key Array $\rightarrow$ Primary Gemini LLM $\rightarrow$ Backup Gemini LLM $\rightarrow$ Text Heuristic fallback with Unanswered Questions extraction).
 3. Registered user emails serve as primary identifier references when assigning action item owners across the platform.
 
 ---
 
 ## Features Completed
 
-- [x] **Dedicated Dashboard API Endpoint**: Backend `/api/dashboard/stats` calculates metrics (Total Meetings, Action Items, Open, Completed, Overdue, Blocked, Transcripts) directly in database layer.
+- [x] **Interactive Recharts Visual Analytics**: Integrated 4 dynamic chart components (Area Chart for meeting velocity, Donut Chart for status, Bar Chart for priorities, Horizontal Bar Chart for decision categories).
+- [x] **Tabbed Dashboard Navigation**: Radix Tabs interface separating high-level KPI overview & table from visual analytics charts.
+- [x] **API Key Rotation & Retry Policy**: Built-in support for multiple API keys (`GEMINI_API_KEYS`) with automated retry loops across candidate keys.
+- [x] **Dedicated Dashboard API Endpoint**: Backend `/api/dashboard/stats` calculates metrics (Total Meetings, Action Items, Open, Completed, Overdue, Blocked, Transcripts) & chart aggregation directly in database layer.
 - [x] **Async Background Job Queue System**: In-memory `JobQueue` handles non-blocking AI summarization tasks with polling support (`GET /api/jobs/:id`).
 - [x] **Unanswered Questions Handling**: Extracted and sanitized in AI summaries with fallback heuristic detection (`?`, `tbd`, `unresolved`, `open question`) and empty state icon UI in modal.
 - [x] **Modular Prompt Architecture**: Isolated prompt construction into `src/utils/aiPrompts.ts` for clean reuse and maintainability.
@@ -240,7 +250,7 @@ The PostgreSQL database uses three core relational tables defined via **Drizzle 
 - [x] **Slack-Style @-Mention Participant Tagging**: Real-time Slack-style `@` mention popover menu with keyboard navigation (↑↓ Enter), duplicate user filtering, and clean comma formatting.
 - [x] **Secure Authentication**: Complete signup and login flow with encrypted passwords and HTTP-only cookie session storage.
 - [x] **Live Database Integration**: Fully decoupled mock data; all views query PostgreSQL via Drizzle ORM.
-- [x] **Multi-Tier AI Meeting Summarization**: Automated key point, outcome, decision, unanswered question, and action item extraction using primary Gemini model, fallback Gemini model, and heuristic fallback parsing.
+- [x] **Multi-Tier AI Meeting Summarization**: Automated key point, outcome, decision, unanswered question, and action item extraction using key rotation pipeline and heuristic fallback parsing.
 - [x] **Participant Assignment**: Dynamic dropdown fetching registered application users for seamless task ownership.
 - [x] **Action Item Management**: Dedicated dashboard view with status toggle, priority filtering, and meeting contextual links.
 
