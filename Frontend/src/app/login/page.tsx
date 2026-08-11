@@ -37,12 +37,15 @@ export default function LoginPage() {
 
   useEffect(() => {
     const checkAuth = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setIsVerifying(false);
+        return;
+      }
+
       try {
-        const token = localStorage.getItem("token");
         // Validate session with backend /auth/me route
-        const res = await api.get("/auth/me", {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
+        const res = await api.get("/auth/me");
 
         if (res.data && res.data.user) {
           localStorage.setItem("user", JSON.stringify(res.data.user));
