@@ -345,34 +345,35 @@ export default function DashboardPage() {
             </Link>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <Table className="w-full">
                 <TableHeader>
                   <TableRow className="border-b border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/30 hover:bg-transparent">
-                    <TableHead className="font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider pl-6 py-3">
-                      Meeting Title
+                    <TableHead className="font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider pl-6 py-3.5">
+                      Title
                     </TableHead>
-                    <TableHead className="font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3">
+                    <TableHead className="font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
                       Type
                     </TableHead>
-                    <TableHead className="font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3">
+                    <TableHead className="font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
                       Date
                     </TableHead>
-                    <TableHead className="font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3">
+                    <TableHead className="font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
                       Participants
                     </TableHead>
-                    <TableHead className="font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider pr-6 py-3 text-right">
-                      Action
+                    <TableHead className="text-right font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider pr-6 py-3.5">
+                      Actions
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-12">
-                        <div className="flex items-center justify-center gap-2 text-zinc-500">
-                          <Loader2 className="h-5 w-5 animate-spin text-zinc-400" />
-                          <span className="text-sm font-medium">Loading recent meetings...</span>
+                      <TableCell colSpan={5} className="text-center py-12 text-zinc-500 dark:text-zinc-400">
+                        <div className="flex items-center justify-center gap-2">
+                          <Loader2 className="h-5 w-5 animate-spin text-amber-500" />
+                          <span className="text-xs font-medium">Loading recent meetings...</span>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -450,6 +451,65 @@ export default function DashboardPage() {
                   )}
                 </TableBody>
               </Table>
+            </div>
+
+            {/* Mobile Cards View */}
+            <div className="md:hidden space-y-3 p-4">
+              {isLoading ? (
+                <div className="flex flex-col items-center justify-center p-8 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-500">
+                  <Loader2 className="h-6 w-6 animate-spin text-amber-500 mb-2" />
+                  <span className="text-xs font-medium">Loading recent meetings...</span>
+                </div>
+              ) : recentMeetings.length === 0 ? (
+                <div className="p-6 text-center bg-zinc-50 dark:bg-zinc-900/50 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-500">
+                  <p className="text-sm font-medium">No meetings recorded yet.</p>
+                  <p className="text-xs text-zinc-400 mt-1">Click &quot;Manage Meetings&quot; to get started.</p>
+                </div>
+              ) : (
+                recentMeetings.map((meeting) => (
+                  <div
+                    key={meeting.id}
+                    className="p-4 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 shadow-sm space-y-3"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <button
+                        onClick={() => {
+                          setViewingMeeting(meeting);
+                          setIsDetailModalOpen(true);
+                        }}
+                        className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 hover:underline text-left"
+                      >
+                        {meeting.title}
+                      </button>
+                      <Badge
+                        variant="outline"
+                        className="text-[11px] font-normal border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 rounded-md shrink-0"
+                      >
+                        {meeting.type}
+                      </Badge>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800 text-xs">
+                      <span className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-400 font-medium">
+                        <Calendar className="h-4 w-4 text-zinc-400" />
+                        {meeting.date}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setViewingMeeting(meeting);
+                          setIsDetailModalOpen(true);
+                        }}
+                        className="h-7 text-xs font-medium flex items-center gap-1 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                      >
+                        <Eye className="h-3.5 w-3.5 text-zinc-500" />
+                        Details
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
