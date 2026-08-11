@@ -90,13 +90,14 @@ export default function ActionTrackerPage() {
       const res = await api.get("/meetings");
       return res.data?.data || res.data;
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const meetings: Meeting[] = Array.isArray(meetingsData) ? meetingsData : [];
 
-  // TanStack Query for Action Items with Caching
-  const { data: actionItemsResponse, isLoading } = useQuery({
+  // TanStack Query for Action Items (Always fetch fresh data from API)
+  const { data: actionItemsResponse, isLoading, isFetching: isActionItemsFetching } = useQuery({
     queryKey: ["actionItems", currentPage],
     queryFn: async () => {
       const res = await api.get("/action-items", {
@@ -104,7 +105,8 @@ export default function ActionTrackerPage() {
       });
       return res.data;
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes cache
+    staleTime: 0, // Always stale so fresh data is fetched on every mount/query call
+    refetchOnMount: "always",
   });
 
   // Helper to check if item is overdue
@@ -284,8 +286,8 @@ export default function ActionTrackerPage() {
   // Use filtered items for display
   const displayItems = filteredItems;
 
-  // TanStack Query for all action items metrics (unpaginated count)
-  const { data: allMetricsData, isLoading: isMetricsLoading } = useQuery({
+  // TanStack Query for all action items metrics (unpaginated count - always fresh)
+  const { data: allMetricsData, isLoading: isMetricsLoading, isFetching: isMetricsFetching } = useQuery({
     queryKey: ["allActionItemsMetrics"],
     queryFn: async () => {
       const res = await api.get("/action-items", {
@@ -293,7 +295,8 @@ export default function ActionTrackerPage() {
       });
       return res.data?.data || res.data || [];
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const allActionItems: ActionItemWithContext[] = useMemo(() => {
@@ -387,9 +390,17 @@ export default function ActionTrackerPage() {
       {/* Header & Page Title */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-zinc-200 dark:border-zinc-800 pb-5 gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-            Action Tracker
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+              Action Tracker
+            </h1>
+            {(isActionItemsFetching || isMetricsFetching) && (
+              <Badge variant="outline" className="flex items-center gap-1 text-[11px] font-normal border-amber-300 text-amber-700 bg-amber-50/50 dark:border-amber-800 dark:text-amber-300 dark:bg-amber-950/30">
+                <Loader2 className="h-3 w-3 animate-spin text-amber-500" />
+                <span>Syncing live API...</span>
+              </Badge>
+            )}
+          </div>
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
             Manage, filter, and track deliverables extracted across all meeting notes.
           </p>
@@ -419,7 +430,7 @@ export default function ActionTrackerPage() {
             </div>
           </CardHeader>
           <CardContent>
-            {isMetricsLoading ? (
+            {isMetricsLoading || isMetricsFetching ? (
               <div className="flex items-center gap-2 text-zinc-400 py-1">
                 <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
                 <span className="text-xs font-medium">Updating...</span>
@@ -442,7 +453,7 @@ export default function ActionTrackerPage() {
             </div>
           </CardHeader>
           <CardContent>
-            {isMetricsLoading ? (
+            {isMetricsLoading || isMetricsFetching ? (
               <div className="flex items-center gap-2 text-blue-400 py-1">
                 <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
                 <span className="text-xs font-medium">Updating...</span>
@@ -465,7 +476,7 @@ export default function ActionTrackerPage() {
             </div>
           </CardHeader>
           <CardContent>
-            {isMetricsLoading ? (
+            {isMetricsLoading || isMetricsFetching ? (
               <div className="flex items-center gap-2 text-rose-400 py-1">
                 <Loader2 className="h-6 w-6 animate-spin text-rose-500" />
                 <span className="text-xs font-medium">Updating...</span>
@@ -493,7 +504,7 @@ export default function ActionTrackerPage() {
             </div>
           </CardHeader>
           <CardContent>
-            {isMetricsLoading ? (
+            {isMetricsLoading || isMetricsFetching ? (
               <div className="flex items-center gap-2 text-red-400 py-1">
                 <Loader2 className="h-6 w-6 animate-spin text-red-500" />
                 <span className="text-xs font-medium">Updating...</span>
@@ -621,12 +632,12 @@ export default function ActionTrackerPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? (
+            {isLoading || isActionItemsFetching ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-16">
                   <div className="flex flex-col items-center justify-center gap-2 text-zinc-500">
-                    <Loader2 className="h-7 w-7 animate-spin text-zinc-400" />
-                    <span className="text-xs font-medium">Loading action items...</span>
+                    <Loader2 className="h-7 w-7 animate-spin text-amber-500" />
+                    <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Loading fresh action items...</span>
                   </div>
                 </TableCell>
               </TableRow>
@@ -762,10 +773,10 @@ export default function ActionTrackerPage() {
 
       {/* Mobile Responsive Cards View */}
       <div className="md:hidden space-y-3">
-        {isLoading ? (
+        {isLoading || isActionItemsFetching ? (
           <div className="flex flex-col items-center justify-center p-8 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-500">
-            <Loader2 className="h-6 w-6 animate-spin text-zinc-400 mb-2" />
-            <span className="text-xs font-medium">Loading action items...</span>
+            <Loader2 className="h-6 w-6 animate-spin text-amber-500 mb-2" />
+            <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Loading fresh action items...</span>
           </div>
         ) : displayItems.length === 0 ? (
           <div className="p-6 text-center bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-500">
