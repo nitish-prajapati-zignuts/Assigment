@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import api from "@/lib/axios";
+import { getErrorMessage } from "@/lib/apiTypes";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -106,8 +107,7 @@ export default function LoginPage() {
       }
     } catch (err: any) {
       console.error("Login Error:", err);
-      const serverMsg =
-        err.response?.data?.error || "Invalid email or password. Please try again.";
+      const serverMsg = getErrorMessage(err) || "Invalid email or password. Please try again.";
       setErrorMessage(serverMsg);
     } finally {
       setIsLoading(false);

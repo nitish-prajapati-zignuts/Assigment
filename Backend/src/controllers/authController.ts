@@ -39,7 +39,9 @@ export const register = asyncHandler(async (req: Request, res: Response): Promis
     .where(eq(users.email, email));
 
   if (existingUser.length > 0) {
-    throw new ConflictError("User with this email already exists");
+    throw new ValidationError("User with this email already exists", {
+      email: "User with this email already exists"
+    });
   }
 
   // Hash password with salt rounds for security

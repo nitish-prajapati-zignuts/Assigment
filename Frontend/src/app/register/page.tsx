@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import api from "@/lib/axios";
+import { getErrorMessage } from "@/lib/apiTypes";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -95,7 +96,7 @@ export default function RegisterPage() {
     } catch (err: any) {
       console.error("Registration Error:", err);
       const serverMsg =
-        err.response?.data?.error ||
+        getErrorMessage(err) ||
         "Failed to create account. Please check your credentials or try again.";
       setErrorMessage(serverMsg);
     } finally {

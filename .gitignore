@@ -8,6 +8,10 @@ out
 
 # Production
 build
+dist
+dist/
+/dist
+
 
 # Misc
 .DS_Store

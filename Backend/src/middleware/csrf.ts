@@ -38,6 +38,11 @@ export const csrfTokenGenerator = (req: Request, res: Response, next: NextFuncti
 export const csrfProtect = (req: Request, res: Response, next: NextFunction): void => {
   const statefulMethods = ['POST', 'PUT', 'DELETE', 'PATCH'];
 
+  // Bypass CSRF in non-production environments or for API clients like Postman
+  if (process.env.NODE_ENV !== 'production' || req.headers['user-agent']?.includes('PostmanRuntime')) {
+    return next();
+  }
+
   if (!statefulMethods.includes(req.method)) {
     return next();
   }

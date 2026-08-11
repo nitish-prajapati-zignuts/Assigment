@@ -102,7 +102,7 @@ export const validateUploadedFile = (
 /**
  * Validate file content for malicious patterns
  */
-function validateFileContent(file: Express.Multer.File): void {
+function validateFileContent(file: any): void {
   if (!file.buffer) {
     return;
   }

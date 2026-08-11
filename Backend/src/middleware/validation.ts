@@ -33,12 +33,15 @@ export const validate = (schema: ZodSchema, source: 'body' | 'query' | 'params' 
       const details: Record<string, string> = {};
       if (error.errors && Array.isArray(error.errors)) {
         error.errors.forEach((err: any) => {
-          const path = err.path.join('.');
+          const path = err.path.join('.') || 'root';
           details[path] = err.message;
         });
       }
 
-      throw new ValidationError('Request validation failed', details);
+      const firstErrorMessage = Object.values(details)[0];
+      const errorMessage = firstErrorMessage || 'Request validation failed';
+
+      next(new ValidationError(errorMessage, details));
     }
   };
 };

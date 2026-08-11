@@ -41,15 +41,17 @@ export const errorHandler = (
   } else {
     logger.info(message, logContext);
   }
-
+  console.log("Response", message)
   // Format error response
   const response: ErrorResponse = {
     error: code,
     message,
     code,
     statusCode,
-    ...(isDevelopment && details && { details }),
+    ...(details && Object.keys(details).length > 0 && { details }),
   };
+
+  console.log(response)
 
   res.status(statusCode).json(response);
 };

@@ -161,12 +161,37 @@ export function isAPIError(data: unknown): data is APIError {
   }
 }
 
-/**
- * Extract error message from API response
- */
 export function getErrorMessage(error: unknown): string {
   if (isAPIError(error)) {
+    if (error.message && error.message !== 'Request validation failed') {
+      return error.message;
+    }
+    if (error.details && typeof error.details === 'object' && Object.keys(error.details).length > 0) {
+      const firstDetail = Object.values(error.details)[0];
+      if (typeof firstDetail === 'string' && firstDetail) return firstDetail;
+    }
     return error.message || error.error;
+  }
+
+  if (error && typeof error === 'object') {
+    const errObj = error as any;
+    const responseData = errObj.response?.data || errObj.data;
+
+    if (responseData) {
+      if (responseData.message && responseData.message !== 'Request validation failed') {
+        return responseData.message;
+      }
+      if (responseData.details && typeof responseData.details === 'object' && Object.keys(responseData.details).length > 0) {
+        const firstDetail = Object.values(responseData.details)[0];
+        if (typeof firstDetail === 'string' && firstDetail) return firstDetail;
+      }
+      if (responseData.message) return responseData.message;
+      if (responseData.error && typeof responseData.error === 'string') return responseData.error;
+    }
+
+    if (errObj.message && typeof errObj.message === 'string') {
+      return errObj.message;
+    }
   }
 
   if (error instanceof Error) {
