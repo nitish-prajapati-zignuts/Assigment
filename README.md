@@ -25,12 +25,12 @@ The **AI Meeting Notes Summarizer** streamlines post-meeting workflows by transf
 - **Runtime**: Node.js & Express
 - **Language**: TypeScript
 - **Database & ORM**: PostgreSQL (Neon Serverless) managed with Drizzle ORM & Drizzle Kit
-- **AI Integration**: Vercel AI SDK (`ai`, `@ai-sdk/google`) powered by an automated multi-key rotation retry engine:
-  1. **User Custom Key**: Key passed in request headers
-  2. **Multi-Key Array**: Comma-separated keys from `GEMINI_API_KEYS`
+- **AI Integration**: Vercel AI SDK (`ai`, `@ai-sdk/google`) powered by an automated multi-key rotation and fallback policy:
+  1. **User Custom Key**: Key optionally passed in request headers (`x-gemini-api-key`)
+  2. **Multi-Key Rotation Array**: De-duplicated comma-separated keys from `GEMINI_API_KEYS` (Round-Robin execution)
   3. **Primary Model Key**: Google Gemini (`GOOGLE_GENERATIVE_AI_API_KEY` or `GEMINI_API_KEY`)
-  4. **Fallback Model Key**: Backup Gemini Key (`GEMINI_FALL_BACK_KEY`)
-  5. **Last Resort**: Structured Heuristic Text Parser & Question Extractor
+  4. **Fallback Model Key**: Secondary Gemini Key (`GEMINI_FALL_BACK_KEY`)
+  5. **Text Heuristic Fallback**: Resilient rule-based text parser and unanswered question extractor (zero-downtime guaranteed)
 - **Prompt Architecture**: Modular prompt builder (`buildMeetingSummaryPrompt`) in `src/utils/aiPrompts.ts`
 - **Rate Limiting**: Configurable middleware for Auth (`AUTH_RATE_LIMITER`), AI endpoints (`AI_RATE_LIMITER`), and API routes (`API_RATE_LIMITER`)
 - **Authentication**: JWT (JSON Web Tokens) stored securely in HTTP-only cookies (`auth_token`) and `bcryptjs` password hashing
