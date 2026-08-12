@@ -15,8 +15,8 @@ The **AI Meeting Notes Summarizer** streamlines post-meeting workflows by transf
 ### **Frontend**
 - **Framework**: Next.js 16 (App Router) & React 19
 - **Language**: TypeScript
-- **Styling**: Tailwind CSS v4, Modern UI/UX layout with glassmorphic cards and ambient lighting effects
-- **Visual Data Charts**: `recharts` for rich time-series and distribution charts
+- **Styling**: Tailwind CSS v4, Modern OKLCH color theme layout with glassmorphic cards and ambient lighting effects
+- **Visual Data Charts**: `recharts` for rich time-series, speaker analytics, and decision distribution charts
 - **Typography**: Plus Jakarta Sans (`next/font/google`)
 - **HTTP Client**: Axios (configured with `withCredentials: true` for HTTP-only cookie authentication)
 - **Icons & Components**: Lucide React, Radix UI primitives (`@radix-ui/react-tabs`), Base UI, TinyMCE Editor
@@ -31,7 +31,9 @@ The **AI Meeting Notes Summarizer** streamlines post-meeting workflows by transf
   3. **Primary Model Key**: Google Gemini (`GOOGLE_GENERATIVE_AI_API_KEY` or `GEMINI_API_KEY`)
   4. **Fallback Model Key**: Secondary Gemini Key (`GEMINI_FALL_BACK_KEY`)
   5. **Text Heuristic Fallback**: Resilient rule-based text parser and unanswered question extractor (zero-downtime guaranteed)
-- **Prompt Architecture**: Modular prompt builder (`buildMeetingSummaryPrompt`) in `src/utils/aiPrompts.ts`
+- **AI Summary Templates / Prompt Styles**: Selectable AI output summary styles (*Standard Briefing*, *Executive Summary*, *Developer Tasks*, *Technical Decisions*, *Sales Qualification*) generating role-tailored structured objects.
+- **Sentiment & Speaker Participation Analytics**: Mandatory LLM/heuristic tone detection (*Positive*, *Neutral*, *Concerned*, *Heated*) and speaker talk-time distribution.
+- **Enhanced Public Share Links**: AES-256-GCM encrypted public share URLs (`/share/[token]`) with optional **Bcrypt Password Access Locks** and **Link Expiration Windows** (*1 Hour*, *1 Day*, *7 Days*, *30 Days*, *Never*).
 - **Rate Limiting**: Configurable middleware for Auth (`AUTH_RATE_LIMITER`), AI endpoints (`AI_RATE_LIMITER`), and API routes (`API_RATE_LIMITER`)
 - **Authentication**: JWT (JSON Web Tokens) stored securely in HTTP-only cookies (`auth_token`) and `bcryptjs` password hashing
 

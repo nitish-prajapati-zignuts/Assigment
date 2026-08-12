@@ -51,13 +51,16 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
    - `staleTime: 0` and `refetchOnMount: "always"` on action items & metrics queries guarantee every navigation and table action fetches live API database records.
 3. **Comprehensive Action Item Loaders & Live Sync Badges**:
    - Visual `Loader2` feedback across all table rows, mobile cards, status dropdowns, metric cards, and a top header `"Syncing live API..."` badge during background refetches.
-4. **Full Mobile Modal Responsiveness**:
-   - Optimized `MeetingDetailModal`, `MeetingModal`, and `CreateActionItemModal` for small smartphone screens (`w-[95vw] sm:max-w-[750px]`, full-width stacked buttons, fluid responsive grid form fields).
-5. **Context-Aware Dashboard Share Link Concealment**:
-   - Conceals the public share link section when opening detail modals from the main overview dashboard while preserving full share functionality in the All Meetings view.
-6. **Public Encrypted Shareable Meeting Page (`/share/[token]`)**:
-   - Secure encrypted token resolution using AES-256-GCM without requiring login.
-   - Smooth left-to-right message slide animations and animated gradient progress bar during loading state.
+4. **Sentiment & Speaker Analytics Widget**:
+   - Visual progress bars displaying emotional tone breakdown (*Positive*, *Neutral*, *Concerned*, *Heated*) and speaker participation percentages.
+5. **Custom AI Summary Template Selector**:
+   - Integrated template selector dropdown (*Standard Briefing*, *Executive Summary*, *Developer Tasks*, *Technical Decisions*, *Sales Qualification*) in meeting creation modal and detail modal.
+   - Renders custom themed detail cards for role-tailored AI output objects.
+6. **Password Protected & Expiring Public Share Links (`/share/[token]`)**:
+   - Encrypted Base64URL AES-256-GCM token resolution without requiring login.
+   - **Password Access Modal**: Interactive password prompt view when accessing protected share links (`POST /api/meetings/public/share/:token/verify`).
+   - **Expiration Notifications**: Automatic link expiration detection and expiry badge indicators (*1 Hour*, *1 Day*, *7 Days*, *30 Days*, *Never*).
+7. **Full Mobile Modal Responsiveness**:
 7. **Disabled Re-generation on Published Meetings**:
    - Disables the "Re-generate AI Notes" button in `MeetingDetailModal` when published with a helpful tooltip to protect public notes.
 8. **Modern Delete Confirmation Modals**:

@@ -56,31 +56,29 @@ The API will start at `http://localhost:4000`.
 
 ## ⚙️ Core System Architecture & Features
 
-1. **AES-256-GCM Encrypted Public Share Endpoints**:
-   - `PATCH /api/meetings/:id/publish`: Toggles public visibility status (`is_meeting_published`) in PostgreSQL database and generates Base64URL-safe AES-256-GCM tokens.
-   - `GET /api/meetings/public/share/:token`: Public endpoint (unprotected by auth middleware) that decrypts the token, validates publication status, and serves public meeting summaries safely.
+- **Custom AI Summary Templates & Prompt Styles**:
+   - Supports 5 role-tailored prompt styles (*Standard Briefing*, *Executive Summary*, *Developer Tasks*, *Technical Decisions*, *Sales Qualification*).
+   - Generates template-specific structured payload objects (`executiveDetails`, `developerDetails`, `technicalDetails`, `salesDetails`) saved in database `summary` JSON column.
 
-2. **Chronological Meetings Ordering**:
+- **Sentiment & Speaker Analytics Engine**:
+   - Mandatory tone detection (*Positive*, *Neutral*, *Concerned*, *Heated*) and talk-time distribution per speaker.
+   - Calculated via AI LLM schema and rule-based text parser fallback engine.
+
+- **Protected & Expiring Public Share Links (`/share/[token]`)**:
+   - Encrypted Base64URL AES-256-GCM token resolution.
+   - **Bcrypt Password Access**: Optional password restriction (`sharePassword`). `POST /api/meetings/public/share/:token/verify` verifies hashed passwords before unlocking contents.
+   - **Expiration Windows**: Configurable link expiry (`shareExpiresAt`) for 1 hour, 24 hours, 7 days, 30 days, or permanent access.
+
+- **Chronological Meetings Ordering**:
    - All `GET /api/meetings` database queries sort records directly via `orderBy(desc(meetings.createdAt))` to return newest created meetings first.
 
-3. **Async Job Queue (`JobQueue`)**:
+- **Async Job Queue (`JobQueue`)**:
    - Non-blocking background worker processes AI meeting summarization (`summarize_meeting`).
    - Resilient retry strategy with exponential backoff on failure.
-   - Polling endpoint `GET /api/jobs/:id` allows clients to track job status (`pending`, `processing`, `completed`, `failed`).
 
-4. **Dedicated Dashboard Stats & Analytics Endpoint (`GET /api/dashboard/stats`)**:
+- **Dedicated Dashboard Stats & Analytics Endpoint (`GET /api/dashboard/stats`)**:
    - Computes aggregated user statistics directly in the database layer (Total Meetings, Action Items, Open, Completed, Overdue, Blocked, Saved Transcripts).
-   - Computes time-series chart analytics (Meetings timeline, Action item status distribution, Task priority distribution, and Key Decisions categories).
-   - Returns top 4 recent meetings sorted chronologically.
 
-5. **Resilient Key Rotation & Multi-Tier AI Retry Loop**:
-   - **Key Rotator**: Automatically aggregates custom user keys, comma-separated environment keys (`GEMINI_API_KEYS`), primary keys (`GOOGLE_GENERATIVE_AI_API_KEY`), and fallback keys (`GEMINI_FALL_BACK_KEY`).
-   - **Sequential Retry Loop**: Iterates through available API keys on failure or quota limits before gracefully dropping to the heuristic summary parser.
-   - **Structured Text Heuristic Engine**: Resilient fallback parser & unanswered question detector if LLMs fail.
-
-6. **Action Item Relational Sync**:
-   - Automatically syncs extracted action items into PostgreSQL `action_items` table and matches participant emails/names to registered user IDs.
-
-7. **Configurable Rate Limiters**:
-   - Dynamic threshold limits via `.env` (`AUTH_RATE_LIMITER`, `AI_RATE_LIMITER`, `API_RATE_LIMITER`).
-
+- **Resilient Key Rotation & Multi-Tier AI Retry Loop**:
+   - Round-robin key rotator across custom user keys, `GEMINI_API_KEYS`, primary keys, and fallback keys.
+   - Resilient rule-based text parser fallback engine guaranteeing zero downtime.
