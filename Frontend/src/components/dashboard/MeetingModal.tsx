@@ -68,7 +68,7 @@ const meetingSchema = z.object({
 
 type MeetingFormValues = z.infer<typeof meetingSchema>;
 
-import { SummaryLength } from "@/types/meeting";
+import { SummaryLength, SummaryTemplate } from "@/types/meeting";
 
 interface AppUser {
   id: string;
@@ -79,7 +79,7 @@ interface AppUser {
 interface MeetingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (meeting: Partial<Meeting> & { language?: string; summaryLength?: SummaryLength }) => Promise<void> | void;
+  onSave: (meeting: Partial<Meeting> & { language?: string; summaryLength?: SummaryLength; template?: SummaryTemplate }) => Promise<void> | void;
   initialData?: Meeting | null;
 }
 
@@ -96,6 +96,7 @@ export function MeetingModal({
   const [isDragging, setIsDragging] = useState(false);
   const [appUsers, setAppUsers] = useState<AppUser[]>([]);
   const [summaryLength, setSummaryLength] = useState<SummaryLength>("Medium");
+  const [template, setTemplate] = useState<SummaryTemplate>("Standard");
   const [language, setLanguage] = useState<string>("English");
   const [usersFetched, setUsersFetched] = useState(false);
 
@@ -352,6 +353,7 @@ export function MeetingModal({
         date: data.date,
         type: data.type,
         summaryLength,
+        template,
         language,
         participants: formattedParticipants,
         transcript: data.transcript || "",
@@ -366,7 +368,7 @@ export function MeetingModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[620px] w-[95vw] max-h-[90vh] overflow-y-auto p-4 sm:p-6 rounded-2xl">
+      <DialogContent className="sm:max-w-[720px] w-[95vw] max-h-[90vh] overflow-y-auto p-4 sm:p-6 rounded-2xl">
         <DialogHeader className="pr-6">
           <DialogTitle className="text-lg sm:text-xl font-bold">
             {initialData ? "Edit Meeting" : "Create New Meeting"}
@@ -380,7 +382,7 @@ export function MeetingModal({
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-2">
           <div className="space-y-2">
-            <Label htmlFor="title" className="text-xs sm:text-sm">Meeting Title</Label>
+            <Label htmlFor="title" className="text-xs sm:text-sm font-medium">Meeting Title</Label>
             <Input
               id="title"
               placeholder="e.g. Q3 Sprint Planning"
@@ -392,84 +394,115 @@ export function MeetingModal({
             )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
             <div className="space-y-1.5">
-              <Label htmlFor="date" className="text-xs sm:text-sm">Meeting Date</Label>
+              <Label htmlFor="date" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                Meeting Date
+              </Label>
               <Input
                 id="date"
                 type="date"
                 min={initialData?.date && initialData.date < todayStr ? initialData.date : todayStr}
                 max={todayStr}
                 {...register("date")}
-                className="text-xs sm:text-sm h-9"
+                className="text-xs h-9"
               />
               {errors.date && (
-                <p className="text-xs text-red-500">{errors.date.message}</p>
+                <p className="text-[11px] text-red-500">{errors.date.message}</p>
               )}
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="type" className="text-xs sm:text-sm">Meeting Type</Label>
+              <Label htmlFor="type" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                Meeting Type
+              </Label>
               <Select
                 value={selectedType}
                 onValueChange={(val) => {
                   if (val) setValue("type", val as MeetingType);
                 }}
               >
-                <SelectTrigger className="text-xs sm:text-sm h-9">
-                  <SelectValue placeholder="Select type" />
+                <SelectTrigger className="text-xs h-9">
+                  <SelectValue placeholder="Select Type" />
                 </SelectTrigger>
                 <SelectContent>
                   {meetingTypes.map((t) => (
-                    <SelectItem key={t} value={t} className="text-xs sm:text-sm">
+                    <SelectItem key={t} value={t} className="text-xs">
                       {t}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               {errors.type && (
-                <p className="text-xs text-red-500">{errors.type.message}</p>
+                <p className="text-[11px] text-red-500">{errors.type.message}</p>
               )}
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="summaryLength" className="text-xs sm:text-sm">Summary Length</Label>
+              <Label htmlFor="template" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                AI Summary Style
+              </Label>
+              <Select
+                value={template}
+                onValueChange={(val) => {
+                  if (val) setTemplate(val as SummaryTemplate);
+                }}
+              >
+                <SelectTrigger className="text-xs h-9">
+                  <SelectValue placeholder="Select Style" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Standard" className="text-xs">Standard Briefing</SelectItem>
+                  <SelectItem value="Executive" className="text-xs">Executive Summary</SelectItem>
+                  <SelectItem value="Developer" className="text-xs">Developer Tasks</SelectItem>
+                  <SelectItem value="Technical" className="text-xs">Technical Decisions</SelectItem>
+                  <SelectItem value="Sales" className="text-xs">Sales Qualification</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="summaryLength" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                Summary Length
+              </Label>
               <Select
                 value={summaryLength}
                 onValueChange={(val) => {
                   if (val) setSummaryLength(val as SummaryLength);
                 }}
               >
-                <SelectTrigger className="text-xs sm:text-sm h-9">
-                  <SelectValue placeholder="Select length" />
+                <SelectTrigger className="text-xs h-9">
+                  <SelectValue placeholder="Select Length" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Short" className="text-xs sm:text-sm">Short (Concise)</SelectItem>
-                  <SelectItem value="Medium" className="text-xs sm:text-sm">Medium (Standard)</SelectItem>
-                  <SelectItem value="Long" className="text-xs sm:text-sm">Long (Detailed)</SelectItem>
+                  <SelectItem value="Short" className="text-xs">Short (Concise)</SelectItem>
+                  <SelectItem value="Medium" className="text-xs">Medium (Standard)</SelectItem>
+                  <SelectItem value="Long" className="text-xs">Long (Detailed)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="language">Output Language</Label>
+            <div className="space-y-1.5 col-span-1 sm:col-span-2">
+              <Label htmlFor="language" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                Output Language
+              </Label>
               <Select
                 value={language}
                 onValueChange={(val) => {
                   if (val) setLanguage(val);
                 }}
               >
-                <SelectTrigger>
+                <SelectTrigger className="text-xs h-9">
                   <SelectValue>{language}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="English">English</SelectItem>
-                  <SelectItem value="Spanish">Spanish (Español)</SelectItem>
-                  <SelectItem value="French">French (Français)</SelectItem>
-                  <SelectItem value="German">German (Deutsch)</SelectItem>
-                  <SelectItem value="Hindi">Hindi (हिंदी)</SelectItem>
-                  <SelectItem value="Japanese">Japanese (日本語)</SelectItem>
-                  <SelectItem value="Chinese">Chinese (中文)</SelectItem>
+                  <SelectItem value="English" className="text-xs">English</SelectItem>
+                  <SelectItem value="Spanish" className="text-xs">Spanish (Español)</SelectItem>
+                  <SelectItem value="French" className="text-xs">French (Français)</SelectItem>
+                  <SelectItem value="German" className="text-xs">German (Deutsch)</SelectItem>
+                  <SelectItem value="Hindi" className="text-xs">Hindi (हिंदी)</SelectItem>
+                  <SelectItem value="Japanese" className="text-xs">Japanese (日本語)</SelectItem>
+                  <SelectItem value="Chinese" className="text-xs">Chinese (中文)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

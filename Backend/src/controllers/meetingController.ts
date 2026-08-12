@@ -194,7 +194,7 @@ export const createMeeting = asyncHandler(async (
   req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
-  const { title, date, participants, transcript, type, language, summaryLength } = req.body as CreateMeetingInput & { language?: string; summaryLength?: any };
+  const { title, date, participants, transcript, type, language, summaryLength, template } = req.body as CreateMeetingInput & { language?: string; summaryLength?: any; template?: any };
   const userEmail = req.user?.email;
 
   if (!userEmail) {
@@ -240,6 +240,7 @@ export const createMeeting = asyncHandler(async (
         title,
         language,
         summaryLength,
+        template,
       });
 
       logger.info("Meeting created with async summarization", { 
@@ -337,6 +338,7 @@ export const summarizeMeeting = asyncHandler(async (
   res: Response
 ): Promise<void> => {
   const targetId = String(req.params.id);
+  const { language, summaryLength, template } = req.body || {};
 
   try {
     const existing = await db
@@ -361,6 +363,9 @@ export const summarizeMeeting = asyncHandler(async (
       meetingId: targetId,
       transcript: meeting.transcript,
       title: meeting.title,
+      language,
+      summaryLength,
+      template,
     });
 
     logger.info("Meeting summarization queued", { meetingId: targetId, jobId });

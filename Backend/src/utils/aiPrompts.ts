@@ -1,20 +1,22 @@
-import { SummaryLength } from "../db/schema";
+import { SummaryLength, SummaryTemplate } from "../db/schema";
 
 export interface BuildMeetingSummaryPromptParams {
   plainTranscript: string;
   title?: string;
   language?: string;
   summaryLength?: SummaryLength;
+  template?: SummaryTemplate;
 }
 
 /**
- * Builds the AI prompt text for meeting summarization based on transcript, language, and length settings.
+ * Builds the AI prompt text for meeting summarization based on transcript, language, length, and template settings.
  */
 export function buildMeetingSummaryPrompt({
   plainTranscript,
   title,
   language,
   summaryLength,
+  template = "Standard",
 }: BuildMeetingSummaryPromptParams): string {
   const languageInstruction = language
     ? `\nIMPORTANT LANGUAGE REQUIREMENT:\n- Generate all output summary text, topics, concerns, next steps, key decisions, and action item tasks in ${language}.`
@@ -32,11 +34,37 @@ export function buildMeetingSummaryPrompt({
       "\nSUMMARY LENGTH REQUIREMENT: Provide a balanced, medium-length summary with clear key discussion points and action items.";
   }
 
+  let templateInstruction = "";
+  switch (template) {
+    case "Executive":
+      templateInstruction =
+        "\nEXECUTIVE SUMMARY FOCUS: Frame all content for C-suite leadership. Populating `executiveDetails` (strategicImpact, financialOrTimelineRisks, executiveRecommendations) is REQUIRED.";
+      break;
+    case "Developer":
+      templateInstruction =
+        "\nDEVELOPER FOCUS: Focus on engineering deliverables. Populating `developerDetails` (codeDeliverables, architecturalChanges, apiContractsAndDependencies, technicalBlockers) is REQUIRED.";
+      break;
+    case "Technical":
+      templateInstruction =
+        "\nTECHNICAL DECISIONS FOCUS: Focus on system architecture choices. Populating `technicalDetails` (systemArchitectureChoices, techStackTradeoffs, engineeringConstraints) is REQUIRED.";
+      break;
+    case "Sales":
+      templateInstruction =
+        "\nSALES LEAD QUALIFICATION FOCUS: Focus on sales lead discovery. Populating `salesDetails` (clientPainPoints, budgetAndAuthority, timelineExpectations, nextSalesSteps) is REQUIRED.";
+      break;
+    case "Standard":
+    default:
+      templateInstruction =
+        "\nSTANDARD SUMMARY FOCUS: Provide a balanced overview suitable for all team members.";
+      break;
+  }
+
   return `You are an expert AI executive assistant. Analyze the following meeting transcript and generate a structured summary.
       
 Meeting Title: ${title || "Team Meeting"}
 ${languageInstruction}
 ${lengthInstruction}
+${templateInstruction}
 Transcript:
 """
 ${plainTranscript}
@@ -55,6 +83,12 @@ Ensure the summary strictly covers:
    - dueDate: Due date (YYYY-MM-DD or relative like 'Next Friday') or 'Not specified' if missing.
    - priority: Priority level ('Low', 'Medium', 'High', 'Urgent').
    - status: Current status ('Pending', 'In Progress', 'Completed').
+8. Speaker Analytics:
+   - Identify distinct speakers from dialogue tags (e.g., 'Alice:', 'Bob:') or estimate participant dialogue distribution.
+   - Calculate talkTimePercentage (0-100) and total wordCount for each speaker.
+9. Sentiment Analysis:
+   - Analyze overall emotional tone ('Positive', 'Neutral', 'Concerned', 'Heated') and calculate overall score (0-100).
+   - Provide breakdown percentage values for positive, neutral, concerned, and heated tone in discussion.
 
 CRITICAL RULES:
 - The input transcript may contain raw text. All outputs MUST BE in plain text ONLY. DO NOT include any HTML elements (like <div>, <p>, <strong>, <span>) or markdown containers in any output fields.

@@ -41,6 +41,9 @@ import {
   Copy,
   Lock,
 } from "lucide-react";
+import { SentimentSpeakerAnalytics } from "./meetings/SentimentSpeakerAnalytics";
+
+import { SummaryTemplate } from "@/types/meeting";
 
 interface MeetingDetailModalProps {
   meeting: Meeting | null;
@@ -62,6 +65,7 @@ export function MeetingDetailModal({
   const [activeTab, setActiveTab] = useState<"summary" | "transcript">("summary");
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState<string>("English");
+  const [selectedTemplate, setSelectedTemplate] = useState<SummaryTemplate>("Standard");
   const [currentSummary, setCurrentSummary] = useState<MeetingSummary | null | undefined>(
     meeting?.summary
   );
@@ -200,6 +204,7 @@ export function MeetingDetailModal({
     try {
       const res = await api.post(`/meetings/${meeting.id}/summarize`, {
         language: selectedLanguage,
+        template: selectedTemplate,
       });
       if (res.data && res.data.summary) {
         setCurrentSummary(res.data.summary);
@@ -382,7 +387,23 @@ export function MeetingDetailModal({
                 </TabsTrigger>
               </TabsList>
 
-              <div className="flex items-center justify-between sm:justify-end gap-2">
+              <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2">
+                <Select
+                  value={selectedTemplate}
+                  onValueChange={(val) => val && setSelectedTemplate(val as SummaryTemplate)}
+                >
+                  <SelectTrigger className="h-8 text-xs border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/60 w-36 font-medium">
+                    <SelectValue placeholder="Select Style" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
+                    <SelectItem value="Standard">Standard Briefing</SelectItem>
+                    <SelectItem value="Executive">Executive Summary</SelectItem>
+                    <SelectItem value="Developer">Developer Tasks</SelectItem>
+                    <SelectItem value="Technical">Technical Decisions</SelectItem>
+                    <SelectItem value="Sales">Sales Qualification</SelectItem>
+                  </SelectContent>
+                </Select>
+
                 <Badge key={selectedLanguage} variant="outline" className="text-xs font-normal">
                   {selectedLanguage}
                 </Badge>
@@ -411,6 +432,192 @@ export function MeetingDetailModal({
             <TabsContent value="summary" className="mt-3 space-y-4">
               {summaryData ? (
                 <div className="space-y-4">
+                  {/* Template Style Badge Indicator */}
+                  {summaryData.templateStyle && (
+                    <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200/80 dark:border-indigo-900/50 text-xs text-indigo-700 dark:text-indigo-300 font-medium">
+                      <div className="flex items-center gap-1.5">
+                        <Sparkles className="h-4 w-4 text-indigo-500" />
+                        <span>AI Prompt Template Style:</span>
+                      </div>
+                      <Badge variant="secondary" className="bg-indigo-100 dark:bg-indigo-900/60 text-indigo-800 dark:text-indigo-200 border-indigo-300 font-semibold">
+                        {summaryData.templateStyle}
+                      </Badge>
+                    </div>
+                  )}
+
+                  {/* Sentiment & Speaker Analytics Visual Widget */}
+                  <SentimentSpeakerAnalytics
+                    sentiment={summaryData.sentimentAnalysis}
+                    speakers={summaryData.speakerAnalytics}
+                  />
+
+                  {/* TEMPLATE SPECIFIC CUSTOM DETAILS SECTION */}
+                  {summaryData.executiveDetails && (
+                    <div className="bg-purple-900/10 dark:bg-purple-950/30 border border-purple-300 dark:border-purple-800 p-4 rounded-xl space-y-3 shadow-sm">
+                      <h5 className="text-xs font-bold text-purple-900 dark:text-purple-300 flex items-center gap-1.5 uppercase tracking-wide">
+                        <Sparkles className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                        Executive Strategic Briefing
+                      </h5>
+                      <div className="space-y-2 text-xs text-zinc-700 dark:text-zinc-300">
+                        <div>
+                          <span className="font-semibold text-purple-950 dark:text-purple-200">Strategic Impact: </span>
+                          <span>{stripHtml(summaryData.executiveDetails.strategicImpact)}</span>
+                        </div>
+                        {summaryData.executiveDetails.financialOrTimelineRisks?.length > 0 && (
+                          <div>
+                            <span className="font-semibold text-purple-950 dark:text-purple-200">Financial / Timeline Risks:</span>
+                            <ul className="list-disc list-inside pl-2 space-y-0.5 mt-1">
+                              {summaryData.executiveDetails.financialOrTimelineRisks.map((r, i) => (
+                                <li key={i}>{stripHtml(r)}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {summaryData.executiveDetails.executiveRecommendations?.length > 0 && (
+                          <div>
+                            <span className="font-semibold text-purple-950 dark:text-purple-200">Recommendations:</span>
+                            <ul className="list-disc list-inside pl-2 space-y-0.5 mt-1">
+                              {summaryData.executiveDetails.executiveRecommendations.map((rec, i) => (
+                                <li key={i}>{stripHtml(rec)}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {summaryData.developerDetails && (
+                    <div className="bg-cyan-900/10 dark:bg-cyan-950/30 border border-cyan-300 dark:border-cyan-800 p-4 rounded-xl space-y-3 shadow-sm">
+                      <h5 className="text-xs font-bold text-cyan-900 dark:text-cyan-300 flex items-center gap-1.5 uppercase tracking-wide">
+                        <Sparkles className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                        Developer Task & Engineering Breakdown
+                      </h5>
+                      <div className="space-y-2 text-xs text-zinc-700 dark:text-zinc-300">
+                        {summaryData.developerDetails.codeDeliverables?.length > 0 && (
+                          <div>
+                            <span className="font-semibold text-cyan-950 dark:text-cyan-200">Code Deliverables:</span>
+                            <ul className="list-disc list-inside pl-2 space-y-0.5 mt-1">
+                              {summaryData.developerDetails.codeDeliverables.map((c, i) => (
+                                <li key={i}>{stripHtml(c)}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {summaryData.developerDetails.architecturalChanges?.length > 0 && (
+                          <div>
+                            <span className="font-semibold text-cyan-950 dark:text-cyan-200">Architectural Changes:</span>
+                            <ul className="list-disc list-inside pl-2 space-y-0.5 mt-1">
+                              {summaryData.developerDetails.architecturalChanges.map((a, i) => (
+                                <li key={i}>{stripHtml(a)}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {summaryData.developerDetails.apiContractsAndDependencies?.length > 0 && (
+                          <div>
+                            <span className="font-semibold text-cyan-950 dark:text-cyan-200">API Contracts & Dependencies:</span>
+                            <ul className="list-disc list-inside pl-2 space-y-0.5 mt-1">
+                              {summaryData.developerDetails.apiContractsAndDependencies.map((api, i) => (
+                                <li key={i}>{stripHtml(api)}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {summaryData.developerDetails.technicalBlockers?.length > 0 && (
+                          <div>
+                            <span className="font-semibold text-cyan-950 dark:text-cyan-200">Engineering Blockers:</span>
+                            <ul className="list-disc list-inside pl-2 space-y-0.5 mt-1">
+                              {summaryData.developerDetails.technicalBlockers.map((b, i) => (
+                                <li key={i}>{stripHtml(b)}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {summaryData.technicalDetails && (
+                    <div className="bg-emerald-900/10 dark:bg-emerald-950/30 border border-emerald-300 dark:border-emerald-800 p-4 rounded-xl space-y-3 shadow-sm">
+                      <h5 className="text-xs font-bold text-emerald-900 dark:text-emerald-300 flex items-center gap-1.5 uppercase tracking-wide">
+                        <Sparkles className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                        Technical Decisions & Architecture Trade-offs
+                      </h5>
+                      <div className="space-y-2 text-xs text-zinc-700 dark:text-zinc-300">
+                        {summaryData.technicalDetails.systemArchitectureChoices?.length > 0 && (
+                          <div>
+                            <span className="font-semibold text-emerald-950 dark:text-emerald-200">System Architecture Choices:</span>
+                            <ul className="list-disc list-inside pl-2 space-y-0.5 mt-1">
+                              {summaryData.technicalDetails.systemArchitectureChoices.map((s, i) => (
+                                <li key={i}>{stripHtml(s)}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {summaryData.technicalDetails.techStackTradeoffs?.length > 0 && (
+                          <div>
+                            <span className="font-semibold text-emerald-950 dark:text-emerald-200">Tech Stack Trade-offs:</span>
+                            <ul className="list-disc list-inside pl-2 space-y-0.5 mt-1">
+                              {summaryData.technicalDetails.techStackTradeoffs.map((t, i) => (
+                                <li key={i}>{stripHtml(t)}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {summaryData.technicalDetails.engineeringConstraints?.length > 0 && (
+                          <div>
+                            <span className="font-semibold text-emerald-950 dark:text-emerald-200">Engineering Constraints:</span>
+                            <ul className="list-disc list-inside pl-2 space-y-0.5 mt-1">
+                              {summaryData.technicalDetails.engineeringConstraints.map((e, i) => (
+                                <li key={i}>{stripHtml(e)}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {summaryData.salesDetails && (
+                    <div className="bg-amber-900/10 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-800 p-4 rounded-xl space-y-3 shadow-sm">
+                      <h5 className="text-xs font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5 uppercase tracking-wide">
+                        <Sparkles className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                        Sales Lead Qualification Discovery
+                      </h5>
+                      <div className="space-y-2 text-xs text-zinc-700 dark:text-zinc-300">
+                        {summaryData.salesDetails.clientPainPoints?.length > 0 && (
+                          <div>
+                            <span className="font-semibold text-amber-950 dark:text-amber-200">Client Pain Points:</span>
+                            <ul className="list-disc list-inside pl-2 space-y-0.5 mt-1">
+                              {summaryData.salesDetails.clientPainPoints.map((p, i) => (
+                                <li key={i}>{stripHtml(p)}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        <div>
+                          <span className="font-semibold text-amber-950 dark:text-amber-200">Budget & Decision Authority: </span>
+                          <span>{stripHtml(summaryData.salesDetails.budgetAndAuthority)}</span>
+                        </div>
+                        <div>
+                          <span className="font-semibold text-amber-950 dark:text-amber-200">Timeline Expectations: </span>
+                          <span>{stripHtml(summaryData.salesDetails.timelineExpectations)}</span>
+                        </div>
+                        {summaryData.salesDetails.nextSalesSteps?.length > 0 && (
+                          <div>
+                            <span className="font-semibold text-amber-950 dark:text-amber-200">Next Sales Actions:</span>
+                            <ul className="list-disc list-inside pl-2 space-y-0.5 mt-1">
+                              {summaryData.salesDetails.nextSalesSteps.map((n, i) => (
+                                <li key={i}>{stripHtml(n)}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   {/* 1. Purpose of the Meeting */}
                   <div className="bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 p-4 rounded-lg space-y-1.5 shadow-sm">
                     <h5 className="text-xs font-bold text-amber-800 dark:text-amber-400 flex items-center gap-1.5 uppercase tracking-wide">

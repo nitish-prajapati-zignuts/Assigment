@@ -1,6 +1,7 @@
 import { pgTable, text, timestamp, varchar, jsonb, index, uniqueIndex, boolean } from "drizzle-orm/pg-core";
 
 export type SummaryLength = "Short" | "Medium" | "Long";
+export type SummaryTemplate = "Standard" | "Executive" | "Developer" | "Technical" | "Sales";
 
 export interface KeyDecision {
   category: string;
@@ -16,6 +17,49 @@ export interface ActionItem {
   status: "Open" | "In Progress" | "Blocked" | "Completed" | "Pending";
 }
 
+export interface SpeakerAnalytics {
+  name: string;
+  talkTimePercentage: number;
+  wordCount: number;
+}
+
+export interface SentimentAnalysis {
+  overallTone: "Positive" | "Neutral" | "Concerned" | "Heated";
+  score: number;
+  breakdown: {
+    positive: number;
+    neutral: number;
+    concerned: number;
+    heated: number;
+  };
+}
+
+export interface ExecutiveSummaryDetails {
+  strategicImpact: string;
+  financialOrTimelineRisks: string[];
+  executiveRecommendations: string[];
+}
+
+export interface DeveloperTaskDetails {
+  codeDeliverables: string[];
+  architecturalChanges: string[];
+  apiContractsAndDependencies: string[];
+  technicalBlockers: string[];
+}
+
+export interface TechnicalDecisionDetails {
+  systemArchitectureChoices: string[];
+  techStackTradeoffs: string[];
+  engineeringConstraints: string[];
+}
+
+export interface SalesQualificationDetails {
+  clientPainPoints: string[];
+  budgetAndAuthority: string;
+  timelineExpectations: string;
+  nextSalesSteps: string[];
+}
+
 export interface MeetingSummary {
   purpose: string;
   discussionPoints: string[];
@@ -25,6 +69,13 @@ export interface MeetingSummary {
   nextSteps: string[];
   keyDecisions?: KeyDecision[];
   actionItems?: ActionItem[];
+  speakerAnalytics?: SpeakerAnalytics[];
+  sentimentAnalysis?: SentimentAnalysis;
+  templateStyle?: SummaryTemplate;
+  executiveDetails?: ExecutiveSummaryDetails;
+  developerDetails?: DeveloperTaskDetails;
+  technicalDetails?: TechnicalDecisionDetails;
+  salesDetails?: SalesQualificationDetails;
 }
 
 /**
