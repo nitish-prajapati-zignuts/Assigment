@@ -22,6 +22,9 @@ import {
   Share2,
 } from "lucide-react";
 
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+
 export default function PublicSharePage() {
   const params = useParams();
   const token = params?.token as string;
@@ -29,6 +32,12 @@ export default function PublicSharePage() {
   const [meeting, setMeeting] = useState<Meeting | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Password Protection State
+  const [requiresPassword, setRequiresPassword] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [isVerifyingPassword, setIsVerifyingPassword] = useState(false);
 
   const LOADING_MESSAGES = [
     "Decrypting secure share link...",
@@ -48,27 +57,50 @@ export default function PublicSharePage() {
     return () => clearInterval(interval);
   }, [isLoading, LOADING_MESSAGES.length]);
 
+  const fetchPublicMeeting = async (pwd?: string) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      setPasswordError(null);
+
+      const endpoint = pwd !== undefined ? `/meetings/public/share/${token}/verify` : `/meetings/public/share/${token}`;
+      const payload = pwd !== undefined ? { password: pwd } : undefined;
+
+      const res = pwd !== undefined ? await api.post(endpoint, payload) : await api.get(endpoint);
+
+      setMeeting(res.data);
+      setRequiresPassword(false);
+    } catch (err: any) {
+      console.error("Error loading shared meeting:", err);
+      const data = err?.data;
+
+      if (data?.requiresPassword || err?.status === 401) {
+        setRequiresPassword(true);
+        if (pwd !== undefined) {
+          setPasswordError(data?.message || "Incorrect access password. Please try again.");
+        }
+      } else {
+        setError(data?.message || err?.message || "Unable to load shared meeting link");
+      }
+    } finally {
+      setIsLoading(false);
+      setIsVerifyingPassword(false);
+    }
+  };
+
   useEffect(() => {
     if (!token) return;
-
-    const fetchPublicMeeting = async () => {
-      try {
-        setIsLoading(true);
-        const res = await api.get(`/meetings/public/share/${token}`);
-        setMeeting(res.data);
-        setError(null);
-      } catch (err: any) {
-        console.error("Error loading shared meeting:", err);
-        setError(err?.data?.message || err?.message || "Unable to load shared meeting link");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchPublicMeeting();
   }, [token]);
 
-  if (isLoading) {
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!passwordInput.trim()) return;
+    setIsVerifyingPassword(true);
+    fetchPublicMeeting(passwordInput.trim());
+  };
+
+  if (isLoading && !requiresPassword) {
     return (
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-4">
         <div className="flex flex-col items-center max-w-sm w-full space-y-4 px-4">
@@ -125,16 +157,67 @@ export default function PublicSharePage() {
     );
   }
 
+  // Password Prompt Access View
+  if (requiresPassword && !meeting) {
+    return (
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-4">
+        <Card className="max-w-md w-full border-zinc-200 dark:border-zinc-800 shadow-xl text-center rounded-2xl p-2">
+          <CardHeader className="pt-6">
+            <div className="w-14 h-14 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-3 text-amber-500">
+              <Lock className="h-7 w-7" />
+            </div>
+            <CardTitle className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+              Password Protected Meeting
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 pb-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              The owner of this meeting has restricted access with a password. Enter the password below to view the summary.
+            </p>
+
+            <form onSubmit={handlePasswordSubmit} className="space-y-3 pt-2">
+              <Input
+                type="password"
+                placeholder="Enter access password"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                className="text-sm h-10 text-center"
+                autoFocus
+              />
+              {passwordError && (
+                <p className="text-xs text-red-500 font-medium">{passwordError}</p>
+              )}
+              <Button
+                type="submit"
+                disabled={isVerifyingPassword || !passwordInput.trim()}
+                className="w-full h-10 text-xs bg-amber-500 hover:bg-amber-600 text-white font-semibold"
+              >
+                {isVerifyingPassword ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
+                    Verifying Access...
+                  </>
+                ) : (
+                  "Unlock Meeting Summary"
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (error || !meeting) {
     return (
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-4">
-        <Card className="max-w-md w-full border-red-200 dark:border-red-900/40 shadow-sm text-center">
+        <Card className="max-w-md w-full border-red-200 dark:border-red-900/40 shadow-sm text-center rounded-2xl">
           <CardHeader className="pt-6">
             <div className="w-14 h-14 rounded-full bg-red-100 dark:bg-red-950/50 flex items-center justify-center mx-auto mb-3 text-red-600">
               <Lock className="h-7 w-7" />
             </div>
             <CardTitle className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-              Access Restricted or Link Invalid
+              Access Restricted or Link Expired
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 pb-6">

@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import bcrypt from "bcryptjs";
 import { config } from "./config";
 
 // Use JWT_SECRET or fallback to generate 32-byte key for AES-256-GCM
@@ -59,4 +60,22 @@ export const decryptShareToken = (token: string): ShareTokenPayload | null => {
   } catch (error) {
     return null;
   }
+};
+
+/**
+ * Hashes a share password using bcrypt
+ */
+export const hashSharePassword = async (password: string): Promise<string> => {
+  const salt = await bcrypt.genSalt(10);
+  return bcrypt.hash(password, salt);
+};
+
+/**
+ * Compares a raw password with a hashed share password
+ */
+export const compareSharePassword = async (
+  rawPassword: string,
+  hashedPassword: string
+): Promise<boolean> => {
+  return bcrypt.compare(rawPassword, hashedPassword);
 };

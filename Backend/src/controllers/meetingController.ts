@@ -6,16 +6,16 @@ import { generateMeetingSummary } from "../services/aiService";
 import { AuthenticatedRequest } from "../middleware/authMiddleware";
 import { asyncHandler } from "../middleware/errorHandler";
 import { logger } from "../utils/logger";
-import { 
-  NotFoundError, 
-  ValidationError, 
+import {
+  NotFoundError,
+  ValidationError,
   InternalServerError,
-  AuthorizationError 
+  AuthorizationError
 } from "../utils/errors";
-import { 
-  getPaginationOffset, 
+import {
+  getPaginationOffset,
   calculatePagination,
-  buildPaginatedResponse 
+  buildPaginatedResponse
 } from "../utils/queryOptimization";
 import { MeetingQueryInput, CreateMeetingInput, UpdateMeetingInput } from "../utils/validation";
 
@@ -130,7 +130,7 @@ export const getMeetings = asyncHandler(async (
     const paginatedItems = filtered.slice(offset, offset + limit);
     const pagination = calculatePagination(page, limit, total);
 
-    logger.debug("Fetched meetings", { 
+    logger.debug("Fetched meetings", {
       userEmail,
       count: paginatedItems.length,
       total,
@@ -209,7 +209,7 @@ export const createMeeting = asyncHandler(async (
     }
 
     const meetingId = Date.now().toString();
-    
+
     // Create meeting without summary initially
     const newMeeting = {
       id: meetingId,
@@ -233,7 +233,7 @@ export const createMeeting = asyncHandler(async (
     // Queue async summarization if transcript provided
     if (transcript && transcript.trim().length > 0) {
       const { jobQueue } = await import("../services/jobQueue");
-      
+
       jobId = await jobQueue.addJob("summarize_meeting", {
         meetingId,
         transcript,
@@ -243,17 +243,17 @@ export const createMeeting = asyncHandler(async (
         template,
       });
 
-      logger.info("Meeting created with async summarization", { 
+      logger.info("Meeting created with async summarization", {
         meetingId,
         jobId,
         userEmail,
-        participantCount: finalParticipants.length 
+        participantCount: finalParticipants.length
       });
     } else {
-      logger.info("Meeting created (no transcript)", { 
+      logger.info("Meeting created (no transcript)", {
         meetingId,
         userEmail,
-        participantCount: finalParticipants.length 
+        participantCount: finalParticipants.length
       });
     }
 
@@ -358,7 +358,7 @@ export const summarizeMeeting = asyncHandler(async (
 
     // Queue async summarization
     const { jobQueue } = await import("../services/jobQueue");
-    
+
     const jobId = await jobQueue.addJob("summarize_meeting", {
       meetingId: targetId,
       transcript: meeting.transcript,
@@ -419,7 +419,13 @@ export const toggleMeetingPublish = asyncHandler(async (
   res: Response
 ): Promise<void> => {
   const targetId = String(req.params.id);
-  const { isMeetingPublished } = req.body as { isMeetingPublished?: boolean };
+  const { isMeetingPublished, sharePassword, expiresInHours, removePassword, clearExpiration } = req.body as {
+    isMeetingPublished?: boolean;
+    sharePassword?: string | null;
+    expiresInHours?: number | null;
+    removePassword?: boolean;
+    clearExpiration?: boolean;
+  };
 
   try {
     const existing = await db.select().from(meetings).where(eq(meetings.id, targetId));
@@ -433,10 +439,28 @@ export const toggleMeetingPublish = asyncHandler(async (
         ? isMeetingPublished
         : !currentMeeting.isMeetingPublished;
 
+    const { hashSharePassword } = await import("../utils/shareUtils");
+
+    let finalPasswordHash = currentMeeting.sharePassword;
+    if (removePassword) {
+      finalPasswordHash = null;
+    } else if (sharePassword && sharePassword.trim().length > 0) {
+      finalPasswordHash = await hashSharePassword(sharePassword.trim());
+    }
+
+    let finalExpiresAt: Date | null = currentMeeting.shareExpiresAt;
+    if (clearExpiration) {
+      finalExpiresAt = null;
+    } else if (typeof expiresInHours === "number" && expiresInHours > 0) {
+      finalExpiresAt = new Date(Date.now() + expiresInHours * 60 * 60 * 1000);
+    }
+
     const updated = await db
       .update(meetings)
       .set({
         isMeetingPublished: nextPublishedState,
+        sharePassword: finalPasswordHash,
+        shareExpiresAt: finalExpiresAt,
         updatedAt: new Date(),
       })
       .where(eq(meetings.id, targetId))
@@ -448,11 +472,15 @@ export const toggleMeetingPublish = asyncHandler(async (
     logger.info("Meeting publish status updated", {
       meetingId: targetId,
       isMeetingPublished: nextPublishedState,
+      hasPassword: !!finalPasswordHash,
+      expiresAt: finalExpiresAt,
     });
 
     res.json({
       meeting: updated[0],
       isMeetingPublished: nextPublishedState,
+      hasPassword: !!finalPasswordHash,
+      shareExpiresAt: finalExpiresAt,
       shareToken,
     });
   } catch (error) {
@@ -470,28 +498,60 @@ export const getPublicMeetingByToken = asyncHandler(async (
   res: Response
 ): Promise<void> => {
   const token = String(req.params.token);
+  const password = req.body?.password as string | undefined;
 
   try {
-    const { decryptShareToken } = await import("../utils/shareUtils");
+    const { decryptShareToken, compareSharePassword } = await import("../utils/shareUtils");
     const payload = decryptShareToken(token);
 
     if (!payload || !payload.meetingId) {
-      throw new NotFoundError("Shared meeting link is invalid or expired");
+      throw new NotFoundError("Shared meeting link is invalid or corrupted");
     }
 
     const result = await db.select().from(meetings).where(eq(meetings.id, payload.meetingId));
     if (result.length === 0) {
-      throw new NotFoundError("Meeting");
+      throw new NotFoundError("Meeting not found");
     }
 
     const meeting = result[0];
     if (!meeting.isMeetingPublished) {
-      throw new AuthorizationError("This meeting link is not publicly accessible");
+      throw new AuthorizationError("This meeting link is not currently published by the owner");
+    }
+
+    // Check expiration window
+    if (meeting.shareExpiresAt && new Date(meeting.shareExpiresAt) < new Date()) {
+      res.status(403).json({
+        error: "Link Expired",
+        message: `This share link expired on ${new Date(meeting.shareExpiresAt).toLocaleString()}`,
+        isExpired: true,
+      });
+      return;
+    }
+
+    // Check password protection
+    if (meeting.sharePassword && meeting.sharePassword.trim().length > 0) {
+      if (!password) {
+        res.status(401).json({
+          requiresPassword: true,
+          message: "This shared meeting link is password protected",
+        });
+        return;
+      }
+
+      const isValidPassword = await compareSharePassword(password, meeting.sharePassword);
+      if (!isValidPassword) {
+        res.status(401).json({
+          requiresPassword: true,
+          error: "Incorrect Password",
+          message: "The access password you entered is incorrect",
+        });
+        return;
+      }
     }
 
     logger.debug("Public meeting accessed via token", { meetingId: meeting.id });
 
-    // Return sanitized public meeting object (excluding private raw transcript if needed, or including summary)
+    // Return public meeting object
     res.json({
       id: meeting.id,
       title: meeting.title,
@@ -503,6 +563,8 @@ export const getPublicMeetingByToken = asyncHandler(async (
       createdAt: meeting.createdAt,
       updatedAt: meeting.updatedAt,
       isMeetingPublished: meeting.isMeetingPublished,
+      shareExpiresAt: meeting.shareExpiresAt,
+      hasPassword: !!meeting.sharePassword,
     });
   } catch (error) {
     logger.error("Error fetching public meeting by token", error as Error);

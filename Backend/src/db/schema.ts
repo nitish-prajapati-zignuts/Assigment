@@ -115,7 +115,8 @@ export const meetings = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
     isMeetingPublished: boolean("is_meeting_published").notNull().default(false),
-
+    sharePassword: text("share_password"),
+    shareExpiresAt: timestamp("share_expires_at", { withTimezone: true }),
   },
   (table) => [
     index("meetings_date_idx").on(table.date),

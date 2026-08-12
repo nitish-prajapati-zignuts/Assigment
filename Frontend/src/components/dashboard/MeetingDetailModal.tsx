@@ -76,6 +76,12 @@ export function MeetingDetailModal({
   const [isPublishing, setIsPublishing] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
 
+  // Security & Expiration settings
+  const [sharePasswordInput, setSharePasswordInput] = useState<string>("");
+  const [hasSharePassword, setHasSharePassword] = useState<boolean>(!!meeting?.hasPassword);
+  const [expirationHours, setExpirationHours] = useState<string>("never");
+  const [shareExpiresAtDate, setShareExpiresAtDate] = useState<string | null>(meeting?.shareExpiresAt || null);
+
   // Sync state when meeting prop changes & auto-fetch token if published
   useEffect(() => {
     setCurrentSummary(meeting?.summary);
@@ -83,6 +89,10 @@ export function MeetingDetailModal({
     setIsPublished(published);
     setShareToken(null);
     setActiveTab("summary");
+    setHasSharePassword(!!meeting?.hasPassword);
+    setShareExpiresAtDate(meeting?.shareExpiresAt || null);
+    setSharePasswordInput("");
+    setExpirationHours("never");
 
     if (published && meeting?.id) {
       setIsPublishing(true);
@@ -91,29 +101,83 @@ export function MeetingDetailModal({
           if (res.data?.shareToken) {
             setShareToken(res.data.shareToken);
           }
+          if (res.data?.hasPassword !== undefined) setHasSharePassword(res.data.hasPassword);
+          if (res.data?.shareExpiresAt !== undefined) setShareExpiresAtDate(res.data.shareExpiresAt);
         })
         .catch((err) => console.error("Failed to fetch share token on modal open:", err))
         .finally(() => setIsPublishing(false));
     }
   }, [meeting]);
 
-  const handleTogglePublish = async () => {
+  const handleUpdateShareSettings = async (overridePublished?: boolean) => {
     if (!meeting) return;
     try {
       setIsPublishing(true);
-      const res = await api.patch(`/meetings/${meeting.id}/publish`, {
-        isMeetingPublished: !isPublished,
-      });
+      const nextPub = overridePublished !== undefined ? overridePublished : isPublished;
+
+      const payload: any = {
+        isMeetingPublished: nextPub,
+      };
+
+      if (sharePasswordInput.trim().length > 0) {
+        payload.sharePassword = sharePasswordInput.trim();
+      }
+
+      if (expirationHours !== "never") {
+        payload.expiresInHours = parseInt(expirationHours, 10);
+      }
+
+      const res = await api.patch(`/meetings/${meeting.id}/publish`, payload);
 
       const updatedStatus = res.data.isMeetingPublished;
       setIsPublished(updatedStatus);
       meeting.isMeetingPublished = updatedStatus;
+      setHasSharePassword(res.data.hasPassword);
+      setShareExpiresAtDate(res.data.shareExpiresAt);
+      meeting.hasPassword = res.data.hasPassword;
+      meeting.shareExpiresAt = res.data.shareExpiresAt;
 
       if (res.data.shareToken) {
         setShareToken(res.data.shareToken);
       }
+      setSharePasswordInput("");
     } catch (err) {
-      console.error("Failed to update publish state:", err);
+      console.error("Failed to update share settings:", err);
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
+  const handleClearPassword = async () => {
+    if (!meeting) return;
+    try {
+      setIsPublishing(true);
+      const res = await api.patch(`/meetings/${meeting.id}/publish`, {
+        isMeetingPublished: isPublished,
+        removePassword: true,
+      });
+      setHasSharePassword(false);
+      meeting.hasPassword = false;
+    } catch (err) {
+      console.error("Failed to clear share password:", err);
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
+  const handleClearExpiration = async () => {
+    if (!meeting) return;
+    try {
+      setIsPublishing(true);
+      const res = await api.patch(`/meetings/${meeting.id}/publish`, {
+        isMeetingPublished: isPublished,
+        clearExpiration: true,
+      });
+      setShareExpiresAtDate(null);
+      meeting.shareExpiresAt = null;
+      setExpirationHours("never");
+    } catch (err) {
+      console.error("Failed to clear expiration:", err);
     } finally {
       setIsPublishing(false);
     }
@@ -302,7 +366,7 @@ export function MeetingDetailModal({
                 <Button
                   size="sm"
                   variant={isPublished ? "default" : "outline"}
-                  onClick={handleTogglePublish}
+                  onClick={() => handleUpdateShareSettings(!isPublished)}
                   disabled={isPublishing}
                   className={`h-8 sm:h-7 text-xs w-full sm:w-auto flex items-center justify-center ${isPublished
                       ? "bg-emerald-600 hover:bg-emerald-700 text-white"
@@ -329,10 +393,11 @@ export function MeetingDetailModal({
               </div>
 
               {isPublished && (
-                <div className="space-y-2 pt-1">
+                <div className="space-y-3 pt-1">
                   <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                    Anyone with this encrypted link can view the meeting summary & outcomes without logging in:
+                    Anyone with this encrypted link can view the meeting summary & outcomes:
                   </p>
+
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     <Input
                       readOnly
@@ -364,6 +429,103 @@ export function MeetingDetailModal({
                       )}
                     </Button>
                   </div>
+
+                  {/* Password & Expiration Controls Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 border-t border-amber-200/40 dark:border-amber-900/30">
+                    {/* Password Setting */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1">
+                          <Lock className="h-3 w-3 text-amber-500" /> Access Password
+                        </label>
+                        {hasSharePassword && (
+                          <button
+                            type="button"
+                            onClick={handleClearPassword}
+                            className="text-[10px] text-red-500 hover:underline font-medium"
+                          >
+                            Remove Lock
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Input
+                          type="password"
+                          placeholder={hasSharePassword ? "•••••••• (Password Set)" : "Set Access Password"}
+                          value={sharePasswordInput}
+                          onChange={(e) => setSharePasswordInput(e.target.value)}
+                          className="h-7 text-xs bg-white dark:bg-zinc-900"
+                        />
+                        {sharePasswordInput.trim() && (
+                          <Button
+                            size="sm"
+                            onClick={() => handleUpdateShareSettings()}
+                            disabled={isPublishing}
+                            className="h-7 text-[10px] px-2 bg-amber-500 hover:bg-amber-600 text-white"
+                          >
+                            Save
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Link Expiration Window Setting */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[11px] font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1">
+                          <Clock className="h-3 w-3 text-amber-500" /> Link Expiration
+                        </label>
+                        {shareExpiresAtDate && (
+                          <button
+                            type="button"
+                            onClick={handleClearExpiration}
+                            className="text-[10px] text-red-500 hover:underline font-medium"
+                          >
+                            Clear Expiry
+                          </button>
+                        )}
+                      </div>
+                      <Select
+                        value={expirationHours}
+                        onValueChange={(val) => {
+                          if (val) {
+                            setExpirationHours(val);
+                            if (val !== "never") {
+                              setTimeout(() => handleUpdateShareSettings(), 100);
+                            }
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="h-7 text-xs bg-white dark:bg-zinc-900">
+                          <SelectValue placeholder="Expires in..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="never" className="text-xs">Never (Permanent)</SelectItem>
+                          <SelectItem value="1" className="text-xs">Expires in 1 Hour</SelectItem>
+                          <SelectItem value="24" className="text-xs">Expires in 24 Hours (1 Day)</SelectItem>
+                          <SelectItem value="168" className="text-xs">Expires in 7 Days</SelectItem>
+                          <SelectItem value="720" className="text-xs">Expires in 30 Days</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Active Security & Expiration Badges */}
+                  {(hasSharePassword || shareExpiresAtDate) && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {hasSharePassword && (
+                        <Badge variant="secondary" className="text-[10px] bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 flex items-center gap-1">
+                          <Lock className="h-3 w-3" /> Password Protected
+                        </Badge>
+                      )}
+                      {shareExpiresAtDate && (
+                        <Badge variant="secondary" className="text-[10px] bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border-purple-200 flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          Expires {new Date(shareExpiresAtDate).toLocaleDateString()} at {new Date(shareExpiresAtDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

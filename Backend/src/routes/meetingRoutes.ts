@@ -22,6 +22,7 @@ const router = Router();
 
 // PUBLIC Endpoint (no auth required) - Get meeting details via encrypted share token
 router.get("/public/share/:token", getPublicMeetingByToken);
+router.post("/public/share/:token/verify", getPublicMeetingByToken);
 
 // Protect all remaining meeting endpoints
 router.use(protect);

@@ -98,4 +98,6 @@ export interface Meeting {
   createdAt: string;
   updatedAt: string;
   isMeetingPublished?: boolean;
+  shareExpiresAt?: string | null;
+  hasPassword?: boolean;
 }
