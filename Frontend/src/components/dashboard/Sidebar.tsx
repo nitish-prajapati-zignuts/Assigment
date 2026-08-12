@@ -12,6 +12,7 @@ import {
   Loader2,
   Menu,
   X,
+  Settings,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ModeToggle } from "@/components/mode-toggle";
@@ -21,6 +22,7 @@ const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Meetings", href: "/dashboard/meetings", icon: Calendar },
   { label: "Action Tracker", href: "/dashboard/action-items", icon: CheckSquare },
+  { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
 export function Sidebar() {

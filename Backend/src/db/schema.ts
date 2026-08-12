@@ -173,3 +173,50 @@ export type NewMeetingRecord = typeof meetings.$inferInsert;
 
 export type ActionItemRecord = typeof actionItems.$inferSelect;
 export type NewActionItemRecord = typeof actionItems.$inferInsert;
+
+/**
+ * User Settings Table
+ * Stores user AI summarization rules, custom prompts, and notification preferences
+ */
+export const userSettings = pgTable("user_settings", {
+  userId: varchar("user_id", { length: 255 })
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  summaryLength: text("summary_length").notNull().default("Medium"),
+  template: text("template").notNull().default("Standard"),
+  customPrompt: text("custom_prompt")
+    .notNull()
+    .default("Focus heavily on technical decisions, code deliverables, and explicit action item due dates."),
+  autoExtractActionItems: boolean("auto_extract_action_items").notNull().default(true),
+  emailNotifications: boolean("email_notifications").notNull().default(true),
+  weeklyDigest: boolean("weekly_digest").notNull().default(false),
+  slackWebhookUrl: text("slack_webhook_url").default(""),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+export type UserSettingsRecord = typeof userSettings.$inferSelect;
+export type NewUserSettingsRecord = typeof userSettings.$inferInsert;
+
+/**
+ * User Sessions Table
+ * Tracks active user login sessions with IP address, device specs, browser user-agent, and timestamps
+ */
+export const userSessions = pgTable("user_sessions", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 })
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  ipAddress: text("ip_address").notNull().default("127.0.0.1"),
+  device: text("device").notNull().default("Desktop"),
+  browser: text("browser").notNull().default("Chrome"),
+  os: text("os").notNull().default("Mac OS X"),
+  location: text("location").default("Local Session"),
+  isCurrent: boolean("is_current").notNull().default(true),
+  lastActive: timestamp("last_active", { withTimezone: true }).defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export type UserSessionRecord = typeof userSessions.$inferSelect;
+export type NewUserSessionRecord = typeof userSessions.$inferInsert;
+
+

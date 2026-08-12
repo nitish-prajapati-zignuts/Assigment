@@ -79,7 +79,7 @@ interface AppUser {
 interface MeetingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (meeting: Partial<Meeting> & { language?: string; summaryLength?: SummaryLength; template?: SummaryTemplate }) => Promise<void> | void;
+  onSave: (meeting: Partial<Meeting> & { language?: string; summaryLength?: SummaryLength; template?: SummaryTemplate; customPrompt?: string }) => Promise<void> | void;
   initialData?: Meeting | null;
 }
 
@@ -97,6 +97,7 @@ export function MeetingModal({
   const [appUsers, setAppUsers] = useState<AppUser[]>([]);
   const [summaryLength, setSummaryLength] = useState<SummaryLength>("Medium");
   const [template, setTemplate] = useState<SummaryTemplate>("Standard");
+  const [customPrompt, setCustomPrompt] = useState<string>("");
   const [language, setLanguage] = useState<string>("English");
   const [usersFetched, setUsersFetched] = useState(false);
 
@@ -120,25 +121,34 @@ export function MeetingModal({
     },
   });
 
-  // Fetch all registered application users only once
+  // Fetch registered users AND user settings from database on modal open
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchData = async () => {
       try {
-        const res = await api.get("/auth/users");
-        if (Array.isArray(res.data)) {
-          setAppUsers(res.data);
+        const [usersRes, settingsRes] = await Promise.allSettled([
+          api.get("/auth/users"),
+          api.get("/settings"),
+        ]);
+
+        if (usersRes.status === "fulfilled" && Array.isArray(usersRes.value.data)) {
+          setAppUsers(usersRes.value.data);
+        }
+
+        if (settingsRes.status === "fulfilled" && settingsRes.value.data) {
+          const s = settingsRes.value.data;
+          if (s.summaryLength) setSummaryLength(s.summaryLength);
+          if (s.template) setTemplate(s.template);
+          if (s.customPrompt) setCustomPrompt(s.customPrompt);
         }
       } catch (err) {
-        console.error("Failed to fetch registered users from API:", err);
-        setAppUsers([]);
+        console.error("Failed to fetch initial modal data from API:", err);
       } finally {
         setUsersFetched(true);
       }
     };
 
-    // Only fetch if modal is open AND users haven't been fetched yet
     if (isOpen && !usersFetched) {
-      fetchUsers();
+      fetchData();
     }
   }, [isOpen, usersFetched]);
 
@@ -354,6 +364,7 @@ export function MeetingModal({
         type: data.type,
         summaryLength,
         template,
+        customPrompt,
         language,
         participants: formattedParticipants,
         transcript: data.transcript || "",

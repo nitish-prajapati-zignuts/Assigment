@@ -194,7 +194,7 @@ export const createMeeting = asyncHandler(async (
   req: AuthenticatedRequest,
   res: Response
 ): Promise<void> => {
-  const { title, date, participants, transcript, type, language, summaryLength, template } = req.body as CreateMeetingInput & { language?: string; summaryLength?: any; template?: any };
+  const { title, date, participants, transcript, type, language, summaryLength, template, customPrompt } = req.body as CreateMeetingInput & { language?: string; summaryLength?: any; template?: any; customPrompt?: string };
   const userEmail = req.user?.email;
 
   if (!userEmail) {
@@ -241,6 +241,7 @@ export const createMeeting = asyncHandler(async (
         language,
         summaryLength,
         template,
+        customPrompt,
       });
 
       logger.info("Meeting created with async summarization", {

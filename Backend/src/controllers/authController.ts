@@ -125,10 +125,52 @@ export const login = asyncHandler(async (req: Request, res: Response): Promise<v
     name: user.name,
   });
 
+  // Extract client IP and user-agent details for production security audit
+  const rawIp = req.headers["x-forwarded-for"] || req.socket.remoteAddress || "127.0.0.1";
+  const ipAddress = Array.isArray(rawIp) ? rawIp[0] : String(rawIp).split(",")[0].trim();
+  const userAgent = req.headers["user-agent"] || "";
+
+  let device = "Desktop";
+  if (/mobile/i.test(userAgent)) device = "Mobile";
+  else if (/tablet|ipad/i.test(userAgent)) device = "Tablet";
+
+  let browser = "Chrome";
+  if (/firefox/i.test(userAgent)) browser = "Firefox";
+  else if (/safari/i.test(userAgent) && !/chrome/i.test(userAgent)) browser = "Safari";
+  else if (/edg/i.test(userAgent)) browser = "Edge";
+
+  let os = "Mac OS X";
+  if (/windows/i.test(userAgent)) os = "Windows";
+  else if (/linux/i.test(userAgent)) os = "Linux";
+  else if (/iphone|ipad/i.test(userAgent)) os = "iOS";
+  else if (/android/i.test(userAgent)) os = "Android";
+
+  try {
+    const { userSessions } = await import("../db/schema");
+    // Set all previous sessions for this user to isCurrent = false
+    await db.update(userSessions).set({ isCurrent: false }).where(eq(userSessions.userId, user.id));
+
+    // Insert new active session
+    await db.insert(userSessions).values({
+      id: `sess-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      userId: user.id,
+      ipAddress,
+      device,
+      browser,
+      os,
+      location: ipAddress === "127.0.0.1" || ipAddress === "::1" ? "Localhost / Local Network" : "Client IP Region",
+      isCurrent: true,
+      lastActive: new Date(),
+      createdAt: new Date(),
+    });
+  } catch (sessErr) {
+    logger.error("Failed to record login session", sessErr as Error, { userId: user.id });
+  }
+
   // Set HTTP-only Cookie in response headers
   res.cookie("token", token, COOKIE_OPTIONS);
 
-  logger.info("User logged in successfully", { userId: user.id, email: user.email });
+  logger.info("User logged in successfully", { userId: user.id, email: user.email, ipAddress });
 
   res.json({
     message: "Login successful",

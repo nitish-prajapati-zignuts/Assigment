@@ -486,7 +486,8 @@ export async function generateMeetingSummary(
   title?: string,
   language?: string,
   summaryLength: SummaryLength = "Medium",
-  template: SummaryTemplate = "Standard"
+  template: SummaryTemplate = "Standard",
+  customPrompt?: string
 ): Promise<MeetingSummary> {
   const primaryGoogleKey = customApiKey || process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY;
   const geminiFallBackKey = process.env.GEMINI_FALL_BACK_KEY;
@@ -502,6 +503,7 @@ export async function generateMeetingSummary(
     language,
     summaryLength,
     template,
+    customPrompt,
   });
 
   try {

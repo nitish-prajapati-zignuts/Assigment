@@ -107,6 +107,7 @@ if (isDevelopment()) {
 // ============================================
 
 import jobRoutes from "./routes/jobRoutes";
+import settingsRoutes from "./routes/settingsRoutes";
 
 import dashboardRoutes from "./routes/dashboardRoutes";
 
@@ -117,6 +118,7 @@ app.use("/api/auth", asyncHandler(authRateLimiter), authRoutes);
 app.use("/api/meetings", asyncHandler(apiRateLimiter), meetingRoutes);
 app.use("/api/action-items", asyncHandler(apiRateLimiter), actionItemRoutes);
 app.use("/api/jobs", asyncHandler(apiRateLimiter), jobRoutes);
+app.use("/api/settings", asyncHandler(apiRateLimiter), settingsRoutes);
 app.use("/api/dashboard", asyncHandler(apiRateLimiter), dashboardRoutes);
 
 // API documentation endpoint

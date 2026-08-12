@@ -6,10 +6,11 @@ export interface BuildMeetingSummaryPromptParams {
   language?: string;
   summaryLength?: SummaryLength;
   template?: SummaryTemplate;
+  customPrompt?: string;
 }
 
 /**
- * Builds the AI prompt text for meeting summarization based on transcript, language, length, and template settings.
+ * Builds the AI prompt text for meeting summarization based on transcript, language, length, template, and custom user prompt instructions.
  */
 export function buildMeetingSummaryPrompt({
   plainTranscript,
@@ -17,6 +18,7 @@ export function buildMeetingSummaryPrompt({
   language,
   summaryLength,
   template = "Standard",
+  customPrompt,
 }: BuildMeetingSummaryPromptParams): string {
   const languageInstruction = language
     ? `\nIMPORTANT LANGUAGE REQUIREMENT:\n- Generate all output summary text, topics, concerns, next steps, key decisions, and action item tasks in ${language}.`

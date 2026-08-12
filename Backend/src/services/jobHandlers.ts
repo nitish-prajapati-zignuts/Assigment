@@ -17,6 +17,7 @@ interface SummarizeMeetingJobData {
   language?: string;
   summaryLength?: any;
   template?: any;
+  customPrompt?: string;
 }
 
 /**
@@ -30,10 +31,10 @@ export const initializeJobHandlers = (): void => {
   jobQueue.registerHandler<SummarizeMeetingJobData>(
     "summarize_meeting",
     async (data) => {
-      const { meetingId, transcript, title, language, summaryLength, template } = data;
+      const { meetingId, transcript, title, language, summaryLength, template, customPrompt } = data;
 
       try {
-        logger.info("Starting meeting summarization", { meetingId, template });
+        logger.info("Starting meeting summarization", { meetingId, template, customPrompt: !!customPrompt });
 
         // Generate summary
         const summary = await generateMeetingSummary(
@@ -42,7 +43,8 @@ export const initializeJobHandlers = (): void => {
           title,
           language,
           summaryLength,
-          template
+          template,
+          customPrompt
         );
 
         // Sync action items
