@@ -245,9 +245,9 @@ export function cleanSummary(summary: MeetingSummary): MeetingSummary {
       summary.speakerAnalytics && summary.speakerAnalytics.length > 0
         ? summary.speakerAnalytics
         : [
-            { name: "Speaker 1", talkTimePercentage: 60, wordCount: 350 },
-            { name: "Speaker 2", talkTimePercentage: 40, wordCount: 230 },
-          ],
+          { name: "Speaker 1", talkTimePercentage: 60, wordCount: 350 },
+          { name: "Speaker 2", talkTimePercentage: 40, wordCount: 230 },
+        ],
     sentimentAnalysis: summary.sentimentAnalysis || {
       overallTone: "Positive",
       score: 82,
@@ -256,33 +256,33 @@ export function cleanSummary(summary: MeetingSummary): MeetingSummary {
     templateStyle: summary.templateStyle || "Standard",
     executiveDetails: summary.executiveDetails
       ? {
-          strategicImpact: stripHtml(summary.executiveDetails.strategicImpact),
-          financialOrTimelineRisks: (summary.executiveDetails.financialOrTimelineRisks || []).map(stripHtml),
-          executiveRecommendations: (summary.executiveDetails.executiveRecommendations || []).map(stripHtml),
-        }
+        strategicImpact: stripHtml(summary.executiveDetails.strategicImpact),
+        financialOrTimelineRisks: (summary.executiveDetails.financialOrTimelineRisks || []).map(stripHtml),
+        executiveRecommendations: (summary.executiveDetails.executiveRecommendations || []).map(stripHtml),
+      }
       : undefined,
     developerDetails: summary.developerDetails
       ? {
-          codeDeliverables: (summary.developerDetails.codeDeliverables || []).map(stripHtml),
-          architecturalChanges: (summary.developerDetails.architecturalChanges || []).map(stripHtml),
-          apiContractsAndDependencies: (summary.developerDetails.apiContractsAndDependencies || []).map(stripHtml),
-          technicalBlockers: (summary.developerDetails.technicalBlockers || []).map(stripHtml),
-        }
+        codeDeliverables: (summary.developerDetails.codeDeliverables || []).map(stripHtml),
+        architecturalChanges: (summary.developerDetails.architecturalChanges || []).map(stripHtml),
+        apiContractsAndDependencies: (summary.developerDetails.apiContractsAndDependencies || []).map(stripHtml),
+        technicalBlockers: (summary.developerDetails.technicalBlockers || []).map(stripHtml),
+      }
       : undefined,
     technicalDetails: summary.technicalDetails
       ? {
-          systemArchitectureChoices: (summary.technicalDetails.systemArchitectureChoices || []).map(stripHtml),
-          techStackTradeoffs: (summary.technicalDetails.techStackTradeoffs || []).map(stripHtml),
-          engineeringConstraints: (summary.technicalDetails.engineeringConstraints || []).map(stripHtml),
-        }
+        systemArchitectureChoices: (summary.technicalDetails.systemArchitectureChoices || []).map(stripHtml),
+        techStackTradeoffs: (summary.technicalDetails.techStackTradeoffs || []).map(stripHtml),
+        engineeringConstraints: (summary.technicalDetails.engineeringConstraints || []).map(stripHtml),
+      }
       : undefined,
     salesDetails: summary.salesDetails
       ? {
-          clientPainPoints: (summary.salesDetails.clientPainPoints || []).map(stripHtml),
-          budgetAndAuthority: stripHtml(summary.salesDetails.budgetAndAuthority),
-          timelineExpectations: stripHtml(summary.salesDetails.timelineExpectations),
-          nextSalesSteps: (summary.salesDetails.nextSalesSteps || []).map(stripHtml),
-        }
+        clientPainPoints: (summary.salesDetails.clientPainPoints || []).map(stripHtml),
+        budgetAndAuthority: stripHtml(summary.salesDetails.budgetAndAuthority),
+        timelineExpectations: stripHtml(summary.salesDetails.timelineExpectations),
+        nextSalesSteps: (summary.salesDetails.nextSalesSteps || []).map(stripHtml),
+      }
       : undefined,
   };
 }
@@ -525,7 +525,7 @@ export async function generateMeetingSummary(
     // ========================================================
     if (primaryGoogleKey) {
       try {
-        console.log("🤖 [Step 1] Attempting meeting summarization with Primary Google Key...");
+        console.log("Attempting meeting summarization with Primary Google Key...");
         const { object } = await generateObject({
           model: google("gemini-3.5-flash-lite"),
           schema: meetingSummarySchema,
@@ -575,7 +575,7 @@ export async function generateMeetingSummary(
     if (geminiFallBackKey) {
       try {
         console.log(
-          "🆘 [Step 3] Primary & Rotating keys failed. Attempting Fallback Model Key (GEMINI_FALL_BACK_KEY)..."
+          "[Step 3] Primary & Rotating keys failed. Attempting Fallback Model Key (GEMINI_FALL_BACK_KEY)..."
         );
         const google = createGoogleGenerativeAI({ apiKey: geminiFallBackKey });
         const { object } = await generateObject({
@@ -586,10 +586,10 @@ export async function generateMeetingSummary(
 
         return cleanSummary(object);
       } catch (fallbackError: any) {
-        console.error("❌ Fallback Model Key (GEMINI_FALL_BACK_KEY) failed:", fallbackError?.message || fallbackError);
+        console.error("Fallback Model Key (GEMINI_FALL_BACK_KEY) failed:", fallbackError?.message || fallbackError);
       }
     } else {
-      console.warn("⚠️ No Fallback Model Key configured (GEMINI_FALL_BACK_KEY missing).");
+      console.warn("No Fallback Model Key configured (GEMINI_FALL_BACK_KEY missing).");
     }
   }
 
@@ -746,22 +746,8 @@ export async function queryMeetingRAG(
   const contextText = retrievedSources.join("\n");
   const chatHistoryStr = history.map((h) => `${h.role === "user" ? "Question" : "Answer"}: ${h.content}`).join("\n");
 
-  const prompt = `You are an expert AI meeting assistant. Answer the user's question based strictly on the following meeting transcript context.
-  
-Context:
-"""
-${contextText}
-"""
-
-Chat History:
-${chatHistoryStr}
-
-Question: ${question}
-
-Instructions:
-- Keep the answer concise, accurate, and completely grounded in the provided context.
-- If the context doesn't contain the answer, say "I could not find information regarding that in this meeting transcript."
-- Do not use any markdown formatting or HTML elements. Return plain text only.`;
+  const { buildRAGPrompt } = await import("../utils/aiPrompts");
+  const prompt = buildRAGPrompt({ contextText, chatHistoryStr, question });
 
   // Try API keys in order
   const apiKeys = [

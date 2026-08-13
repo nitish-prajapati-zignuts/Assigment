@@ -97,3 +97,35 @@ CRITICAL RULES:
 - Handle missing action item details sensibly (Owner='Unassigned', DueDate='Not specified'). DO NOT invent ungrounded details.
 `;
 }
+
+export interface BuildRAGPromptParams {
+  contextText: string;
+  chatHistoryStr: string;
+  question: string;
+}
+
+/**
+ * Builds the AI prompt text for Q&A matching on meeting vector chunks context
+ */
+export function buildRAGPrompt({
+  contextText,
+  chatHistoryStr,
+  question,
+}: BuildRAGPromptParams): string {
+  return `You are an expert AI meeting assistant. Answer the user's question based strictly on the following meeting transcript context.
+  
+Context:
+"""
+${contextText}
+"""
+
+Chat History:
+${chatHistoryStr}
+
+Question: ${question}
+
+Instructions:
+- Keep the answer concise, accurate, and completely grounded in the provided context.
+- If the context doesn't contain the answer, say "I could not find information regarding that in this meeting transcript."
+- Do not use any markdown formatting or HTML elements. Return plain text only.`;
+}
