@@ -31,8 +31,8 @@ interface MeetingFormBasicInfoProps {
   setTemplate: (val: SummaryTemplate) => void;
   language: string;
   setLanguage: (val: string) => void;
+  isEditing?: boolean;
 }
-
 
 export function MeetingFormBasicInfo({
   register,
@@ -45,6 +45,7 @@ export function MeetingFormBasicInfo({
   setTemplate,
   language,
   setLanguage,
+  isEditing,
 }: MeetingFormBasicInfoProps) {
   return (
     <div className="space-y-4">
@@ -67,19 +68,28 @@ export function MeetingFormBasicInfo({
       {/* Date & Type Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <Label htmlFor="date" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-            Meeting Date <span className="text-red-500">*</span>
-          </Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="date" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              Meeting Date <span className="text-red-500">*</span>
+            </Label>
+            {isEditing && (
+              <span className="text-[10px] text-zinc-400 font-medium italic">
+                Date Locked (Preserved)
+              </span>
+            )}
+          </div>
           <Input
             id="date"
             type="date"
+            disabled={isEditing}
             {...register("date")}
-            className="text-xs bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
+            className="text-xs bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 disabled:opacity-60 disabled:cursor-not-allowed"
           />
           {errors.date && (
             <p className="text-[11px] text-red-500 font-medium">{errors.date.message as string}</p>
           )}
         </div>
+
 
         <div className="space-y-1.5">
           <Label htmlFor="type" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">

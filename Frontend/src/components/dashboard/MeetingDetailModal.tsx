@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import api from "@/lib/axios";
 import { Meeting, MeetingSummary, SummaryTemplate } from "@/types/meeting";
-import { exportMeetingToMarkdown, exportMeetingToPDF } from "@/lib/exportUtils";
+import { exportMeetingToMarkdown } from "@/lib/exportUtils";
+import { exportMeetingToHTMLReport, exportMeetingToPDF } from "@/lib/reportExportUtils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -26,11 +27,14 @@ import {
   Calendar,
   Users,
   FileText,
+  FileCode,
+  Printer,
   Sparkles,
   Loader2,
   Share2,
   Bot,
 } from "lucide-react";
+
 
 import { MeetingShareableSection } from "./meeting-detail/MeetingShareableSection";
 import { MeetingSummaryContent } from "./meeting-detail/MeetingSummaryContent";
@@ -300,24 +304,44 @@ export function MeetingDetailModal({
             </div>
 
             {/* Header Export & Edit Action Buttons */}
-            <div className="flex items-center gap-2 pt-2 sm:pt-0">
+            <div className="flex flex-wrap items-center gap-1.5 pt-2 sm:pt-0">
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => exportMeetingToMarkdown(meeting)}
+                onClick={() => {
+                  exportMeetingToMarkdown(meeting);
+                  toast.success("Markdown summary exported!");
+                }}
                 className="h-8 text-xs gap-1 border-zinc-200 dark:border-zinc-800"
               >
                 <FileText className="h-3.5 w-3.5 text-blue-500" /> Export MD
               </Button>
+
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => exportMeetingToPDF(meeting)}
+                onClick={() => {
+                  exportMeetingToHTMLReport(meeting);
+                  toast.success("HTML Executive Report exported!");
+                }}
                 className="h-8 text-xs gap-1 border-zinc-200 dark:border-zinc-800"
               >
-                <Share2 className="h-3.5 w-3.5 text-purple-500" /> Export PDF
+                <FileCode className="h-3.5 w-3.5 text-emerald-500" /> Export HTML
+              </Button>
+
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  exportMeetingToPDF(meeting);
+                  toast.info("Opening PDF print preview...");
+                }}
+                className="h-8 text-xs gap-1 border-zinc-200 dark:border-zinc-800 bg-indigo-50/50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-300 border-indigo-200"
+              >
+                <Printer className="h-3.5 w-3.5 text-indigo-500" /> Save as PDF
               </Button>
             </div>
+
           </div>
 
           {/* Participant Chips */}

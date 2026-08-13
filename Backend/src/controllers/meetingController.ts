@@ -319,7 +319,7 @@ export const updateMeeting = asyncHandler(async (
       .update(meetings)
       .set({
         ...(title ? { title } : {}),
-        ...(date ? { date } : {}),
+        // Preserve original meeting date on update
         ...(type ? { type } : {}),
         ...(participants ? { participants } : {}),
         ...(transcript !== undefined ? { transcript } : {}),
@@ -329,10 +329,19 @@ export const updateMeeting = asyncHandler(async (
       .where(eq(meetings.id, targetId))
       .returning();
 
+
     // Sync action items if summary was regenerated
     if (generatedSummary) {
       await syncActionItemsToDb(targetId, generatedSummary);
     }
+
+    createNotificationLog({
+      userId: req.user?.userId || (req.user as any)?.id,
+
+      title: "New Meeting Logged",
+      message: `Meeting "${updated[0].title}" was updated successfully.`,
+      type: "general",
+    });
 
     logger.info("Meeting updated", { meetingId: targetId });
 

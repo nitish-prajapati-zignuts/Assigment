@@ -155,14 +155,21 @@ export function MeetingModal({
       .map((p) => p.trim())
       .filter((p) => p.length > 0);
 
-    await onSave({
+    const payload: any = {
       ...data,
       participants: participantList,
       language,
       summaryLength,
       template,
       customPrompt,
-    });
+    };
+
+    // If editing an existing meeting, omit date parameter so original date is preserved
+    if (initialData) {
+      delete payload.date;
+    }
+
+    await onSave(payload);
     onClose();
   };
 
@@ -192,7 +199,9 @@ export function MeetingModal({
             setTemplate={setTemplate}
             language={language}
             setLanguage={setLanguage}
+            isEditing={!!initialData}
           />
+
 
           {/* Attendees Chips & Mentions Autocomplete */}
           <MeetingFormParticipants
