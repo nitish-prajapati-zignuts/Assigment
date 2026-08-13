@@ -2,14 +2,15 @@
 
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Plus, FileSpreadsheet } from "lucide-react";
+import { Plus, FileSpreadsheet, GitCompareArrows } from "lucide-react";
 
 interface MeetingsHeaderProps {
   onCreateClick: () => void;
   onExportCSV?: () => void;
+  onCompareClick?: () => void;
 }
 
-export function MeetingsHeader({ onCreateClick, onExportCSV }: MeetingsHeaderProps) {
+export function MeetingsHeader({ onCreateClick, onExportCSV, onCompareClick }: MeetingsHeaderProps) {
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-zinc-200/80 dark:border-zinc-800/80 pb-5">
       <div>
@@ -22,6 +23,20 @@ export function MeetingsHeader({ onCreateClick, onExportCSV }: MeetingsHeaderPro
       </div>
 
       <div className="flex flex-wrap items-center gap-2.5">
+        {onCompareClick && (
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onCompareClick}
+              className="flex items-center gap-1.5 text-xs font-semibold rounded-xl border-zinc-200/80 dark:border-zinc-800/80 shadow-xs hover:bg-zinc-100 dark:hover:bg-zinc-900"
+            >
+              <GitCompareArrows className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+              Compare Meetings
+            </Button>
+          </motion.div>
+        )}
+
         {onExportCSV && (
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button

@@ -16,6 +16,7 @@ import {
   MeetingsCards,
   MeetingsPagination,
   DeleteMeetingModal,
+  MeetingComparisonModal,
 } from "@/components/dashboard/meetings";
 
 export default function MeetingsPage() {
@@ -34,6 +35,7 @@ export default function MeetingsPage() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [meetingToDelete, setMeetingToDelete] = useState<Meeting | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
 
   // TanStack Query for Meetings with Caching
   const { data: meetingsResponse, isLoading } = useQuery({
@@ -209,6 +211,7 @@ export default function MeetingsPage() {
           setEditingMeeting(null);
           setIsFormModalOpen(true);
         }}
+        onCompareClick={() => setIsCompareModalOpen(true)}
         onExportCSV={() => {
           if (displayMeetings.length === 0) {
             toast.error("No meetings available to export");
@@ -307,6 +310,13 @@ export default function MeetingsPage() {
         meetingToDelete={meetingToDelete}
         onConfirmDelete={handleConfirmDelete}
         isDeleting={isDeleting}
+      />
+
+      {/* Meeting Comparison Modal */}
+      <MeetingComparisonModal
+        isOpen={isCompareModalOpen}
+        onClose={() => setIsCompareModalOpen(false)}
+        meetings={meetings}
       />
     </div>
   );

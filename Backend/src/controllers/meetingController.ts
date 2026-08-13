@@ -3,12 +3,8 @@ import db from "../db";
 import { meetings, actionItems, users, MeetingSummary } from "../db/schema";
 import { eq, and, inArray, desc } from "drizzle-orm";
 import { generateMeetingSummary } from "../services/aiService";
-import { generateRAGAnswer } from "../services/ragService";
-import { createNotificationLog } from "./notificationController";
 import { AuthenticatedRequest } from "../middleware/authMiddleware";
-
 import { asyncHandler } from "../middleware/errorHandler";
-
 import { logger } from "../utils/logger";
 import {
   NotFoundError,
@@ -262,19 +258,10 @@ export const createMeeting = asyncHandler(async (
       });
     }
 
-    createNotificationLog({
-      userId: req.user?.userId || (req.user as any)?.id,
-
-      title: "New Meeting Logged",
-      message: `Meeting "${inserted[0].title}" was created successfully.`,
-      type: "general",
-    });
-
     res.status(201).json({
       ...inserted[0],
       jobId,
     });
-
   } catch (error) {
     logger.error("Error creating meeting", error as Error, { userEmail });
     throw error instanceof (Error as any) ? error : new InternalServerError("Failed to create meeting");
@@ -319,7 +306,7 @@ export const updateMeeting = asyncHandler(async (
       .update(meetings)
       .set({
         ...(title ? { title } : {}),
-        // Preserve original meeting date on update
+        ...(date ? { date } : {}),
         ...(type ? { type } : {}),
         ...(participants ? { participants } : {}),
         ...(transcript !== undefined ? { transcript } : {}),
@@ -329,19 +316,10 @@ export const updateMeeting = asyncHandler(async (
       .where(eq(meetings.id, targetId))
       .returning();
 
-
     // Sync action items if summary was regenerated
     if (generatedSummary) {
       await syncActionItemsToDb(targetId, generatedSummary);
     }
-
-    createNotificationLog({
-      userId: req.user?.userId || (req.user as any)?.id,
-
-      title: "New Meeting Logged",
-      message: `Meeting "${updated[0].title}" was updated successfully.`,
-      type: "general",
-    });
 
     logger.info("Meeting updated", { meetingId: targetId });
 
@@ -392,15 +370,6 @@ export const summarizeMeeting = asyncHandler(async (
     });
 
     logger.info("Meeting summarization queued", { meetingId: targetId, jobId });
-
-    createNotificationLog({
-      userId: req.user?.userId || (req.user as any)?.id,
-
-      title: "AI Summary Processing",
-      message: `AI summary job queued for "${meeting.title}".`,
-      type: "ai_summary",
-    });
-
 
     res.json({
       message: "Meeting summarization queued. Check back shortly for results.",
@@ -603,46 +572,3 @@ export const getPublicMeetingByToken = asyncHandler(async (
     throw error instanceof (Error as any) ? error : new InternalServerError("Failed to load shared meeting");
   }
 });
-
-/**
- * POST /api/meetings/:id/chat
- * RAG-Powered AI Chat Question Answering for a specific meeting.
- */
-export const chatWithMeetingRAG = asyncHandler(async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
-  const { id } = req.params;
-  const meetingId = Array.isArray(id) ? id[0] : String(id);
-  const { question, history } = req.body;
-
-  if (!question || typeof question !== "string") {
-    throw new ValidationError("Question text is required");
-  }
-
-  // Retrieve meeting from DB
-  const meetingResult = await db.select().from(meetings).where(eq(meetings.id, meetingId));
-
-  if (meetingResult.length === 0) {
-    throw new NotFoundError(`Meeting with ID ${id} not found`);
-  }
-
-  const meeting = meetingResult[0];
-
-  try {
-    const ragResult = await generateRAGAnswer({
-      meeting,
-      question,
-      history: Array.isArray(history) ? history : [],
-    });
-
-    res.json({
-      answer: ragResult.answer,
-      retrievedSources: ragResult.retrievedSources,
-    });
-  } catch (error) {
-    logger.error("RAG Meeting Chat error", error as Error, { meetingId: id });
-    throw new InternalServerError("Failed to process RAG AI chat request");
-  }
-});
-

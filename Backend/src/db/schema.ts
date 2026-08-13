@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, varchar, jsonb, index, uniqueIndex, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, varchar, jsonb, index, uniqueIndex, boolean, serial } from "drizzle-orm/pg-core";
 
 export type SummaryLength = "Short" | "Medium" | "Long";
 export type SummaryTemplate = "Standard" | "Executive" | "Developer" | "Technical" | "Sales";
@@ -194,35 +194,6 @@ export const userSettings = pgTable("user_settings", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
-/**
- * Real-Time Notifications & Activity Log Table
- */
-export const notifications = pgTable(
-  "notifications",
-  {
-    id: varchar("id", { length: 255 })
-      .primaryKey()
-      .$defaultFn(() => crypto.randomUUID()),
-    userId: varchar("user_id", { length: 255 })
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    title: varchar("title", { length: 255 }).notNull(),
-    message: text("message").notNull(),
-    type: varchar("type", { length: 50 }).notNull().default("general"), // 'ai_summary' | 'overdue_task' | 'security_access' | 'general'
-    isRead: boolean("is_read").notNull().default(false),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-  },
-  (table) => [
-    index("notifications_user_id_idx").on(table.userId),
-    index("notifications_is_read_idx").on(table.isRead),
-    index("notifications_created_at_idx").on(table.createdAt),
-  ]
-);
-
-export type NotificationRecord = typeof notifications.$inferSelect;
-export type NewNotificationRecord = typeof notifications.$inferInsert;
-
-
 export type UserSettingsRecord = typeof userSettings.$inferSelect;
 export type NewUserSettingsRecord = typeof userSettings.$inferInsert;
 
@@ -248,4 +219,28 @@ export const userSessions = pgTable("user_sessions", {
 export type UserSessionRecord = typeof userSessions.$inferSelect;
 export type NewUserSessionRecord = typeof userSessions.$inferInsert;
 
+/**
+ * Notifications Table
+ * Stores user notifications
+ */
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: serial("id").primaryKey(),
+    userId: varchar("user_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    message: text("message").notNull(),
+    type: text("type").notNull().default("general"),
+    isRead: boolean("is_read").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (table) => [
+    index("notifications_user_id_idx").on(table.userId),
+    index("notifications_created_at_idx").on(table.createdAt),
+  ]
+);
 
+export type NotificationRecord = typeof notifications.$inferSelect;
+export type NewNotificationRecord = typeof notifications.$inferInsert;

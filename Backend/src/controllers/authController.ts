@@ -7,11 +7,11 @@ import { generateToken } from "../utils/jwt";
 import { AuthenticatedRequest } from "../middleware/authMiddleware";
 import { asyncHandler } from "../middleware/errorHandler";
 import { logger } from "../utils/logger";
-import { 
-  AuthenticationError, 
-  ConflictError, 
-  ValidationError, 
-  InternalServerError 
+import {
+  AuthenticationError,
+  ConflictError,
+  ValidationError,
+  InternalServerError
 } from "../utils/errors";
 import { RegisterInput, LoginInput } from "../utils/validation";
 
