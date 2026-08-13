@@ -166,7 +166,34 @@ export default function ActionTrackerPage() {
     },
   });
 
+  const handleBulkStatusChange = async (ids: string[], newStatus: ActionItem["status"]) => {
+    try {
+      await Promise.all(
+        ids.map((id) => api.patch(`/action-items/${id}`, { status: newStatus }))
+      );
+      queryClient.invalidateQueries({ queryKey: ["actionItems"] });
+      queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
+    } catch (err) {
+      console.error("Bulk status change error:", err);
+      toast.error("Failed to execute bulk status update");
+    }
+  };
+
+  const handleBulkDelete = async (ids: string[]) => {
+    try {
+      await Promise.all(ids.map((id) => api.delete(`/action-items/${id}`)));
+      queryClient.invalidateQueries({ queryKey: ["actionItems"] });
+      queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
+    } catch (err) {
+      console.error("Bulk delete error:", err);
+      toast.error("Failed to execute bulk delete");
+    }
+  };
+
   const isDeleting = deleteActionItemMutation.isPending;
+
 
   // Extract unique owners for filter dropdown
   const uniqueOwners = useMemo(() => {
@@ -388,7 +415,10 @@ export default function ActionTrackerPage() {
               setIsModalOpen(true);
             }}
             onDelete={handleOpenDeleteModal}
+            onBulkStatusChange={handleBulkStatusChange}
+            onBulkDelete={handleBulkDelete}
           />
+
 
           {/* Mobile Responsive Cards View */}
           <ActionItemsCards

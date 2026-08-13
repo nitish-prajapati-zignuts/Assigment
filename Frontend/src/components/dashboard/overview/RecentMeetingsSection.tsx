@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Meeting } from "@/types/meeting";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -14,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Calendar, Eye, ArrowRight, Loader2 } from "lucide-react";
+import { Calendar, Eye, ArrowRight } from "lucide-react";
 
 interface RecentMeetingsSectionProps {
   isLoading: boolean;
@@ -78,14 +79,25 @@ export function RecentMeetingsSection({
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-12 text-zinc-500 dark:text-zinc-400">
-                      <div className="flex items-center justify-center gap-2">
-                        <Loader2 className="h-5 w-5 animate-spin text-indigo-500" />
-                        <span className="text-xs font-medium">Loading recent meetings...</span>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                  Array.from({ length: 4 }).map((_, idx) => (
+                    <TableRow key={idx} className="border-b border-zinc-100 dark:border-zinc-800/50">
+                      <TableCell className="pl-6 py-3.5">
+                        <Skeleton className="h-4 w-52 rounded-md" />
+                      </TableCell>
+                      <TableCell className="py-3.5">
+                        <Skeleton className="h-5 w-24 rounded-lg" />
+                      </TableCell>
+                      <TableCell className="py-3.5">
+                        <Skeleton className="h-4 w-24 rounded-md" />
+                      </TableCell>
+                      <TableCell className="py-3.5">
+                        <Skeleton className="h-5 w-32 rounded-full" />
+                      </TableCell>
+                      <TableCell className="pr-6 py-3.5 text-right">
+                        <Skeleton className="h-7 w-20 rounded-lg ml-auto" />
+                      </TableCell>
+                    </TableRow>
+                  ))
                 ) : recentMeetings.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-12 text-zinc-500 dark:text-zinc-400">
@@ -162,10 +174,18 @@ export function RecentMeetingsSection({
           {/* Mobile Cards View */}
           <div className="md:hidden space-y-3 p-4">
             {isLoading ? (
-              <div className="flex flex-col items-center justify-center p-8 bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800 text-zinc-500">
-                <Loader2 className="h-6 w-6 animate-spin text-indigo-500 mb-2" />
-                <span className="text-xs font-medium">Loading recent meetings...</span>
-              </div>
+              Array.from({ length: 3 }).map((_, idx) => (
+                <div key={idx} className="p-4 rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-900/70 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Skeleton className="h-5 w-40 rounded-md" />
+                    <Skeleton className="h-5 w-20 rounded-md" />
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                    <Skeleton className="h-4 w-24 rounded-md" />
+                    <Skeleton className="h-7 w-16 rounded-lg" />
+                  </div>
+                </div>
+              ))
             ) : recentMeetings.length === 0 ? (
               <div className="p-6 text-center bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800 text-zinc-500">
                 <p className="text-sm font-semibold">No meetings recorded yet.</p>
@@ -219,4 +239,3 @@ export function RecentMeetingsSection({
     </motion.div>
   );
 }
-

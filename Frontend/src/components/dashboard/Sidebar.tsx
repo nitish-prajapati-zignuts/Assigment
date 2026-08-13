@@ -16,7 +16,9 @@ import {
   X,
   Settings,
   Sparkles,
+  Keyboard,
 } from "lucide-react";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ModeToggle } from "@/components/mode-toggle";
 import api from "@/lib/axios";
@@ -99,7 +101,16 @@ export function Sidebar() {
               <span className="text-[11px] font-medium text-zinc-500">AI Assistant</span>
             </div>
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => window.dispatchEvent(new CustomEvent("open-shortcuts-dialog"))}
+              className="p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+              title="Keyboard Shortcuts (?)"
+            >
+              <Keyboard className="h-4 w-4" />
+            </motion.button>
             <ModeToggle />
             {/* Mobile close button */}
             <button
@@ -109,6 +120,7 @@ export function Sidebar() {
               <X className="h-5 w-5" />
             </button>
           </div>
+
         </div>
 
         <nav className="space-y-1.5 relative">
@@ -198,8 +210,20 @@ export function Sidebar() {
           </button>
           <span className="font-bold text-base text-zinc-900 dark:text-zinc-100">MeetNotes</span>
         </div>
+        <div className="flex items-center gap-2">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => window.dispatchEvent(new CustomEvent("open-shortcuts-dialog"))}
+          className="p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+          title="Keyboard Shortcuts (?)"
+        >
+          <Keyboard className="h-4 w-4" />
+        </motion.button>
         <ModeToggle />
       </div>
+    </div>
+
 
       {/* Mobile Drawer Overlay */}
       <AnimatePresence>
