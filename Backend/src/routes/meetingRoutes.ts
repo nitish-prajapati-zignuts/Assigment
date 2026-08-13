@@ -8,6 +8,7 @@ import {
   deleteMeeting,
   toggleMeetingPublish,
   getPublicMeetingByToken,
+  chatWithMeetingRAG,
 } from "../controllers/meetingController";
 import { protect } from "../middleware/authMiddleware";
 import { validateBody, validateQuery, validateParams } from "../middleware/validation";
@@ -45,7 +46,11 @@ router.patch("/:id/publish", validateParams(idSchema), toggleMeetingPublish);
 // POST /api/meetings/:id/summarize - Generate AI summary
 router.post("/:id/summarize", validateParams(idSchema), summarizeMeeting);
 
+// POST /api/meetings/:id/chat - RAG-Powered AI Meeting Q&A Chat
+router.post("/:id/chat", validateParams(idSchema), chatWithMeetingRAG);
+
 // DELETE /api/meetings/:id - Delete a meeting
 router.delete("/:id", validateParams(idSchema), deleteMeeting);
 
 export default router;
+

@@ -5,9 +5,23 @@
   "scripts": {
     "dev": "concurrently -k -p \"[{name}]\" -n \"Backend,Frontend\" -c \"cyan,magenta\" \"npm run dev --prefix Backend\" \"npm run dev --prefix Frontend\"",
     "build": "npm run build --prefix Backend && npm run build --prefix Frontend",
-    "install:all": "npm install --prefix Backend && npm install --prefix Frontend"
+    "install:all": "npm install --prefix Backend && npm install --prefix Frontend",
+    "lint": "(cd Frontend && npm run lint) && (cd Backend && npm run lint)",
+    "lint:fix": "(cd Frontend && npm run lint:fix)",
+    "prepare": "husky"
+  },
+
+  "lint-staged": {
+    "Frontend/**/*.{ts,tsx,js,jsx}": [
+      "cd Frontend && npm run lint"
+    ],
+    "Backend/**/*.{ts,js}": [
+      "cd Backend && npm run type-check"
+    ]
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.4.3"
   }
 }

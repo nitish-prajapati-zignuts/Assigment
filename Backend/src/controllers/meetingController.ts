@@ -3,8 +3,10 @@ import db from "../db";
 import { meetings, actionItems, users, MeetingSummary } from "../db/schema";
 import { eq, and, inArray, desc } from "drizzle-orm";
 import { generateMeetingSummary } from "../services/aiService";
+import { generateRAGAnswer } from "../services/ragService";
 import { AuthenticatedRequest } from "../middleware/authMiddleware";
 import { asyncHandler } from "../middleware/errorHandler";
+
 import { logger } from "../utils/logger";
 import {
   NotFoundError,
@@ -572,3 +574,46 @@ export const getPublicMeetingByToken = asyncHandler(async (
     throw error instanceof (Error as any) ? error : new InternalServerError("Failed to load shared meeting");
   }
 });
+
+/**
+ * POST /api/meetings/:id/chat
+ * RAG-Powered AI Chat Question Answering for a specific meeting.
+ */
+export const chatWithMeetingRAG = asyncHandler(async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  const { id } = req.params;
+  const meetingId = Array.isArray(id) ? id[0] : String(id);
+  const { question, history } = req.body;
+
+  if (!question || typeof question !== "string") {
+    throw new ValidationError("Question text is required");
+  }
+
+  // Retrieve meeting from DB
+  const meetingResult = await db.select().from(meetings).where(eq(meetings.id, meetingId));
+
+  if (meetingResult.length === 0) {
+    throw new NotFoundError(`Meeting with ID ${id} not found`);
+  }
+
+  const meeting = meetingResult[0];
+
+  try {
+    const ragResult = await generateRAGAnswer({
+      meeting,
+      question,
+      history: Array.isArray(history) ? history : [],
+    });
+
+    res.json({
+      answer: ragResult.answer,
+      retrievedSources: ragResult.retrievedSources,
+    });
+  } catch (error) {
+    logger.error("RAG Meeting Chat error", error as Error, { meetingId: id });
+    throw new InternalServerError("Failed to process RAG AI chat request");
+  }
+});
+

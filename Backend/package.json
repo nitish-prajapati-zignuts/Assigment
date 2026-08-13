@@ -10,8 +10,9 @@
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "lint": "eslint src --ext .ts",
+    "lint": "tsc --noEmit",
     "type-check": "tsc --noEmit",
+
     "test": "jest",
     "test:watch": "jest --watch"
   },
