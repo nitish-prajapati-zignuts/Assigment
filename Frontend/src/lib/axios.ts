@@ -1,6 +1,6 @@
-import axios, { AxiosError, AxiosInstance, AxiosResponse } from "axios";
+import axios, { AxiosError, AxiosInstance } from "axios";
 import { logger } from "./logger";
-import { isAPIError, getErrorMessage, APIError } from "./apiTypes";
+import { isAPIError, getErrorMessage } from "./apiTypes";
 
 /**
  * Create API instance with interceptors

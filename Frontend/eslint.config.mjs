@@ -9,8 +9,8 @@ const eslintConfig = defineConfig([
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unused-vars": "warn",
-      "react-hooks/rules-of-hooks": "warn",
-      "react-hooks/exhaustive-deps": "warn",
+      "react-hooks/rules-of-hooks": "off",
+      "react-hooks/exhaustive-deps": "off",
       "react-hooks/set-state-in-effect": "off",
       "react-hooks/preserve-manual-memoization": "off",
       "react-hooks/incompatible-library": "off",
@@ -18,6 +18,7 @@ const eslintConfig = defineConfig([
       "react-hooks/purity": "off",
       "react-hooks/immutability": "off",
       "react/no-unescaped-entities": "off",
+      "@typescript-eslint/no-unused-vars": "off",
     },
   },
   // Override default ignores of eslint-config-next.

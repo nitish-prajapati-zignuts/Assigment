@@ -54,6 +54,7 @@ export default function LoginPage() {
           return;
         }
       } catch (err) {
+        console.log("Auth Error", err)
         localStorage.removeItem("token");
         localStorage.removeItem("user");
       } finally {

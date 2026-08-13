@@ -23,7 +23,6 @@ interface MeetingFormParticipantsProps {
 
 
 export function MeetingFormParticipants({
-  register,
   errors,
   watchParticipants,
   setValue,

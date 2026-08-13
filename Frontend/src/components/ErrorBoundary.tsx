@@ -34,6 +34,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   static getDerivedStateFromError(error: Error): Partial<State> {
+    console.log("Get Derived State From Error", error)
     return { hasError: true };
   }
 

@@ -40,14 +40,13 @@ type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
 export function ChangePassword() {
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
-    const [successMessage, setSuccessMessage] = useState(false);
+    const [successMessage] = useState(false);
 
     // 2. Initialize React Hook Form
     const {
         register,
         handleSubmit,
         watch,
-        reset,
         formState: { errors, isSubmitting, isValid },
     } = useForm<ChangePasswordFormValues>({
         resolver: zodResolver(changePasswordSchema),
@@ -78,6 +77,7 @@ export function ChangePassword() {
                 toast.success(response.data.message)
             }
         } catch (error) {
+            console.log("Change Password Error", error)
             toast.error("Something Went Wrong")
         }
 

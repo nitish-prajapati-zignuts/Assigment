@@ -6,15 +6,6 @@
 import { z } from 'zod';
 
 /**
- * Generic API Response Schema
- */
-const apiResponseSchema = z.object({
-  status: z.number().optional(),
-  message: z.string().optional(),
-  data: z.any().optional(),
-});
-
-/**
  * API Error Response Schema
  */
 const apiErrorSchema = z.object({

@@ -31,7 +31,6 @@ import {
   Printer,
   Sparkles,
   Loader2,
-  Share2,
   Bot,
 } from "lucide-react";
 
@@ -59,7 +58,7 @@ export function MeetingDetailModal({
 }: MeetingDetailModalProps) {
   const [activeTab, setActiveTab] = useState<"summary" | "transcript" | "chat">("summary");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState<string>("English");
+  const [selectedLanguage] = useState<string>("English");
   const [selectedTemplate, setSelectedTemplate] = useState<SummaryTemplate>("Standard");
   const [currentSummary, setCurrentSummary] = useState<MeetingSummary | null | undefined>(
     meeting?.summary
@@ -279,8 +278,8 @@ export function MeetingDetailModal({
   const participantList = Array.isArray(meeting.participants)
     ? meeting.participants
     : typeof meeting.participants === "string"
-    ? (meeting.participants as string).split(",").map((p) => p.trim())
-    : [];
+      ? (meeting.participants as string).split(",").map((p) => p.trim())
+      : [];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -425,9 +424,8 @@ export function MeetingDetailModal({
                   variant="outline"
                   onClick={handleGenerateSummary}
                   disabled={isGenerating || isPublished}
-                  className={`h-8 text-xs gap-1.5 border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40 ${
-                    isPublished ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
+                  className={`h-8 text-xs gap-1.5 border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40 ${isPublished ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                 >
                   {isGenerating ? (
                     <Loader2 className="h-4 w-4 animate-spin text-amber-500" />

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Meeting, MeetingType, SummaryLength, SummaryTemplate } from "@/types/meeting";
+import { Meeting, SummaryLength, SummaryTemplate } from "@/types/meeting";
 import api from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import {

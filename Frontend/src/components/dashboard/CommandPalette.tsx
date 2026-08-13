@@ -15,7 +15,6 @@ import {
   Moon,
   FileSpreadsheet,
   ArrowRight,
-  Command,
   X,
 } from "lucide-react";
 import api from "@/lib/axios";

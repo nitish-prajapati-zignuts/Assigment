@@ -28,7 +28,6 @@ import {
   Edit,
   Trash2,
   Loader2,
-  CheckSquare,
   FileSpreadsheet,
   X,
   CheckCircle2,
@@ -62,6 +61,18 @@ export function ActionItemsTable({
   onBulkDelete,
 }: ActionItemsTableProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const BADGE_COLORS = [
+    "bg-indigo-50 text-indigo-700 border-indigo-200/80 dark:bg-indigo-950/50 dark:text-indigo-300 dark:border-indigo-800/80",
+    "bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800/80",
+    "bg-amber-50 text-amber-700 border-amber-200/80 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800/80",
+    "bg-rose-50 text-rose-700 border-rose-200/80 dark:bg-rose-950/50 dark:text-rose-300 dark:border-rose-800/80",
+    "bg-purple-50 text-purple-700 border-purple-200/80 dark:bg-purple-950/50 dark:text-purple-300 dark:border-purple-800/80",
+    "bg-cyan-50 text-cyan-700 border-cyan-200/80 dark:bg-cyan-950/50 dark:text-cyan-300 dark:border-cyan-800/80",
+  ];
+
+  function getRandomBadgeColor() {
+    return BADGE_COLORS[Math.floor(Math.random() * BADGE_COLORS.length)];
+  }
 
   const isAllSelected =
     displayItems.length > 0 && displayItems.every((item) => selectedIds.includes(item.id));
@@ -207,12 +218,12 @@ export function ActionItemsTable({
                   className="rounded border-zinc-300 dark:border-zinc-700 text-indigo-600 focus:ring-indigo-500 h-4 w-4 cursor-pointer"
                 />
               </TableHead>
-              <TableHead className="w-[30%] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
+              <TableHead className="w-[25%] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
                 Task Description
               </TableHead>
-              <TableHead className="w-[15%] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
+              {/* <TableHead className="w-[15%] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
                 Meeting Context
-              </TableHead>
+              </TableHead> */}
               <TableHead className="w-[14%] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
                 Owner
               </TableHead>
@@ -285,11 +296,22 @@ export function ActionItemsTable({
                       />
                     </TableCell>
                     <TableCell className="py-3.5 font-medium text-xs text-zinc-900 dark:text-zinc-100">
-                      {item.task}
+                      <div className="flex flex-col gap-1.5">
+                        <span className="truncate font-medium text-zinc-900 dark:text-zinc-100">
+                          {item.task}
+                        </span>
+                        {item.meetingTitle && (
+                          <Badge
+                            variant="outline"
+                            className={`w-fit text-[10px] font-normal px-2 py-0.5 border ${getRandomBadgeColor()}`}>
+                            {item.meetingTitle}
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
-                    <TableCell className="py-3.5 text-xs text-zinc-500 truncate max-w-[140px]">
+                    {/* <TableCell className="py-3.5 text-xs text-zinc-500 truncate max-w-[140px]">
                       {item.meetingTitle}
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell className="py-3.5 text-xs text-zinc-600 dark:text-zinc-400">
                       <div className="flex items-center gap-1.5">
                         <User className="h-3.5 w-3.5 text-zinc-400" />
@@ -355,6 +377,6 @@ export function ActionItemsTable({
           </TableBody>
         </Table>
       </div>
-    </div>
+    </div >
   );
 }

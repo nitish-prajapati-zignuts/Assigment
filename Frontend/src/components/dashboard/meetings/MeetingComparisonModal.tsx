@@ -3,8 +3,6 @@
 import { useState, useMemo } from "react";
 import { Meeting, MeetingSummary } from "@/types/meeting";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -23,8 +21,6 @@ import {
   GitCompareArrows,
   Calendar,
   Users,
-  CheckCircle2,
-  AlertTriangle,
   ArrowRight,
   Minus,
   Plus,
@@ -47,26 +43,6 @@ function getSummaryOrEmpty(meeting: Meeting | null): MeetingSummary {
     keyDecisions: [],
     actionItems: [],
   };
-}
-
-function DiffBadge({ type }: { type: "added" | "removed" | "same" }) {
-  if (type === "added")
-    return (
-      <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
-        <Plus className="h-3 w-3" /> New
-      </span>
-    );
-  if (type === "removed")
-    return (
-      <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-red-500 dark:text-red-400">
-        <Minus className="h-3 w-3" /> Removed
-      </span>
-    );
-  return (
-    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-zinc-400">
-      <Equal className="h-3 w-3" /> Same
-    </span>
-  );
 }
 
 function diffArrays(left: string[], right: string[]) {

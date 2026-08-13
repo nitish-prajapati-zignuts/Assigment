@@ -9,7 +9,6 @@ import {
   Target,
   MessageSquare,
   CheckCircle2,
-  AlertTriangle,
   Gavel,
   CheckSquare,
   User,

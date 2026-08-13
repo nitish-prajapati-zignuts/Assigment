@@ -12,7 +12,6 @@
     "db:studio": "drizzle-kit studio",
     "lint": "tsc --noEmit",
     "type-check": "tsc --noEmit",
-
     "test": "jest",
     "test:watch": "jest --watch"
   },

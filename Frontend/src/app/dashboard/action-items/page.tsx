@@ -294,7 +294,6 @@ export default function ActionTrackerPage() {
     newStatus: ActionItem["status"]
   ) => {
     try {
-      const currentItem = actionItems.find((i) => i.id === id);
       await updateStatusMutation.mutateAsync({ id, status: newStatus });
       if (newStatus === "Completed") {
         triggerTaskCompletionConfetti();

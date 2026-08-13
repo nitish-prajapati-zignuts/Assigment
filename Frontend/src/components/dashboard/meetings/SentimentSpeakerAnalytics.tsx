@@ -2,7 +2,7 @@
 
 import { SentimentAnalysis, SpeakerAnalytics } from "@/types/meeting";
 import { Badge } from "@/components/ui/badge";
-import { Smile, Meh, AlertCircle, Flame, Users, Activity, BarChart2 } from "lucide-react";
+import { Smile, Meh, AlertCircle, Flame, Users, Activity } from "lucide-react";
 import {
   ResponsiveContainer,
   PieChart,
@@ -41,9 +41,9 @@ export function SentimentSpeakerAnalytics({
     speakers && speakers.length > 0
       ? speakers
       : [
-          { name: "Speaker 1", talkTimePercentage: 60, wordCount: 350 },
-          { name: "Speaker 2", talkTimePercentage: 40, wordCount: 230 },
-        ];
+        { name: "Speaker 1", talkTimePercentage: 60, wordCount: 350 },
+        { name: "Speaker 2", talkTimePercentage: 40, wordCount: 230 },
+      ];
 
   // Prepare data for Recharts Pie Chart (Speaker Talk-Time)
   const pieData = activeSpeakers.map((s) => ({

@@ -71,6 +71,7 @@ export default function RegisterPage() {
         }
       } catch (err) {
         // Clear invalid token/user state if authentication fails
+        console.log("Auth Error", err)
         localStorage.removeItem("token");
         localStorage.removeItem("user");
       } finally {
