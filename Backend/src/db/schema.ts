@@ -194,6 +194,35 @@ export const userSettings = pgTable("user_settings", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
+/**
+ * Real-Time Notifications & Activity Log Table
+ */
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: varchar("id", { length: 255 })
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: varchar("user_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    title: varchar("title", { length: 255 }).notNull(),
+    message: text("message").notNull(),
+    type: varchar("type", { length: 50 }).notNull().default("general"), // 'ai_summary' | 'overdue_task' | 'security_access' | 'general'
+    isRead: boolean("is_read").notNull().default(false),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (table) => [
+    index("notifications_user_id_idx").on(table.userId),
+    index("notifications_is_read_idx").on(table.isRead),
+    index("notifications_created_at_idx").on(table.createdAt),
+  ]
+);
+
+export type NotificationRecord = typeof notifications.$inferSelect;
+export type NewNotificationRecord = typeof notifications.$inferInsert;
+
+
 export type UserSettingsRecord = typeof userSettings.$inferSelect;
 export type NewUserSettingsRecord = typeof userSettings.$inferInsert;
 

@@ -36,7 +36,11 @@ router.post("/", validateBody(createActionItemSchema), createActionItem);
 // PUT /api/action-items/:id - Edit an action item
 router.put("/:id", validateParams(idSchema), validateBody(updateActionItemSchema), updateActionItem);
 
+// PATCH /api/action-items/:id - Partial update (e.g. status)
+router.patch("/:id", validateParams(idSchema), updateActionItem);
+
 // DELETE /api/action-items/:id - Delete an action item
 router.delete("/:id", validateParams(idSchema), deleteActionItem);
+
 
 export default router;

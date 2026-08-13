@@ -2,7 +2,9 @@ import { Request, Response } from "express";
 import db from "../db";
 import { actionItems, users, meetings } from "../db/schema";
 import { eq } from "drizzle-orm";
+import { createNotificationLog } from "./notificationController";
 import { AuthenticatedRequest } from "../middleware/authMiddleware";
+
 import { asyncHandler } from "../middleware/errorHandler";
 import { logger } from "../utils/logger";
 import { 
@@ -252,6 +254,14 @@ export const createActionItem = asyncHandler(async (
       owner,
     });
 
+    createNotificationLog({
+      userId: req.user?.userId || (req.user as any)?.id,
+
+      title: "Action Item Created",
+      message: `Task "${task}" assigned to ${owner || "Unassigned"}.`,
+      type: "general",
+    });
+
     res.status(201).json(inserted[0]);
   } catch (error) {
     logger.error("Error creating action item", error as Error, { meetingId });
@@ -309,6 +319,14 @@ export const updateActionItem = asyncHandler(async (
 
     logger.info("Action item updated", { itemId: targetId });
 
+    createNotificationLog({
+      userId: req.user?.userId || (req.user as any)?.id,
+
+      title: status ? `Task Status: ${status}` : "Task Updated",
+      message: `Task "${updated[0].task}" was updated.`,
+      type: status === "Completed" ? "general" : "overdue_task",
+    });
+
     res.json(updated[0]);
   } catch (error) {
     logger.error("Error updating action item", error as Error, { itemId: targetId });
@@ -338,10 +356,19 @@ export const deleteActionItem = asyncHandler(async (
 
     logger.info("Action item deleted", { itemId: targetId });
 
+    createNotificationLog({
+      userId: req.user?.userId || (req.user as any)?.id,
+      title: "Action Item Deleted",
+
+      message: `Task "${deleted[0].task}" was permanently removed.`,
+      type: "general",
+    });
+
     res.json({
       message: "Action item deleted successfully",
       actionItem: deleted[0],
     });
+
   } catch (error) {
     logger.error("Error deleting action item", error as Error, { itemId: targetId });
     throw error instanceof (Error as any) ? error : new InternalServerError("Failed to delete action item");

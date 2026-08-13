@@ -4,7 +4,9 @@ import { meetings, actionItems, users, MeetingSummary } from "../db/schema";
 import { eq, and, inArray, desc } from "drizzle-orm";
 import { generateMeetingSummary } from "../services/aiService";
 import { generateRAGAnswer } from "../services/ragService";
+import { createNotificationLog } from "./notificationController";
 import { AuthenticatedRequest } from "../middleware/authMiddleware";
+
 import { asyncHandler } from "../middleware/errorHandler";
 
 import { logger } from "../utils/logger";
@@ -260,10 +262,19 @@ export const createMeeting = asyncHandler(async (
       });
     }
 
+    createNotificationLog({
+      userId: req.user?.userId || (req.user as any)?.id,
+
+      title: "New Meeting Logged",
+      message: `Meeting "${inserted[0].title}" was created successfully.`,
+      type: "general",
+    });
+
     res.status(201).json({
       ...inserted[0],
       jobId,
     });
+
   } catch (error) {
     logger.error("Error creating meeting", error as Error, { userEmail });
     throw error instanceof (Error as any) ? error : new InternalServerError("Failed to create meeting");
@@ -372,6 +383,15 @@ export const summarizeMeeting = asyncHandler(async (
     });
 
     logger.info("Meeting summarization queued", { meetingId: targetId, jobId });
+
+    createNotificationLog({
+      userId: req.user?.userId || (req.user as any)?.id,
+
+      title: "AI Summary Processing",
+      message: `AI summary job queued for "${meeting.title}".`,
+      type: "ai_summary",
+    });
+
 
     res.json({
       message: "Meeting summarization queued. Check back shortly for results.",

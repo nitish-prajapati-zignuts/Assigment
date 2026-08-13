@@ -113,8 +113,18 @@ export const updateUserSettings = asyncHandler(async (
   }
 
   logger.info("Updated user settings", { userId, userEmail });
+
+  const { createNotificationLog } = await import("./notificationController");
+  createNotificationLog({
+    userId,
+    title: "Preferences Saved",
+    message: `Your AI summarization rules & settings were updated.`,
+    type: "general",
+  });
+
   res.json(result[0]);
 });
+
 
 /**
  * GET /api/settings/sessions

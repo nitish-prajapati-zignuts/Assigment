@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Plus, ListTodo, Search, Command } from "lucide-react";
 
+import { NotificationDropdown } from "@/components/dashboard/NotificationDropdown";
+
 export function DashboardHeader() {
   const triggerCommandPalette = () => {
     window.dispatchEvent(new CustomEvent("open-command-palette"));
@@ -27,6 +29,8 @@ export function DashboardHeader() {
       </div>
 
       <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+        <NotificationDropdown />
+
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
             variant="outline"
@@ -40,6 +44,7 @@ export function DashboardHeader() {
             </kbd>
           </Button>
         </motion.div>
+
 
         <Link href="/dashboard/action-items" className="w-full sm:w-auto">
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>

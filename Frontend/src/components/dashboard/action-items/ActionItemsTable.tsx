@@ -196,10 +196,10 @@ export function ActionItemsTable({
 
       {/* Action Items Table */}
       <div className="hidden md:block bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 overflow-x-auto shadow-sm">
-        <Table className="w-full min-w-[900px]">
+        <Table className="w-full min-w-full">
           <TableHeader>
             <TableRow className="border-b border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/30 hover:bg-transparent">
-              <TableHead className="w-[40px] pl-4 py-3.5">
+              <TableHead className="w-10 pl-4 py-3.5">
                 <input
                   type="checkbox"
                   checked={isAllSelected}
@@ -207,29 +207,30 @@ export function ActionItemsTable({
                   className="rounded border-zinc-300 dark:border-zinc-700 text-indigo-600 focus:ring-indigo-500 h-4 w-4 cursor-pointer"
                 />
               </TableHead>
-              <TableHead className="w-[32%] min-w-[260px] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
+              <TableHead className="w-[30%] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
                 Task Description
               </TableHead>
-              <TableHead className="w-[18%] min-w-[140px] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
+              <TableHead className="w-[15%] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
                 Meeting Context
               </TableHead>
-              <TableHead className="w-[13%] min-w-[120px] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
+              <TableHead className="w-[14%] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
                 Owner
               </TableHead>
-              <TableHead className="w-[14%] min-w-[130px] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
+              <TableHead className="w-[15%] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
                 Due Date
               </TableHead>
-              <TableHead className="w-[10%] min-w-[90px] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
+              <TableHead className="w-[10%] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
                 Priority
               </TableHead>
-              <TableHead className="w-[10%] min-w-[110px] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
+              <TableHead className="w-[11%] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
                 Status
               </TableHead>
-              <TableHead className="text-right min-w-[80px] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider pr-6 py-3.5">
+              <TableHead className="text-right w-[5%] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider pr-6 py-3.5">
                 Actions
               </TableHead>
             </TableRow>
           </TableHeader>
+
           <TableBody>
             {isLoading ? (
               Array.from({ length: 5 }).map((_, idx) => (
@@ -272,9 +273,8 @@ export function ActionItemsTable({
                 return (
                   <TableRow
                     key={item.id}
-                    className={`border-b border-zinc-100 dark:border-zinc-800/50 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/50 transition-colors ${
-                      isSelected ? "bg-indigo-50/50 dark:bg-indigo-950/30" : ""
-                    }`}
+                    className={`border-b border-zinc-100 dark:border-zinc-800/50 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/50 transition-colors ${isSelected ? "bg-indigo-50/50 dark:bg-indigo-950/30" : ""
+                      }`}
                   >
                     <TableCell className="pl-4 py-3.5">
                       <input
