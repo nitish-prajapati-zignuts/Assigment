@@ -33,6 +33,12 @@ export const loginSchema = z.object({
     .min(1, 'Password is required'),
 });
 
+export const updatePasswordSchema = z.object({
+  currentPassword: z.string(),
+  newPassword: z.string(),
+  confirmPassword: z.string()
+})
+
 // Meeting Schemas
 export const createMeetingSchema = z.object({
   title: z.string()

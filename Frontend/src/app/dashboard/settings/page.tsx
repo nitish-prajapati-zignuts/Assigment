@@ -11,6 +11,7 @@ import { SettingsTabs, SettingsTabType } from "@/components/dashboard/settings/S
 import { AiTabContent, AppSettings } from "@/components/dashboard/settings/AiTabContent";
 import { NotificationsTabContent } from "@/components/dashboard/settings/NotificationsTabContent";
 import { SecurityTabContent, UserSession } from "@/components/dashboard/settings/SecurityTabContent";
+import { ChangePassword } from "@/components/dashboard/settings/ChangePasswordTab";
 
 const DEFAULT_SETTINGS: AppSettings = {
   summaryLength: "Medium",
@@ -106,7 +107,7 @@ export default function SettingsPage() {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3 text-zinc-400">
         <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
-        <span className="text-sm font-medium">Loading settings from database...</span>
+        <span className="text-sm font-medium">Loading settings...</span>
       </div>
     );
   }
@@ -131,6 +132,7 @@ export default function SettingsPage() {
           <NotificationsTabContent settings={settings} setSettings={setSettings} />
         )}
         {activeTab === "security" && <SecurityTabContent sessions={sessions} />}
+        {activeTab === "Change Password" && <ChangePassword />}
       </div>
     </div>
   );

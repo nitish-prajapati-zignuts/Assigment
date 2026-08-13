@@ -14,6 +14,7 @@ import {
   InternalServerError
 } from "../utils/errors";
 import { RegisterInput, LoginInput } from "../utils/validation";
+import { createNotificationLog } from "./notificationController";
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
@@ -226,6 +227,61 @@ export const getMe = asyncHandler(
     });
   }
 );
+
+export const changePassword = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const { currentPassword, newPassword, confirmPassword } = req.body
+      console.log(currentPassword, newPassword, confirmPassword)
+      if (!req.user) {
+        throw new AuthenticationError("Not Authenticated")
+      }
+      logger.debug("Change Password Requested", { userId: req.user.userId });
+
+      createNotificationLog({
+        userId: req.user?.userId || (req.user as any)?.id,
+        title: "Password Updated Successfully",
+        message: "Password Updated Successfully",
+        type: "general",
+      })
+
+      const currentUser = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, req.user?.userId));
+      console.log(currentUser)
+      const user = currentUser[0]
+
+      const isMatch = await bcrypt.compare(currentPassword, user.password)
+      if (!isMatch) {
+        throw new ValidationError("Current Password Does not Match")
+      }
+
+      if (newPassword !== confirmPassword) {
+        throw new ValidationError("New Password and Confirm Password are not same")
+      }
+
+      const salt = await bcrypt.genSalt(12);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+      const updatePassword = await db
+        .update(users)
+        .set({
+          password: hashedPassword,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, req.user.userId));
+
+
+      res.json({
+        message: "Password Updated Successfully"
+      })
+    } catch (error) {
+      logger.error("Failed to Update the Password", error as Error);
+      throw new InternalServerError("Failed to Update the Password");
+    }
+  }
+)
 
 /**
  * POST /api/auth/logout

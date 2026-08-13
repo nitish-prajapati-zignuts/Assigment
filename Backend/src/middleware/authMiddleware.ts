@@ -24,6 +24,7 @@ export const protect = (
   let token: string | undefined;
 
   const authHeader = req.headers.authorization;
+  console.log("Auth Header", authHeader)
   if (authHeader && authHeader.startsWith("Bearer ")) {
     token = authHeader.split(" ")[1];
   } else if (req.headers.cookie) {
