@@ -49,6 +49,9 @@ export const createMeetingSchema = z.object({
   type: z.string().optional(),
   summaryLength: z.string().optional(),
   language: z.string().optional(),
+  template: z.string().optional(),
+  customPrompt: z.string().optional(),
+  isMeetingPublished: z.boolean().optional(),
 });
 
 export const updateMeetingSchema = z.object({
@@ -67,6 +70,9 @@ export const updateMeetingSchema = z.object({
   type: z.string().optional(),
   summaryLength: z.string().optional(),
   language: z.string().optional(),
+  template: z.string().optional(),
+  customPrompt: z.string().optional(),
+  isMeetingPublished: z.boolean().optional(),
 });
 
 export const meetingQuerySchema = z.object({

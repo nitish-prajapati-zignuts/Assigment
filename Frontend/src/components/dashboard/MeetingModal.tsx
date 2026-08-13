@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Loader2 } from "lucide-react";
 
 import { MeetingFormBasicInfo } from "./meeting-modal/MeetingFormBasicInfo";
 import { MeetingFormParticipants, AppUser } from "./meeting-modal/MeetingFormParticipants";
@@ -149,28 +150,38 @@ export function MeetingModal({
   const watchParticipants = watch("participants");
   const watchTranscript = watch("transcript");
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const onSubmit = async (data: MeetingFormValues) => {
-    const participantList = data.participants
-      .split(",")
-      .map((p) => p.trim())
-      .filter((p) => p.length > 0);
+    try {
+      setIsSubmitting(true);
+      const participantList = data.participants
+        .split(",")
+        .map((p) => p.trim())
+        .filter((p) => p.length > 0);
 
-    const payload: any = {
-      ...data,
-      participants: participantList,
-      language,
-      summaryLength,
-      template,
-      customPrompt,
-    };
+      const payload: any = {
+        ...data,
+        participants: participantList,
+        language,
+        summaryLength,
+        template,
+        customPrompt,
+      };
 
-    // If editing an existing meeting, omit date parameter so original date is preserved
-    if (initialData) {
-      delete payload.date;
+      // If editing an existing meeting, attach id and omit date parameter so original date is preserved
+      if (initialData) {
+        payload.id = initialData.id;
+        delete payload.date;
+      }
+
+      await onSave(payload);
+      onClose();
+    } catch (error) {
+      console.error("Failed to save meeting:", error);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    await onSave(payload);
-    onClose();
   };
 
   return (
@@ -219,11 +230,20 @@ export function MeetingModal({
           />
 
           <DialogFooter className="pt-2 border-t border-zinc-100 dark:border-zinc-800 gap-2 sm:gap-0">
-            <Button type="button" variant="outline" onClick={onClose} className="h-9 text-xs">
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting} className="h-9 text-xs">
               Cancel
             </Button>
-            <Button type="submit" className="h-9 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white">
-              {initialData ? "Update Meeting Note" : "Save & Generate AI Notes"}
+            <Button type="submit" disabled={isSubmitting} className="h-9 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white">
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {initialData ? "Updating Meeting..." : "Saving & Processing..."}
+                </>
+              ) : initialData ? (
+                "Update Meeting Note"
+              ) : (
+                "Save & Generate AI Notes"
+              )}
             </Button>
           </DialogFooter>
         </form>

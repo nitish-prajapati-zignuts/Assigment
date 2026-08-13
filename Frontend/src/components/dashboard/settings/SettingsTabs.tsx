@@ -2,9 +2,9 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Bell, Shield } from "lucide-react";
+import { Sparkles, Bell, Shield, LockKeyholeIcon } from "lucide-react";
 
-export type SettingsTabType = "ai" | "notifications" | "security";
+export type SettingsTabType = "ai" | "notifications" | "security" | "Change Password";
 
 interface SettingsTabsProps {
   activeTab: SettingsTabType;
@@ -15,6 +15,7 @@ const tabs: { id: SettingsTabType; label: string; icon: React.ComponentType<{ cl
   { id: "ai", label: "AI Prompts & Rules", icon: Sparkles },
   { id: "notifications", label: "Alerts & Webhooks", icon: Bell },
   { id: "security", label: "Account & Security", icon: Shield },
+  { id: "Change Password", label: 'Change Password', icon: LockKeyholeIcon }
 ];
 
 export function SettingsTabs({ activeTab, setActiveTab }: SettingsTabsProps) {
@@ -29,11 +30,10 @@ export function SettingsTabs({ activeTab, setActiveTab }: SettingsTabsProps) {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative flex items-center gap-2 px-5 py-2.5 text-xs font-semibold rounded-xl transition-colors cursor-pointer z-10 ${
-                isActive
-                  ? "text-indigo-600 dark:text-indigo-400"
-                  : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
-              }`}
+              className={`relative flex items-center gap-2 px-5 py-2.5 text-xs font-semibold rounded-xl transition-colors cursor-pointer z-10 ${isActive
+                ? "text-indigo-600 dark:text-indigo-400"
+                : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
+                }`}
             >
               {isActive && (
                 <motion.div

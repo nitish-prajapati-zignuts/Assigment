@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, varchar, jsonb, index, uniqueIndex, boolean, serial } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, varchar, jsonb, index, uniqueIndex, boolean, integer } from "drizzle-orm/pg-core";
 
 export type SummaryLength = "Short" | "Medium" | "Long";
 export type SummaryTemplate = "Standard" | "Executive" | "Developer" | "Technical" | "Sales";
@@ -226,7 +226,7 @@ export type NewUserSessionRecord = typeof userSessions.$inferInsert;
 export const notifications = pgTable(
   "notifications",
   {
-    id: serial("id").primaryKey(),
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
     userId: varchar("user_id", { length: 255 })
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),

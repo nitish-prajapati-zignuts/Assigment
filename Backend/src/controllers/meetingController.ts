@@ -277,7 +277,7 @@ export const updateMeeting = asyncHandler(async (
   res: Response
 ): Promise<void> => {
   const targetId = String(req.params.id);
-  const { title, date, type, participants, transcript, language, summaryLength } = req.body as UpdateMeetingInput & { language?: string; summaryLength?: any };
+  const { title, date, type, participants, transcript, language, summaryLength, isMeetingPublished } = req.body as UpdateMeetingInput & { language?: string; summaryLength?: any; isMeetingPublished?: boolean };
 
   try {
     const existing = await db
@@ -310,6 +310,7 @@ export const updateMeeting = asyncHandler(async (
         ...(type ? { type } : {}),
         ...(participants ? { participants } : {}),
         ...(transcript !== undefined ? { transcript } : {}),
+        ...(isMeetingPublished !== undefined ? { isMeetingPublished } : {}),
         ...(generatedSummary !== undefined ? { summary: generatedSummary } : {}),
         updatedAt: new Date(),
       })
