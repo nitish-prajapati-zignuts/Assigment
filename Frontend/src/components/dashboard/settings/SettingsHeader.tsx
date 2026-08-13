@@ -10,12 +10,7 @@ interface SettingsHeaderProps {
   savedSuccess: boolean;
 }
 
-export function SettingsHeader({
-  handleReset,
-  handleSave,
-  isSaving,
-  savedSuccess,
-}: SettingsHeaderProps) {
+export function SettingsHeader({ handleReset, handleSave, isSaving, savedSuccess }: SettingsHeaderProps) {
   return (
     <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl p-8 rounded-3xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-6 text-center md:text-left">
       <div className="space-y-1.5">
@@ -26,7 +21,8 @@ export function SettingsHeader({
           Application Settings
         </h1>
         <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 max-w-xl">
-          Configure custom AI system instructions, summary template defaults, and notification preferences saved in PostgreSQL.
+          Configure custom AI system instructions, summary template defaults, and notification preferences saved in
+          PostgreSQL.
         </p>
       </div>
 

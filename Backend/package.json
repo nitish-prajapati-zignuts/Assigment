@@ -12,6 +12,8 @@
     "db:studio": "drizzle-kit studio",
     "lint": "tsc --noEmit",
     "type-check": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,js,json}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,js,json}\"",
     "test": "jest",
     "test:watch": "jest --watch"
   },
@@ -42,6 +44,7 @@
     "@types/node": "^22.13.1",
     "drizzle-kit": "^0.31.10",
     "nodemon": "^3.1.9",
+    "prettier": "^3.9.6",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3"
   }

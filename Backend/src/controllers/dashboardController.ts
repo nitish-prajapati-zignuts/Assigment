@@ -10,10 +10,7 @@ import { ValidationError, InternalServerError } from "../utils/errors";
  * GET /api/dashboard/stats
  * Returns summary metrics and recent meetings for dashboard overview
  */
-export const getDashboardStats = asyncHandler(async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
+export const getDashboardStats = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const currentUserEmail = req.user?.email?.toLowerCase();
 
   if (!currentUserEmail) {
@@ -25,8 +22,7 @@ export const getDashboardStats = asyncHandler(async (
     const allMeetings = await db.select().from(meetings);
     const userMeetings = allMeetings.filter(
       (m: { participants: any[] }) =>
-        Array.isArray(m.participants) &&
-        m.participants.some((p: string) => p.toLowerCase() === currentUserEmail)
+        Array.isArray(m.participants) && m.participants.some((p: string) => p.toLowerCase() === currentUserEmail)
     );
 
     const userMeetingIds = new Set(userMeetings.map((m: { id: string }) => m.id));
@@ -50,9 +46,7 @@ export const getDashboardStats = asyncHandler(async (
       return s === "open" || s === "pending" || s === "in progress" || s === "in_progress";
     }).length;
 
-    const completedActionItems = userActionItems.filter(
-      (item) => item.status?.toLowerCase() === "completed"
-    ).length;
+    const completedActionItems = userActionItems.filter((item) => item.status?.toLowerCase() === "completed").length;
 
     const overdueActionItems = userActionItems.filter((item) => {
       if (!item.dueDate || item.dueDate === "Not specified" || item.status?.toLowerCase() === "completed") {
@@ -61,27 +55,19 @@ export const getDashboardStats = asyncHandler(async (
       return item.dueDate < today;
     }).length;
 
-    const blockedActionItems = userActionItems.filter(
-      (item) => item.status?.toLowerCase() === "blocked"
-    ).length;
+    const blockedActionItems = userActionItems.filter((item) => item.status?.toLowerCase() === "blocked").length;
 
-    const savedTranscripts = userMeetings.filter(
-      (m) => m.transcript && m.transcript.trim().length > 0
-    ).length;
+    const savedTranscripts = userMeetings.filter((m) => m.transcript && m.transcript.trim().length > 0).length;
 
     // 4. Top 4 Recent Meetings
     const recentMeetings = [...userMeetings]
-      .sort(
-        (a, b) =>
-          new Date(b.createdAt || b.date).getTime() -
-          new Date(a.createdAt || a.date).getTime()
-      )
+      .sort((a, b) => new Date(b.createdAt || b.date).getTime() - new Date(a.createdAt || a.date).getTime())
       .slice(0, 4);
 
     // 5. Compute Analytics Chart Data
     // A. Meetings Timeline (Grouped by month/date string)
     const timelineMap: Record<string, { date: string; meetingsCount: number; transcriptsCount: number }> = {};
-    
+
     // Sort meetings chronologically
     const sortedMeetings = [...userMeetings].sort(
       (a, b) => new Date(a.createdAt || a.date).getTime() - new Date(b.createdAt || b.date).getTime()
@@ -90,7 +76,7 @@ export const getDashboardStats = asyncHandler(async (
     sortedMeetings.forEach((m) => {
       const d = m.createdAt ? new Date(m.createdAt) : new Date(m.date);
       const dateKey = isNaN(d.getTime()) ? m.date : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-      
+
       if (!timelineMap[dateKey]) {
         timelineMap[dateKey] = { date: dateKey, meetingsCount: 0, transcriptsCount: 0 };
       }
@@ -113,9 +99,7 @@ export const getDashboardStats = asyncHandler(async (
 
     userActionItems.forEach((item) => {
       const st = item.status || "Pending";
-      const matchedKey = Object.keys(statusCounts).find(
-        (k) => k.toLowerCase() === st.toLowerCase()
-      ) || "Open";
+      const matchedKey = Object.keys(statusCounts).find((k) => k.toLowerCase() === st.toLowerCase()) || "Open";
       statusCounts[matchedKey] = (statusCounts[matchedKey] || 0) + 1;
     });
 
@@ -133,15 +117,11 @@ export const getDashboardStats = asyncHandler(async (
 
     userActionItems.forEach((item) => {
       const pr = item.priority || "Medium";
-      const matchedKey = Object.keys(priorityCounts).find(
-        (k) => k.toLowerCase() === pr.toLowerCase()
-      ) || "Medium";
+      const matchedKey = Object.keys(priorityCounts).find((k) => k.toLowerCase() === pr.toLowerCase()) || "Medium";
       priorityCounts[matchedKey] = (priorityCounts[matchedKey] || 0) + 1;
     });
 
-    const actionItemsPriorityDistribution = Object.entries(priorityCounts).map(
-      ([name, value]) => ({ name, value })
-    );
+    const actionItemsPriorityDistribution = Object.entries(priorityCounts).map(([name, value]) => ({ name, value }));
 
     // D. Key Decisions Categories Breakdown
     const decisionCategoriesMap: Record<string, number> = {};
@@ -154,9 +134,10 @@ export const getDashboardStats = asyncHandler(async (
       }
     });
 
-    const keyDecisionsBreakdown = Object.entries(decisionCategoriesMap).map(
-      ([category, count]) => ({ category, count })
-    );
+    const keyDecisionsBreakdown = Object.entries(decisionCategoriesMap).map(([category, count]) => ({
+      category,
+      count,
+    }));
 
     logger.debug("Fetched dashboard stats & chart analytics", { userEmail: currentUserEmail });
 

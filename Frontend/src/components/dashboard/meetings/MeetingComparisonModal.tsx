@@ -3,29 +3,9 @@
 import { useState, useMemo } from "react";
 import { Meeting, MeetingSummary } from "@/types/meeting";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  GitCompareArrows,
-  Calendar,
-  Users,
-  ArrowRight,
-  Minus,
-  Plus,
-  Equal,
-} from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { GitCompareArrows, Calendar, Users, ArrowRight, Minus, Plus, Equal } from "lucide-react";
 
 interface MeetingComparisonModalProps {
   isOpen: boolean;
@@ -34,15 +14,17 @@ interface MeetingComparisonModalProps {
 }
 
 function getSummaryOrEmpty(meeting: Meeting | null): MeetingSummary {
-  return meeting?.summary || {
-    purpose: "",
-    discussionPoints: [],
-    majorOutcomes: [],
-    importantConcerns: [],
-    nextSteps: [],
-    keyDecisions: [],
-    actionItems: [],
-  };
+  return (
+    meeting?.summary || {
+      purpose: "",
+      discussionPoints: [],
+      majorOutcomes: [],
+      importantConcerns: [],
+      nextSteps: [],
+      keyDecisions: [],
+      actionItems: [],
+    }
+  );
 }
 
 function diffArrays(left: string[], right: string[]) {
@@ -78,18 +60,13 @@ function SummaryPane({
     side === "left"
       ? "border-indigo-200/60 dark:border-indigo-800/60"
       : "border-purple-200/60 dark:border-purple-800/60";
-  const headerBg =
-    side === "left"
-      ? "bg-indigo-50/50 dark:bg-indigo-950/30"
-      : "bg-purple-50/50 dark:bg-purple-950/30";
+  const headerBg = side === "left" ? "bg-indigo-50/50 dark:bg-indigo-950/30" : "bg-purple-50/50 dark:bg-purple-950/30";
 
   return (
     <div className={`flex-1 rounded-2xl border ${borderColor} overflow-hidden`}>
       {/* Header */}
       <div className={`p-3.5 ${headerBg} border-b ${borderColor}`}>
-        <h4 className="text-sm font-extrabold text-zinc-900 dark:text-zinc-50 truncate">
-          {meeting.title}
-        </h4>
+        <h4 className="text-sm font-extrabold text-zinc-900 dark:text-zinc-50 truncate">{meeting.title}</h4>
         <div className="flex items-center gap-3 mt-1.5 text-[11px] text-zinc-500 dark:text-zinc-400">
           <span className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
@@ -109,12 +86,8 @@ function SummaryPane({
       <div className="p-3.5 space-y-3 max-h-[55vh] overflow-y-auto">
         {/* Purpose */}
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 mb-1">
-            Purpose
-          </p>
-          <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed">
-            {summary.purpose || "—"}
-          </p>
+          <p className="text-[11px] font-bold uppercase tracking-wide text-zinc-500 dark:text-zinc-400 mb-1">Purpose</p>
+          <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed">{summary.purpose || "—"}</p>
         </div>
 
         {/* Discussion Points */}
@@ -177,10 +150,11 @@ function SummaryPane({
                   <span>📅 {item.dueDate}</span>
                   <Badge
                     variant="outline"
-                    className={`text-[9px] ${item.priority === "High" || item.priority === "Urgent"
-                      ? "border-red-300 text-red-600"
-                      : "border-zinc-300 text-zinc-500"
-                      }`}
+                    className={`text-[9px] ${
+                      item.priority === "High" || item.priority === "Urgent"
+                        ? "border-red-300 text-red-600"
+                        : "border-zinc-300 text-zinc-500"
+                    }`}
                   >
                     {item.priority}
                   </Badge>
@@ -215,11 +189,7 @@ function SummaryPane({
   );
 }
 
-export function MeetingComparisonModal({
-  isOpen,
-  onClose,
-  meetings,
-}: MeetingComparisonModalProps) {
+export function MeetingComparisonModal({ isOpen, onClose, meetings }: MeetingComparisonModalProps) {
   const [leftId, setLeftId] = useState<string>("");
   const [rightId, setRightId] = useState<string>("");
 
@@ -231,30 +201,19 @@ export function MeetingComparisonModal({
 
   // Compute diff stats
   const diffStats = useMemo(() => {
-    if (!leftMeeting || !rightMeeting)
-      return { discussion: null, decisions: null, actions: null, nextSteps: null };
+    if (!leftMeeting || !rightMeeting) return { discussion: null, decisions: null, actions: null, nextSteps: null };
 
-    const discussion = diffArrays(
-      leftSummary.discussionPoints || [],
-      rightSummary.discussionPoints || []
-    );
+    const discussion = diffArrays(leftSummary.discussionPoints || [], rightSummary.discussionPoints || []);
 
-    const leftDecisions = (leftSummary.keyDecisions || []).map((d) =>
-      typeof d === "string" ? d : d.decision
-    );
-    const rightDecisions = (rightSummary.keyDecisions || []).map((d) =>
-      typeof d === "string" ? d : d.decision
-    );
+    const leftDecisions = (leftSummary.keyDecisions || []).map((d) => (typeof d === "string" ? d : d.decision));
+    const rightDecisions = (rightSummary.keyDecisions || []).map((d) => (typeof d === "string" ? d : d.decision));
     const decisions = diffArrays(leftDecisions, rightDecisions);
 
     const leftActions = (leftSummary.actionItems || []).map((a) => a.task);
     const rightActions = (rightSummary.actionItems || []).map((a) => a.task);
     const actions = diffArrays(leftActions, rightActions);
 
-    const nextSteps = diffArrays(
-      leftSummary.nextSteps || [],
-      rightSummary.nextSteps || []
-    );
+    const nextSteps = diffArrays(leftSummary.nextSteps || [], rightSummary.nextSteps || []);
 
     return { discussion, decisions, actions, nextSteps };
   }, [leftMeeting, rightMeeting, leftSummary, rightSummary]);
@@ -281,7 +240,9 @@ export function MeetingComparisonModal({
             <Select value={leftId} onValueChange={(v) => v && setLeftId(v)}>
               <SelectTrigger className="text-xs bg-white dark:bg-zinc-900 border-indigo-200 dark:border-indigo-800">
                 <SelectValue placeholder="Select first meeting...">
-                  {leftMeeting ? `${leftMeeting.title} (${new Date(leftMeeting.date).toLocaleDateString()})` : "Select first meeting..."}
+                  {leftMeeting
+                    ? `${leftMeeting.title} (${new Date(leftMeeting.date).toLocaleDateString()})`
+                    : "Select first meeting..."}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -303,7 +264,9 @@ export function MeetingComparisonModal({
             <Select value={rightId} onValueChange={(v) => v && setRightId(v)}>
               <SelectTrigger className="text-xs bg-white dark:bg-zinc-900 border-purple-200 dark:border-purple-800">
                 <SelectValue placeholder="Select second meeting...">
-                  {rightMeeting ? `${rightMeeting.title} (${new Date(rightMeeting.date).toLocaleDateString()})` : "Select second meeting..."}
+                  {rightMeeting
+                    ? `${rightMeeting.title} (${new Date(rightMeeting.date).toLocaleDateString()})`
+                    : "Select second meeting..."}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -323,17 +286,35 @@ export function MeetingComparisonModal({
         {leftMeeting && rightMeeting && diffStats.discussion && (
           <div className="flex flex-wrap items-center gap-2 mt-2 p-3 rounded-xl bg-zinc-50/70 dark:bg-zinc-900/50 border border-zinc-200/60 dark:border-zinc-800/60">
             <span className="text-[11px] font-bold text-zinc-500 mr-1">Diff Summary:</span>
-            <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200">
+            <Badge
+              variant="outline"
+              className="text-[10px] bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200"
+            >
               <Plus className="h-3 w-3 mr-0.5" />
-              {diffStats.discussion.added.length + (diffStats.decisions?.added.length || 0) + (diffStats.actions?.added.length || 0)} New
+              {diffStats.discussion.added.length +
+                (diffStats.decisions?.added.length || 0) +
+                (diffStats.actions?.added.length || 0)}{" "}
+              New
             </Badge>
-            <Badge variant="outline" className="text-[10px] bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-300 border-red-200">
+            <Badge
+              variant="outline"
+              className="text-[10px] bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-300 border-red-200"
+            >
               <Minus className="h-3 w-3 mr-0.5" />
-              {diffStats.discussion.removed.length + (diffStats.decisions?.removed.length || 0) + (diffStats.actions?.removed.length || 0)} Removed
+              {diffStats.discussion.removed.length +
+                (diffStats.decisions?.removed.length || 0) +
+                (diffStats.actions?.removed.length || 0)}{" "}
+              Removed
             </Badge>
-            <Badge variant="outline" className="text-[10px] bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 border-zinc-200">
+            <Badge
+              variant="outline"
+              className="text-[10px] bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 border-zinc-200"
+            >
               <Equal className="h-3 w-3 mr-0.5" />
-              {diffStats.discussion.same.length + (diffStats.decisions?.same.length || 0) + (diffStats.actions?.same.length || 0)} Unchanged
+              {diffStats.discussion.same.length +
+                (diffStats.decisions?.same.length || 0) +
+                (diffStats.actions?.same.length || 0)}{" "}
+              Unchanged
             </Badge>
           </div>
         )}
@@ -403,9 +384,7 @@ export function MeetingComparisonModal({
             {diffStats.actions.added.length === 0 &&
               diffStats.actions.removed.length === 0 &&
               diffStats.actions.same.length === 0 && (
-                <p className="text-xs text-zinc-400 italic">
-                  No action items to compare between the two meetings.
-                </p>
+                <p className="text-xs text-zinc-400 italic">No action items to compare between the two meetings.</p>
               )}
           </div>
         )}

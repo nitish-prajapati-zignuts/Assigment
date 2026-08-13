@@ -77,14 +77,7 @@ const CATEGORY_COLORS = ["#8b5cf6", "#ec4899", "#06b6d4", "#10b981", "#f59e0b", 
 type ChartId = "timeline" | "status" | "priority" | "decisions" | "durationRadar" | "completionRadial";
 type ChartSize = "half" | "full";
 
-const DEFAULT_ORDER: ChartId[] = [
-  "timeline",
-  "status",
-  "priority",
-  "decisions",
-  "durationRadar",
-  "completionRadial",
-];
+const DEFAULT_ORDER: ChartId[] = ["timeline", "status", "priority", "decisions", "durationRadar", "completionRadial"];
 
 const DEFAULT_SIZES: Record<ChartId, ChartSize> = {
   timeline: "half",
@@ -124,7 +117,10 @@ export default function AnalyticsCharts({ data }: DashboardChartsProps) {
     { metric: "Decisions", score: Math.min(100, decisionData.length * 20 || 85) },
     { metric: "Action Density", score: Math.min(100, totalActionItems * 10 || 70) },
     { metric: "Completion", score: completionPercent || 60 },
-    { metric: "Transcripts", score: Math.min(100, (timelineData.reduce((a, b) => a + b.transcriptsCount, 0) || 5) * 15) },
+    {
+      metric: "Transcripts",
+      score: Math.min(100, (timelineData.reduce((a, b) => a + b.transcriptsCount, 0) || 5) * 15),
+    },
   ];
 
   const [chartOrder, setChartOrder] = useState<ChartId[]>(DEFAULT_ORDER);
@@ -430,11 +426,7 @@ export default function AnalyticsCharts({ data }: DashboardChartsProps) {
             {decisionData.length > 0 ? (
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    layout="vertical"
-                    data={decisionData}
-                    margin={{ top: 10, right: 20, left: 20, bottom: 0 }}
-                  >
+                  <BarChart layout="vertical" data={decisionData} margin={{ top: 10, right: 20, left: 20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
                     <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12 }} stroke="#a1a1aa" />
                     <YAxis dataKey="category" type="category" tick={{ fontSize: 11 }} stroke="#a1a1aa" width={100} />
@@ -532,9 +524,7 @@ export default function AnalyticsCharts({ data }: DashboardChartsProps) {
                 </RadialBarChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pt-8 pointer-events-none">
-                <span className="text-3xl font-extrabold text-zinc-900 dark:text-zinc-100">
-                  {completionPercent}%
-                </span>
+                <span className="text-3xl font-extrabold text-zinc-900 dark:text-zinc-100">{completionPercent}%</span>
                 <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">Completed</span>
               </div>
             </div>

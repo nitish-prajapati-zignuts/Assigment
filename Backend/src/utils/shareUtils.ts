@@ -18,16 +18,13 @@ export interface ShareTokenPayload {
 export const encryptShareToken = (meetingId: string): string => {
   const iv = crypto.randomBytes(12);
   const cipher = crypto.createCipheriv(ALGORITHM, ENCRYPTION_KEY, iv);
-  
+
   const payload: ShareTokenPayload = {
     meetingId,
     createdAt: Date.now(),
   };
 
-  const encrypted = Buffer.concat([
-    cipher.update(JSON.stringify(payload), "utf8"),
-    cipher.final(),
-  ]);
+  const encrypted = Buffer.concat([cipher.update(JSON.stringify(payload), "utf8"), cipher.final()]);
 
   const tag = cipher.getAuthTag();
 
@@ -51,10 +48,7 @@ export const decryptShareToken = (token: string): ShareTokenPayload | null => {
     const decipher = crypto.createDecipheriv(ALGORITHM, ENCRYPTION_KEY, iv);
     decipher.setAuthTag(tag);
 
-    const decrypted = Buffer.concat([
-      decipher.update(encryptedText),
-      decipher.final(),
-    ]);
+    const decrypted = Buffer.concat([decipher.update(encryptedText), decipher.final()]);
 
     return JSON.parse(decrypted.toString("utf8")) as ShareTokenPayload;
   } catch (error) {
@@ -73,9 +67,6 @@ export const hashSharePassword = async (password: string): Promise<string> => {
 /**
  * Compares a raw password with a hashed share password
  */
-export const compareSharePassword = async (
-  rawPassword: string,
-  hashedPassword: string
-): Promise<boolean> => {
+export const compareSharePassword = async (rawPassword: string, hashedPassword: string): Promise<boolean> => {
   return bcrypt.compare(rawPassword, hashedPassword);
 };

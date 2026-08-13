@@ -120,9 +120,7 @@ export function NotificationDropdown() {
             {/* Dropdown Header */}
             <div className="flex items-center justify-between pb-2.5 border-b border-zinc-200/80 dark:border-zinc-800/80 px-1">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-xs text-zinc-900 dark:text-zinc-50">
-                  Notification Feed
-                </span>
+                <span className="font-bold text-xs text-zinc-900 dark:text-zinc-50">Notification Feed</span>
                 {unreadCount > 0 && (
                   <span className="px-1.5 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-100 text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-300">
                     {unreadCount} new
@@ -181,16 +179,12 @@ export function NotificationDropdown() {
                       {getNotificationIcon(item.type)}
                       <div className="space-y-0.5 flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-1">
-                          <p className="font-semibold text-zinc-900 dark:text-zinc-100 truncate">
-                            {item.title}
-                          </p>
+                          <p className="font-semibold text-zinc-900 dark:text-zinc-100 truncate">{item.title}</p>
                           <span className="text-[9px] text-zinc-400 shrink-0">
                             {new Date(item.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                           </span>
                         </div>
-                        <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-snug">
-                          {item.message}
-                        </p>
+                        <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-snug">{item.message}</p>
                       </div>
                     </div>
                   </div>

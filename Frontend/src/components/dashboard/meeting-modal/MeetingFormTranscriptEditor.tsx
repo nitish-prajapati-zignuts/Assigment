@@ -12,11 +12,7 @@ interface MeetingFormTranscriptEditorProps {
   setValue: UseFormSetValue<any>;
 }
 
-
-export function MeetingFormTranscriptEditor({
-  watchTranscript = "",
-  setValue,
-}: MeetingFormTranscriptEditorProps) {
+export function MeetingFormTranscriptEditor({ watchTranscript = "", setValue }: MeetingFormTranscriptEditorProps) {
   const [activeTab, setActiveTab] = useState<"paste" | "upload">("paste");
   const [fileName, setFileName] = useState<string | null>(null);
   const [fileSize, setFileSize] = useState<string | null>(null);
@@ -77,12 +73,8 @@ export function MeetingFormTranscriptEditor({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-          Meeting Notes & Transcript
-        </Label>
-        <span className="text-[11px] text-zinc-400 font-normal">
-          Provide notes or transcript for AI summarization
-        </span>
+        <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Meeting Notes & Transcript</Label>
+        <span className="text-[11px] text-zinc-400 font-normal">Provide notes or transcript for AI summarization</span>
       </div>
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "paste" | "upload")}>
@@ -103,7 +95,6 @@ export function MeetingFormTranscriptEditor({
           />
         </TabsContent>
 
-
         <TabsContent value="upload" className="mt-2">
           <div
             onDragOver={(e) => {
@@ -121,9 +112,7 @@ export function MeetingFormTranscriptEditor({
             {isReadingFile ? (
               <div className="flex flex-col items-center gap-2 py-4">
                 <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
-                <p className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                  Reading file content...
-                </p>
+                <p className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Reading file content...</p>
               </div>
             ) : fileName ? (
               <div className="flex items-center justify-between p-3 bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
@@ -159,9 +148,7 @@ export function MeetingFormTranscriptEditor({
                     />
                   </label>
                 </p>
-                <p className="text-[10px] text-zinc-400">
-                  Supports .txt, .vtt, .srt, .pdf, .docx, .json files
-                </p>
+                <p className="text-[10px] text-zinc-400">Supports .txt, .vtt, .srt, .pdf, .docx, .json files</p>
               </div>
             )}
           </div>

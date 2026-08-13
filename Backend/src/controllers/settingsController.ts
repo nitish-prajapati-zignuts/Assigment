@@ -14,10 +14,7 @@ const DEFAULT_PROMPT = "Focus heavily on technical decisions, code deliverables,
  * Retrieves the current authenticated user's settings.
  * Auto-creates default settings if record does not exist yet.
  */
-export const getUserSettings = asyncHandler(async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
+export const getUserSettings = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const userEmail = req.user?.email;
 
   if (!userEmail) {
@@ -60,10 +57,7 @@ export const getUserSettings = asyncHandler(async (
  * PUT /api/settings
  * Updates/Upserts user settings.
  */
-export const updateUserSettings = asyncHandler(async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
+export const updateUserSettings = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const userEmail = req.user?.email;
   const {
     summaryLength,
@@ -100,11 +94,7 @@ export const updateUserSettings = asyncHandler(async (
 
   let result;
   if (existing.length > 0) {
-    result = await db
-      .update(userSettings)
-      .set(updatedData)
-      .where(eq(userSettings.userId, userId))
-      .returning();
+    result = await db.update(userSettings).set(updatedData).where(eq(userSettings.userId, userId)).returning();
   } else {
     result = await db
       .insert(userSettings)
@@ -125,15 +115,11 @@ export const updateUserSettings = asyncHandler(async (
   res.json(result[0]);
 });
 
-
 /**
  * GET /api/settings/sessions
  * Returns active login session history (IP address, device, browser, OS, location, last active timestamp).
  */
-export const getUserSessions = asyncHandler(async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
+export const getUserSessions = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const userEmail = req.user?.email;
 
   if (!userEmail) {
@@ -147,10 +133,7 @@ export const getUserSessions = asyncHandler(async (
   const userId = foundUsers[0].id;
 
   const { userSessions } = await import("../db/schema");
-  const sessions = await db
-    .select()
-    .from(userSessions)
-    .where(eq(userSessions.userId, userId));
+  const sessions = await db.select().from(userSessions).where(eq(userSessions.userId, userId));
 
   if (sessions.length === 0) {
     // Return mock current session details if user registered prior to session tracking
@@ -187,4 +170,3 @@ export const getUserSessions = asyncHandler(async (
 
   res.json(sessions);
 });
-

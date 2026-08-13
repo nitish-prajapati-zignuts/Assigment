@@ -92,10 +92,7 @@ export const users = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
   },
-  (table) => [
-    uniqueIndex("users_email_idx").on(table.email),
-    index("users_created_at_idx").on(table.createdAt),
-  ]
+  (table) => [uniqueIndex("users_email_idx").on(table.email), index("users_created_at_idx").on(table.createdAt)]
 );
 
 /**
@@ -279,9 +276,7 @@ export const meetingChunks = pgTable(
     embedding: vector("embedding").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   },
-  (table) => [
-    index("meeting_chunks_meeting_id_idx").on(table.meetingId),
-  ]
+  (table) => [index("meeting_chunks_meeting_id_idx").on(table.meetingId)]
 );
 
 export type MeetingChunkRecord = typeof meetingChunks.$inferSelect;

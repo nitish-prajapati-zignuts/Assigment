@@ -2,16 +2,8 @@ import { Meeting } from "@/types/meeting";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Calendar, Eye, Edit, Trash2, Share2, Loader2 } from "lucide-react";
-
 
 interface MeetingsTableProps {
   isLoading: boolean;
@@ -21,13 +13,7 @@ interface MeetingsTableProps {
   onDelete: (meeting: Meeting) => void;
 }
 
-export function MeetingsTable({
-  isLoading,
-  displayMeetings,
-  onViewDetails,
-  onEdit,
-  onDelete,
-}: MeetingsTableProps) {
+export function MeetingsTable({ isLoading, displayMeetings, onViewDetails, onEdit, onDelete }: MeetingsTableProps) {
   return (
     <div className="hidden md:block bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 overflow-hidden shadow-sm">
       <Table>
@@ -72,12 +58,8 @@ export function MeetingsTable({
               </TableRow>
             ))
           ) : displayMeetings.length === 0 ? (
-
             <TableRow>
-              <TableCell
-                colSpan={5}
-                className="text-center py-12 text-zinc-500 dark:text-zinc-400"
-              >
+              <TableCell colSpan={5} className="text-center py-12 text-zinc-500 dark:text-zinc-400">
                 <p className="text-sm font-medium">No meetings found matching your search.</p>
                 <p className="text-xs text-zinc-400 mt-1">Try adjusting your filters or search keywords.</p>
               </TableCell>

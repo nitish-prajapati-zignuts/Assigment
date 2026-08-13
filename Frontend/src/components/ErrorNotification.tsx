@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * Error Notification Component
@@ -6,10 +6,10 @@
  * Automatically dismisses after a timeout
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
-import { AlertCircle, CheckCircle, InfoIcon, AlertTriangle, X } from 'lucide-react';
+import React, { useState, useCallback, useEffect } from "react";
+import { AlertCircle, CheckCircle, InfoIcon, AlertTriangle, X } from "lucide-react";
 
-export type NotificationType = 'error' | 'success' | 'info' | 'warning';
+export type NotificationType = "error" | "success" | "info" | "warning";
 
 export interface Notification {
   id: string;
@@ -21,7 +21,7 @@ export interface Notification {
 
 interface NotificationContextType {
   notifications: Notification[];
-  addNotification: (notification: Omit<Notification, 'id'>) => string;
+  addNotification: (notification: Omit<Notification, "id">) => string;
   removeNotification: (id: string) => void;
   clearAll: () => void;
 }
@@ -34,7 +34,7 @@ export const NotificationContext = React.createContext<NotificationContextType |
 export const useNotifications = () => {
   const context = React.useContext(NotificationContext);
   if (!context) {
-    throw new Error('useNotifications must be used within NotificationProvider');
+    throw new Error("useNotifications must be used within NotificationProvider");
   }
   return context;
 };
@@ -45,7 +45,7 @@ export const useNotifications = () => {
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  const addNotification = useCallback((notification: Omit<Notification, 'id'>) => {
+  const addNotification = useCallback((notification: Omit<Notification, "id">) => {
     const id = `notification-${Date.now()}-${Math.random()}`;
     const fullNotification: Notification = {
       ...notification,
@@ -132,28 +132,28 @@ const NotificationItem: React.FC<{
 }> = ({ notification, onDismiss }) => {
   const getIcon = (type: NotificationType) => {
     switch (type) {
-      case 'error':
+      case "error":
         return <AlertCircle className="w-5 h-5" />;
-      case 'success':
+      case "success":
         return <CheckCircle className="w-5 h-5" />;
-      case 'warning':
+      case "warning":
         return <AlertTriangle className="w-5 h-5" />;
-      case 'info':
+      case "info":
       default:
         return <InfoIcon className="w-5 h-5" />;
     }
   };
 
   const getStyles = (type: NotificationType) => {
-    const baseStyles = 'rounded-lg shadow-lg p-4 backdrop-blur-sm border';
+    const baseStyles = "rounded-lg shadow-lg p-4 backdrop-blur-sm border";
     switch (type) {
-      case 'error':
+      case "error":
         return `${baseStyles} bg-red-500/90 border-red-600 text-white`;
-      case 'success':
+      case "success":
         return `${baseStyles} bg-green-500/90 border-green-600 text-white`;
-      case 'warning':
+      case "warning":
         return `${baseStyles} bg-yellow-500/90 border-yellow-600 text-white`;
-      case 'info':
+      case "info":
       default:
         return `${baseStyles} bg-blue-500/90 border-blue-600 text-white`;
     }
@@ -161,12 +161,12 @@ const NotificationItem: React.FC<{
 
   const getIconColor = (type: NotificationType) => {
     switch (type) {
-      case 'error':
-      case 'success':
-      case 'warning':
-      case 'info':
+      case "error":
+      case "success":
+      case "warning":
+      case "info":
       default:
-        return 'currentColor';
+        return "currentColor";
     }
   };
 

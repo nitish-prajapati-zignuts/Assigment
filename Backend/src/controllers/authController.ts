@@ -7,12 +7,7 @@ import { generateToken } from "../utils/jwt";
 import { AuthenticatedRequest } from "../middleware/authMiddleware";
 import { asyncHandler } from "../middleware/errorHandler";
 import { logger } from "../utils/logger";
-import {
-  AuthenticationError,
-  ConflictError,
-  ValidationError,
-  InternalServerError
-} from "../utils/errors";
+import { AuthenticationError, ConflictError, ValidationError, InternalServerError } from "../utils/errors";
 import { RegisterInput, LoginInput } from "../utils/validation";
 import { createNotificationLog } from "./notificationController";
 
@@ -34,14 +29,11 @@ export const register = asyncHandler(async (req: Request, res: Response): Promis
   logger.debug("Registration attempt", { email });
 
   // Check if user already exists
-  const existingUser = await db
-    .select()
-    .from(users)
-    .where(eq(users.email, email));
+  const existingUser = await db.select().from(users).where(eq(users.email, email));
 
   if (existingUser.length > 0) {
     throw new ValidationError("User with this email already exists", {
-      email: "User with this email already exists"
+      email: "User with this email already exists",
     });
   }
 
@@ -100,10 +92,7 @@ export const login = asyncHandler(async (req: Request, res: Response): Promise<v
 
   logger.debug("Login attempt", { email });
 
-  const result = await db
-    .select()
-    .from(users)
-    .where(eq(users.email, email));
+  const result = await db.select().from(users).where(eq(users.email, email));
 
   if (result.length === 0) {
     // Log failed attempt but don't reveal user doesn't exist
@@ -214,74 +203,66 @@ export const getUsers = asyncHandler(async (req: Request, res: Response): Promis
  * GET /api/auth/me
  * Retrieves current authenticated user session details from verified JWT payload.
  */
-export const getMe = asyncHandler(
-  async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+export const getMe = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  if (!req.user) {
+    throw new AuthenticationError("Not authenticated");
+  }
+
+  logger.debug("User profile requested", { userId: req.user.userId });
+
+  res.json({
+    user: req.user,
+  });
+});
+
+export const changePassword = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+    console.log(currentPassword, newPassword, confirmPassword);
     if (!req.user) {
-      throw new AuthenticationError("Not authenticated");
+      throw new AuthenticationError("Not Authenticated");
+    }
+    logger.debug("Change Password Requested", { userId: req.user.userId });
+
+    createNotificationLog({
+      userId: req.user?.userId || (req.user as any)?.id,
+      title: "Password Updated Successfully",
+      message: "Password Updated Successfully",
+      type: "general",
+    });
+
+    const currentUser = await db.select().from(users).where(eq(users.id, req.user?.userId));
+    console.log(currentUser);
+    const user = currentUser[0];
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      throw new ValidationError("Current Password Does not Match");
     }
 
-    logger.debug("User profile requested", { userId: req.user.userId });
+    if (newPassword !== confirmPassword) {
+      throw new ValidationError("New Password and Confirm Password are not same");
+    }
+
+    const salt = await bcrypt.genSalt(12);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    const updatePassword = await db
+      .update(users)
+      .set({
+        password: hashedPassword,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, req.user.userId));
 
     res.json({
-      user: req.user,
+      message: "Password Updated Successfully",
     });
+  } catch (error) {
+    logger.error("Failed to Update the Password", error as Error);
+    throw new InternalServerError("Failed to Update the Password");
   }
-);
-
-export const changePassword = asyncHandler(
-  async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    try {
-      const { currentPassword, newPassword, confirmPassword } = req.body
-      console.log(currentPassword, newPassword, confirmPassword)
-      if (!req.user) {
-        throw new AuthenticationError("Not Authenticated")
-      }
-      logger.debug("Change Password Requested", { userId: req.user.userId });
-
-      createNotificationLog({
-        userId: req.user?.userId || (req.user as any)?.id,
-        title: "Password Updated Successfully",
-        message: "Password Updated Successfully",
-        type: "general",
-      })
-
-      const currentUser = await db
-        .select()
-        .from(users)
-        .where(eq(users.id, req.user?.userId));
-      console.log(currentUser)
-      const user = currentUser[0]
-
-      const isMatch = await bcrypt.compare(currentPassword, user.password)
-      if (!isMatch) {
-        throw new ValidationError("Current Password Does not Match")
-      }
-
-      if (newPassword !== confirmPassword) {
-        throw new ValidationError("New Password and Confirm Password are not same")
-      }
-
-      const salt = await bcrypt.genSalt(12);
-      const hashedPassword = await bcrypt.hash(newPassword, salt);
-
-      const updatePassword = await db
-        .update(users)
-        .set({
-          password: hashedPassword,
-          updatedAt: new Date()
-        })
-        .where(eq(users.id, req.user.userId));
-
-
-      res.json({
-        message: "Password Updated Successfully"
-      })
-    } catch (error) {
-      logger.error("Failed to Update the Password", error as Error);
-      throw new InternalServerError("Failed to Update the Password");
-    }
-  }
-)
+});
 
 /**
  * POST /api/auth/logout

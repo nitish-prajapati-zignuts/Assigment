@@ -5,7 +5,6 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/axios";
 
-
 import { SettingsHeader } from "@/components/dashboard/settings/SettingsHeader";
 import { SettingsTabs, SettingsTabType } from "@/components/dashboard/settings/SettingsTabs";
 import { AiTabContent, AppSettings } from "@/components/dashboard/settings/AiTabContent";
@@ -102,7 +101,6 @@ export default function SettingsPage() {
     }
   };
 
-
   if (isLoading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3 text-zinc-400">
@@ -128,9 +126,7 @@ export default function SettingsPage() {
 
         {/* Tab Content Components */}
         {activeTab === "ai" && <AiTabContent settings={settings} setSettings={setSettings} />}
-        {activeTab === "notifications" && (
-          <NotificationsTabContent settings={settings} setSettings={setSettings} />
-        )}
+        {activeTab === "notifications" && <NotificationsTabContent settings={settings} setSettings={setSettings} />}
         {activeTab === "security" && <SecurityTabContent sessions={sessions} />}
         {activeTab === "Change Password" && <ChangePassword />}
       </div>

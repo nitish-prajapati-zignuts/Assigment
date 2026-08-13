@@ -4,7 +4,7 @@
  * with different severity levels (debug, info, warn, error)
  */
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+export type LogLevel = "debug" | "info" | "warn" | "error";
 
 interface LogEntry {
   timestamp: string;
@@ -19,7 +19,7 @@ interface LogEntry {
 }
 
 class Logger {
-  private isDevelopment = process.env.NODE_ENV !== 'production';
+  private isDevelopment = process.env.NODE_ENV !== "production";
 
   private formatLog(entry: LogEntry): string {
     const formatted = {
@@ -48,35 +48,35 @@ class Logger {
 
     // Route to appropriate console method
     switch (level) {
-      case 'debug':
+      case "debug":
         if (this.isDevelopment) console.log(formatted);
         break;
-      case 'info':
+      case "info":
         console.log(formatted);
         break;
-      case 'warn':
+      case "warn":
         console.warn(formatted);
         break;
-      case 'error':
+      case "error":
         console.error(formatted);
         break;
     }
   }
 
   debug(message: string, context?: Record<string, unknown>): void {
-    this.log('debug', message, context);
+    this.log("debug", message, context);
   }
 
   info(message: string, context?: Record<string, unknown>): void {
-    this.log('info', message, context);
+    this.log("info", message, context);
   }
 
   warn(message: string, context?: Record<string, unknown>): void {
-    this.log('warn', message, context);
+    this.log("warn", message, context);
   }
 
   error(message: string, error?: Error, context?: Record<string, unknown>): void {
-    this.log('error', message, context, error);
+    this.log("error", message, context, error);
   }
 }
 

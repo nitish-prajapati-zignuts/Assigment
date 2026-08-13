@@ -3,17 +3,7 @@
 import { SentimentAnalysis, SpeakerAnalytics } from "@/types/meeting";
 import { Badge } from "@/components/ui/badge";
 import { Smile, Meh, AlertCircle, Flame, Users, Activity } from "lucide-react";
-import {
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-} from "recharts";
+import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
 
 interface SentimentSpeakerAnalyticsProps {
   sentiment?: SentimentAnalysis;
@@ -22,10 +12,7 @@ interface SentimentSpeakerAnalyticsProps {
 
 const COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
 
-export function SentimentSpeakerAnalytics({
-  sentiment,
-  speakers,
-}: SentimentSpeakerAnalyticsProps) {
+export function SentimentSpeakerAnalytics({ sentiment, speakers }: SentimentSpeakerAnalyticsProps) {
   const activeSentiment: SentimentAnalysis = sentiment || {
     overallTone: "Positive",
     score: 85,
@@ -41,9 +28,9 @@ export function SentimentSpeakerAnalytics({
     speakers && speakers.length > 0
       ? speakers
       : [
-        { name: "Speaker 1", talkTimePercentage: 60, wordCount: 350 },
-        { name: "Speaker 2", talkTimePercentage: 40, wordCount: 230 },
-      ];
+          { name: "Speaker 1", talkTimePercentage: 60, wordCount: 350 },
+          { name: "Speaker 2", talkTimePercentage: 40, wordCount: 230 },
+        ];
 
   // Prepare data for Recharts Pie Chart (Speaker Talk-Time)
   const pieData = activeSpeakers.map((s) => ({
@@ -144,7 +131,10 @@ export function SentimentSpeakerAnalytics({
               Speaker Talk Time
             </h4>
           </div>
-          <Badge variant="outline" className="text-[10px] bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-300">
+          <Badge
+            variant="outline"
+            className="text-[10px] bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-300"
+          >
             {activeSpeakers.length} Speaker(s)
           </Badge>
         </div>
@@ -191,9 +181,7 @@ export function SentimentSpeakerAnalytics({
                     className="h-2 w-2 rounded-full shrink-0"
                     style={{ backgroundColor: COLORS[i % COLORS.length] }}
                   />
-                  <span className="font-semibold text-zinc-800 dark:text-zinc-200 truncate">
-                    {speaker.name}
-                  </span>
+                  <span className="font-semibold text-zinc-800 dark:text-zinc-200 truncate">{speaker.name}</span>
                 </div>
                 <span className="font-mono text-zinc-500 font-bold">{speaker.value}%</span>
               </div>

@@ -21,7 +21,6 @@ interface MeetingFormParticipantsProps {
   appUsers: AppUser[];
 }
 
-
 export function MeetingFormParticipants({
   errors,
   watchParticipants,
@@ -67,9 +66,7 @@ export function MeetingFormParticipants({
   };
 
   const filteredUsers = appUsers.filter(
-    (u) =>
-      u.name.toLowerCase().includes(mentionFilter) ||
-      u.email.toLowerCase().includes(mentionFilter)
+    (u) => u.name.toLowerCase().includes(mentionFilter) || u.email.toLowerCase().includes(mentionFilter)
   );
 
   const participantChips = (watchParticipants || "")
@@ -80,8 +77,12 @@ export function MeetingFormParticipants({
   return (
     <div className="space-y-2 relative">
       <div className="flex items-center justify-between">
-        <Label htmlFor="participants" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
-          <Users className="h-3.5 w-3.5 text-indigo-500" /> Attendees & Participants <span className="text-red-500">*</span>
+        <Label
+          htmlFor="participants"
+          className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5"
+        >
+          <Users className="h-3.5 w-3.5 text-indigo-500" /> Attendees & Participants{" "}
+          <span className="text-red-500">*</span>
         </Label>
         <span className="text-[10px] text-zinc-400 font-normal">
           Type <kbd className="px-1 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded font-mono">@</kbd> to mention user
@@ -103,7 +104,11 @@ export function MeetingFormParticipants({
       {participantChips.length > 0 && (
         <div className="flex flex-wrap gap-1.5 pt-1">
           {participantChips.map((chip, idx) => (
-            <Badge key={idx} variant="secondary" className="text-[11px] bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200">
+            <Badge
+              key={idx}
+              variant="secondary"
+              className="text-[11px] bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200"
+            >
               {chip}
             </Badge>
           ))}

@@ -64,4 +64,3 @@ export function MeetingsHeader({ onCreateClick, onExportCSV, onCompareClick }: M
     </div>
   );
 }
-

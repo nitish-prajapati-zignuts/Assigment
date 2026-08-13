@@ -3,21 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Share2,
-  Copy,
-  CheckCircle2,
-  Lock,
-  Clock,
-  Loader2,
-} from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Share2, Copy, CheckCircle2, Lock, Clock, Loader2 } from "lucide-react";
 
 interface MeetingShareableSectionProps {
   isPublished: boolean;
@@ -65,7 +52,10 @@ export function MeetingShareableSection({
             <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
               Public Meeting Sharing
               {isPublished && (
-                <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200">
+                <Badge
+                  variant="outline"
+                  className="text-[10px] bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200"
+                >
                   Live Link Active
                 </Badge>
               )}
@@ -200,11 +190,21 @@ export function MeetingShareableSection({
                   <SelectValue placeholder="Expires in..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="never" className="text-xs">Never (Permanent)</SelectItem>
-                  <SelectItem value="1" className="text-xs">Expires in 1 Hour</SelectItem>
-                  <SelectItem value="24" className="text-xs">Expires in 24 Hours (1 Day)</SelectItem>
-                  <SelectItem value="168" className="text-xs">Expires in 7 Days</SelectItem>
-                  <SelectItem value="720" className="text-xs">Expires in 30 Days</SelectItem>
+                  <SelectItem value="never" className="text-xs">
+                    Never (Permanent)
+                  </SelectItem>
+                  <SelectItem value="1" className="text-xs">
+                    Expires in 1 Hour
+                  </SelectItem>
+                  <SelectItem value="24" className="text-xs">
+                    Expires in 24 Hours (1 Day)
+                  </SelectItem>
+                  <SelectItem value="168" className="text-xs">
+                    Expires in 7 Days
+                  </SelectItem>
+                  <SelectItem value="720" className="text-xs">
+                    Expires in 30 Days
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -214,14 +214,21 @@ export function MeetingShareableSection({
           {(hasSharePassword || shareExpiresAtDate) && (
             <div className="flex flex-wrap gap-2 pt-1">
               {hasSharePassword && (
-                <Badge variant="secondary" className="text-[10px] bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 flex items-center gap-1">
+                <Badge
+                  variant="secondary"
+                  className="text-[10px] bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 flex items-center gap-1"
+                >
                   <Lock className="h-3 w-3" /> Password Protected
                 </Badge>
               )}
               {shareExpiresAtDate && (
-                <Badge variant="secondary" className="text-[10px] bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border-purple-200 flex items-center gap-1">
+                <Badge
+                  variant="secondary"
+                  className="text-[10px] bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border-purple-200 flex items-center gap-1"
+                >
                   <Clock className="h-3 w-3" />
-                  Expires {new Date(shareExpiresAtDate).toLocaleDateString()} at {new Date(shareExpiresAtDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  Expires {new Date(shareExpiresAtDate).toLocaleDateString()} at{" "}
+                  {new Date(shareExpiresAtDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </Badge>
               )}
             </div>

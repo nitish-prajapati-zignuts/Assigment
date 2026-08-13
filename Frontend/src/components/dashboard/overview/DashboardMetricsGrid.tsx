@@ -53,12 +53,9 @@ export function DashboardMetricsGrid({ metrics, isLoading }: DashboardMetricsGri
                 {metrics.totalMeetings}
               </div>
             )}
-            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1.5 font-medium">
-              Scheduled & recorded
-            </p>
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1.5 font-medium">Scheduled & recorded</p>
           </CardContent>
         </Card>
-
       </motion.div>
 
       {/* 2. Total Action Items */}
@@ -80,9 +77,7 @@ export function DashboardMetricsGrid({ metrics, isLoading }: DashboardMetricsGri
                 {metrics.totalActionItems}
               </div>
             )}
-            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1.5 font-medium">
-              Across all meetings
-            </p>
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1.5 font-medium">Across all meetings</p>
           </CardContent>
         </Card>
       </motion.div>
@@ -106,9 +101,7 @@ export function DashboardMetricsGrid({ metrics, isLoading }: DashboardMetricsGri
                 {metrics.openActionItems}
               </div>
             )}
-            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1.5 font-medium">
-              Pending resolution
-            </p>
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1.5 font-medium">Pending resolution</p>
           </CardContent>
         </Card>
       </motion.div>
@@ -132,9 +125,7 @@ export function DashboardMetricsGrid({ metrics, isLoading }: DashboardMetricsGri
                 {metrics.completedActionItems}
               </div>
             )}
-            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1.5 font-medium">
-              Resolved tasks
-            </p>
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1.5 font-medium">Resolved tasks</p>
           </CardContent>
         </Card>
       </motion.div>
@@ -164,13 +155,10 @@ export function DashboardMetricsGrid({ metrics, isLoading }: DashboardMetricsGri
                 {metrics.overdueActionItems}
               </div>
             )}
-            <p className="text-[11px] text-red-500/90 font-semibold mt-1.5">
-              Requires immediate action
-            </p>
+            <p className="text-[11px] text-red-500/90 font-semibold mt-1.5">Requires immediate action</p>
           </CardContent>
         </Card>
       </motion.div>
     </motion.div>
   );
 }
-

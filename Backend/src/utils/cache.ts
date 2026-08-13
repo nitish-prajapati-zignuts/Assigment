@@ -4,7 +4,7 @@
  * In production, use Redis for distributed caching
  */
 
-import { logger } from './logger';
+import { logger } from "./logger";
 
 export interface CacheEntry<T> {
   value: T;
@@ -27,7 +27,7 @@ class Cache {
       expiresAt,
     });
 
-    logger.debug('Cache SET', { key, ttlMs: ttl });
+    logger.debug("Cache SET", { key, ttlMs: ttl });
 
     // Schedule cleanup
     setTimeout(() => {
@@ -42,18 +42,18 @@ class Cache {
     const entry = this.store.get(key);
 
     if (!entry) {
-      logger.debug('Cache MISS', { key });
+      logger.debug("Cache MISS", { key });
       return null;
     }
 
     // Check expiration
     if (Date.now() > entry.expiresAt) {
       this.delete(key);
-      logger.debug('Cache EXPIRED', { key });
+      logger.debug("Cache EXPIRED", { key });
       return null;
     }
 
-    logger.debug('Cache HIT', { key });
+    logger.debug("Cache HIT", { key });
     return entry.value as T;
   }
 
@@ -64,7 +64,7 @@ class Cache {
     const existed = this.store.has(key);
     if (existed) {
       this.store.delete(key);
-      logger.debug('Cache DELETE', { key });
+      logger.debug("Cache DELETE", { key });
     }
     return existed;
   }
@@ -75,7 +75,7 @@ class Cache {
   clear(): void {
     const size = this.store.size;
     this.store.clear();
-    logger.debug('Cache CLEAR', { entries: size });
+    logger.debug("Cache CLEAR", { entries: size });
   }
 
   /**
@@ -87,7 +87,7 @@ class Cache {
       return cached;
     }
 
-    logger.debug('Cache COMPUTE', { key });
+    logger.debug("Cache COMPUTE", { key });
     const value = await compute();
     this.set(key, value, ttlMs);
     return value;
@@ -114,7 +114,7 @@ export const cache = new Cache();
  * Cache key builders for common scenarios
  */
 export const cacheKeys = {
-  users: () => 'users:all',
+  users: () => "users:all",
   userById: (id: string) => `user:${id}`,
   userByEmail: (email: string) => `user:email:${email}`,
   meetings: (userId: string, page: number, limit: number) => `meetings:${userId}:${page}:${limit}`,
@@ -130,7 +130,7 @@ export const cacheKeys = {
 export const invalidateCache = {
   users: () => {
     cache.delete(cacheKeys.users());
-    logger.debug('Cache invalidated: users');
+    logger.debug("Cache invalidated: users");
   },
 
   user: (id: string, email?: string) => {
@@ -138,7 +138,7 @@ export const invalidateCache = {
     if (email) {
       cache.delete(cacheKeys.userByEmail(email));
     }
-    logger.debug('Cache invalidated: user', { id });
+    logger.debug("Cache invalidated: user", { id });
   },
 
   meetings: (userId: string) => {
@@ -149,12 +149,12 @@ export const invalidateCache = {
         cache.delete(entry.key);
       }
     });
-    logger.debug('Cache invalidated: meetings', { userId });
+    logger.debug("Cache invalidated: meetings", { userId });
   },
 
   meeting: (id: string, ownerEmail?: string) => {
     cache.delete(cacheKeys.meetingById(id));
-    logger.debug('Cache invalidated: meeting', { id });
+    logger.debug("Cache invalidated: meeting", { id });
   },
 
   actionItems: (userId: string, meetingId?: string) => {
@@ -168,17 +168,17 @@ export const invalidateCache = {
         cache.delete(entry.key);
       }
     });
-    logger.debug('Cache invalidated: action items', { userId, meetingId });
+    logger.debug("Cache invalidated: action items", { userId, meetingId });
   },
 
   actionItem: (id: string) => {
     cache.delete(cacheKeys.actionItemById(id));
-    logger.debug('Cache invalidated: action item', { id });
+    logger.debug("Cache invalidated: action item", { id });
   },
 
   all: () => {
     cache.clear();
-    logger.debug('Cache invalidated: all');
+    logger.debug("Cache invalidated: all");
   },
 };
 
@@ -188,7 +188,7 @@ export const invalidateCache = {
 export const cacheMiddleware = (keyBuilder: (req: any) => string, ttlMs?: number) => {
   return async (req: any, res: any, next: any) => {
     // Only cache GET requests
-    if (req.method !== 'GET') {
+    if (req.method !== "GET") {
       return next();
     }
 
@@ -196,7 +196,7 @@ export const cacheMiddleware = (keyBuilder: (req: any) => string, ttlMs?: number
     const cached = cache.get(key);
 
     if (cached !== null) {
-      logger.debug('Serving from cache', { key });
+      logger.debug("Serving from cache", { key });
       return res.json(cached);
     }
 

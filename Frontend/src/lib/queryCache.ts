@@ -24,7 +24,7 @@ class QueryCache {
     const sortedParams = Object.keys(params)
       .sort()
       .map((k) => `${k}=${JSON.stringify(params[k])}`)
-      .join('&');
+      .join("&");
 
     return `${endpoint}?${sortedParams}`;
   }
@@ -106,9 +106,9 @@ export const queryCache = new QueryCache();
 /**
  * React Hook for cached queries
  */
-import { useState, useEffect, useCallback } from 'react';
-import { api } from './axios';
-import { logger } from './logger';
+import { useState, useEffect, useCallback } from "react";
+import { api } from "./axios";
+import { logger } from "./logger";
 
 export interface UseCachedQueryOptions {
   ttl?: number; // Time to live in milliseconds
@@ -116,11 +116,7 @@ export interface UseCachedQueryOptions {
   refetchInterval?: number; // Auto-refetch interval
 }
 
-export function useCachedQuery<T>(
-  endpoint: string,
-  params?: Record<string, any>,
-  options?: UseCachedQueryOptions
-) {
+export function useCachedQuery<T>(endpoint: string, params?: Record<string, any>, options?: UseCachedQueryOptions) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -135,7 +131,7 @@ export function useCachedQuery<T>(
       if (!options?.skipCache) {
         const cached = queryCache.get<T>(endpoint, params);
         if (cached) {
-          logger.debug('Query cache hit', { endpoint });
+          logger.debug("Query cache hit", { endpoint });
           setData(cached);
           setLoading(false);
           return;
@@ -143,7 +139,7 @@ export function useCachedQuery<T>(
       }
 
       // Fetch from API
-      logger.debug('Query cache miss, fetching', { endpoint });
+      logger.debug("Query cache miss, fetching", { endpoint });
       const response = await api.get(endpoint, { params });
       const result = response.data;
 
@@ -154,7 +150,7 @@ export function useCachedQuery<T>(
       setLoading(false);
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
-      logger.error('Query failed', error, { endpoint });
+      logger.error("Query failed", error, { endpoint });
       setError(error);
       setLoading(false);
     }
@@ -196,6 +192,6 @@ export function useCachedQuery<T>(
 export function useQueryInvalidate() {
   return useCallback((endpoint: string, params?: Record<string, any>) => {
     queryCache.invalidate(endpoint, params);
-    logger.debug('Query invalidated', { endpoint });
+    logger.debug("Query invalidated", { endpoint });
   }, []);
 }

@@ -11,7 +11,6 @@ import { sql, eq } from "drizzle-orm";
 import db from "../db";
 import { embedMany } from "ai";
 
-
 dotenv.config();
 
 /**
@@ -37,24 +36,22 @@ export const keyDecisionSchema = z.object({
     .describe(
       "Category of the decision (e.g., Technology/Platform, Feature Approval/Rejection, Timeline Agreed, Scope Change, Budget/Staffing, Responsibility Assigned, General Decision)."
     ),
-  decision: z
-    .string()
-    .describe("Clear, concise statement of the decision made during the meeting."),
+  decision: z.string().describe("Clear, concise statement of the decision made during the meeting."),
   context: z
     .string()
-    .describe("Brief context, background, or rationale for the decision if mentioned. Use empty string '' if not mentioned."),
+    .describe(
+      "Brief context, background, or rationale for the decision if mentioned. Use empty string '' if not mentioned."
+    ),
 });
 
 export const actionItemSchema = z.object({
-  task: z
-    .string()
-    .describe("Clear action task description extracted from the transcript."),
-  owner: z
-    .string()
-    .describe("Name of the person assigned to the task. Use 'Unassigned' if not mentioned."),
+  task: z.string().describe("Clear action task description extracted from the transcript."),
+  owner: z.string().describe("Name of the person assigned to the task. Use 'Unassigned' if not mentioned."),
   dueDate: z
     .string()
-    .describe("Due date string (e.g. YYYY-MM-DD or relative like 'Next Friday'). Use 'Not specified' if not mentioned."),
+    .describe(
+      "Due date string (e.g. YYYY-MM-DD or relative like 'Next Friday'). Use 'Not specified' if not mentioned."
+    ),
   priority: z
     .enum(["Low", "Medium", "High", "Urgent"])
     .describe("Inferred priority level based on context (default 'Medium')."),
@@ -65,7 +62,9 @@ export const actionItemSchema = z.object({
 
 export const speakerAnalyticsSchema = z.object({
   name: z.string().describe("Name of speaker identified in dialogue (e.g. 'John', 'Sarah') or 'Participant 1'."),
-  talkTimePercentage: z.number().describe("Percentage of total talk-time/dialogue contributed by this speaker (0-100)."),
+  talkTimePercentage: z
+    .number()
+    .describe("Percentage of total talk-time/dialogue contributed by this speaker (0-100)."),
   wordCount: z.number().describe("Estimated total word count spoken by this speaker in transcript."),
 });
 
@@ -91,14 +90,22 @@ export const executiveDetailsSchema = z.object({
 export const developerDetailsSchema = z.object({
   codeDeliverables: z.array(z.string()).describe("Code components, features, or bug fixes to be delivered."),
   architecturalChanges: z.array(z.string()).describe("Architectural or design pattern changes discussed."),
-  apiContractsAndDependencies: z.array(z.string()).describe("API contracts, endpoints, schemas, or dependency changes."),
-  technicalBlockers: z.array(z.string()).describe("Engineering blockers, technical debt, or dependencies stalling work."),
+  apiContractsAndDependencies: z
+    .array(z.string())
+    .describe("API contracts, endpoints, schemas, or dependency changes."),
+  technicalBlockers: z
+    .array(z.string())
+    .describe("Engineering blockers, technical debt, or dependencies stalling work."),
 });
 
 export const technicalDetailsSchema = z.object({
-  systemArchitectureChoices: z.array(z.string()).describe("Key system architecture, platform, or infrastructure choices."),
+  systemArchitectureChoices: z
+    .array(z.string())
+    .describe("Key system architecture, platform, or infrastructure choices."),
   techStackTradeoffs: z.array(z.string()).describe("Trade-offs, pros/cons evaluated between tech stack choices."),
-  engineeringConstraints: z.array(z.string()).describe("Engineering constraints, performance SLAs, or security requirements."),
+  engineeringConstraints: z
+    .array(z.string())
+    .describe("Engineering constraints, performance SLAs, or security requirements."),
 });
 
 export const salesDetailsSchema = z.object({
@@ -109,24 +116,18 @@ export const salesDetailsSchema = z.object({
 });
 
 export const meetingSummarySchema = z.object({
-  purpose: z
-    .string()
-    .describe("Concise statement describing the primary goal or purpose of the meeting."),
+  purpose: z.string().describe("Concise statement describing the primary goal or purpose of the meeting."),
   discussionPoints: z
     .array(z.string())
     .describe("Key topics, themes, and important discussion points covered during the meeting."),
   majorOutcomes: z
     .array(z.string())
     .describe("Decisions made, key milestones reached, or key conclusions agreed upon."),
-  importantConcerns: z
-    .array(z.string())
-    .describe("Risks, obstacles, unresolved issues, or critical questions raised."),
+  importantConcerns: z.array(z.string()).describe("Risks, obstacles, unresolved issues, or critical questions raised."),
   unansweredQuestions: z
     .array(z.string())
     .describe("Questions raised during the meeting that remained unanswered or require follow-up"),
-  nextSteps: z
-    .array(z.string())
-    .describe("Action items, assigned tasks, follow-up deadlines, and next milestones."),
+  nextSteps: z.array(z.string()).describe("Action items, assigned tasks, follow-up deadlines, and next milestones."),
   keyDecisions: z
     .array(keyDecisionSchema)
     .describe(
@@ -140,18 +141,25 @@ export const meetingSummarySchema = z.object({
   speakerAnalytics: z
     .array(speakerAnalyticsSchema)
     .describe("Speaker participation breakdown. Calculate talk time percentages and word counts per speaker."),
-  sentimentAnalysis: sentimentAnalysisSchema
-    .describe("Sentiment & emotional tone analysis breakdown of the meeting."),
-  executiveDetails: executiveDetailsSchema.optional().describe("Executive summary details if Executive template is selected."),
-  developerDetails: developerDetailsSchema.optional().describe("Developer task details if Developer template is selected."),
-  technicalDetails: technicalDetailsSchema.optional().describe("Technical decision details if Technical template is selected."),
-  salesDetails: salesDetailsSchema.optional().describe("Sales lead qualification details if Sales template is selected."),
+  sentimentAnalysis: sentimentAnalysisSchema.describe("Sentiment & emotional tone analysis breakdown of the meeting."),
+  executiveDetails: executiveDetailsSchema
+    .optional()
+    .describe("Executive summary details if Executive template is selected."),
+  developerDetails: developerDetailsSchema
+    .optional()
+    .describe("Developer task details if Developer template is selected."),
+  technicalDetails: technicalDetailsSchema
+    .optional()
+    .describe("Technical decision details if Technical template is selected."),
+  salesDetails: salesDetailsSchema
+    .optional()
+    .describe("Sales lead qualification details if Sales template is selected."),
 });
 
 /**
  * Sanitizes and cleans input text by stripping HTML markup, unescaping common HTML entities,
  * and normalizing whitespace to ensure plain text output.
- * 
+ *
  * @param input - The raw text string containing potential HTML markup or entities.
  * @returns Plain text representation with HTML tags removed and spaces normalized.
  */
@@ -204,28 +212,18 @@ export function stripHtml(input: string | null | undefined): string {
 /**
  * Post-processes a structured MeetingSummary object to ensure all string fields
  * are free of HTML tags and assigned appropriate fallback default values if empty.
- * 
+ *
  * @param summary - Raw MeetingSummary object returned by LLM or fallback generator.
  * @returns Cleaned MeetingSummary object with sanitized fields.
  */
 export function cleanSummary(summary: MeetingSummary): MeetingSummary {
   return {
     purpose: stripHtml(summary.purpose) || "General meeting discussion and updates.",
-    discussionPoints: (summary.discussionPoints || [])
-      .map(stripHtml)
-      .filter((s) => s.length > 0),
-    majorOutcomes: (summary.majorOutcomes || [])
-      .map(stripHtml)
-      .filter((s) => s.length > 0),
-    importantConcerns: (summary.importantConcerns || [])
-      .map(stripHtml)
-      .filter((s) => s.length > 0),
-    unansweredQuestions: (summary.unansweredQuestions || [])
-      .map(stripHtml)
-      .filter((s) => s.length > 0),
-    nextSteps: (summary.nextSteps || [])
-      .map(stripHtml)
-      .filter((s) => s.length > 0),
+    discussionPoints: (summary.discussionPoints || []).map(stripHtml).filter((s) => s.length > 0),
+    majorOutcomes: (summary.majorOutcomes || []).map(stripHtml).filter((s) => s.length > 0),
+    importantConcerns: (summary.importantConcerns || []).map(stripHtml).filter((s) => s.length > 0),
+    unansweredQuestions: (summary.unansweredQuestions || []).map(stripHtml).filter((s) => s.length > 0),
+    nextSteps: (summary.nextSteps || []).map(stripHtml).filter((s) => s.length > 0),
     keyDecisions: (summary.keyDecisions || [])
       .map((kd) => ({
         category: stripHtml(kd.category) || "General Decision",
@@ -243,12 +241,13 @@ export function cleanSummary(summary: MeetingSummary): MeetingSummary {
         status: item.status || "Pending",
       }))
       .filter((item) => item.task.length > 0),
-    speakerAnalytics: summary.speakerAnalytics && summary.speakerAnalytics.length > 0
-      ? summary.speakerAnalytics
-      : [
-        { name: "Speaker 1", talkTimePercentage: 60, wordCount: 350 },
-        { name: "Speaker 2", talkTimePercentage: 40, wordCount: 230 },
-      ],
+    speakerAnalytics:
+      summary.speakerAnalytics && summary.speakerAnalytics.length > 0
+        ? summary.speakerAnalytics
+        : [
+            { name: "Speaker 1", talkTimePercentage: 60, wordCount: 350 },
+            { name: "Speaker 2", talkTimePercentage: 40, wordCount: 230 },
+          ],
     sentimentAnalysis: summary.sentimentAnalysis || {
       overallTone: "Positive",
       score: 82,
@@ -257,33 +256,33 @@ export function cleanSummary(summary: MeetingSummary): MeetingSummary {
     templateStyle: summary.templateStyle || "Standard",
     executiveDetails: summary.executiveDetails
       ? {
-        strategicImpact: stripHtml(summary.executiveDetails.strategicImpact),
-        financialOrTimelineRisks: (summary.executiveDetails.financialOrTimelineRisks || []).map(stripHtml),
-        executiveRecommendations: (summary.executiveDetails.executiveRecommendations || []).map(stripHtml),
-      }
+          strategicImpact: stripHtml(summary.executiveDetails.strategicImpact),
+          financialOrTimelineRisks: (summary.executiveDetails.financialOrTimelineRisks || []).map(stripHtml),
+          executiveRecommendations: (summary.executiveDetails.executiveRecommendations || []).map(stripHtml),
+        }
       : undefined,
     developerDetails: summary.developerDetails
       ? {
-        codeDeliverables: (summary.developerDetails.codeDeliverables || []).map(stripHtml),
-        architecturalChanges: (summary.developerDetails.architecturalChanges || []).map(stripHtml),
-        apiContractsAndDependencies: (summary.developerDetails.apiContractsAndDependencies || []).map(stripHtml),
-        technicalBlockers: (summary.developerDetails.technicalBlockers || []).map(stripHtml),
-      }
+          codeDeliverables: (summary.developerDetails.codeDeliverables || []).map(stripHtml),
+          architecturalChanges: (summary.developerDetails.architecturalChanges || []).map(stripHtml),
+          apiContractsAndDependencies: (summary.developerDetails.apiContractsAndDependencies || []).map(stripHtml),
+          technicalBlockers: (summary.developerDetails.technicalBlockers || []).map(stripHtml),
+        }
       : undefined,
     technicalDetails: summary.technicalDetails
       ? {
-        systemArchitectureChoices: (summary.technicalDetails.systemArchitectureChoices || []).map(stripHtml),
-        techStackTradeoffs: (summary.technicalDetails.techStackTradeoffs || []).map(stripHtml),
-        engineeringConstraints: (summary.technicalDetails.engineeringConstraints || []).map(stripHtml),
-      }
+          systemArchitectureChoices: (summary.technicalDetails.systemArchitectureChoices || []).map(stripHtml),
+          techStackTradeoffs: (summary.technicalDetails.techStackTradeoffs || []).map(stripHtml),
+          engineeringConstraints: (summary.technicalDetails.engineeringConstraints || []).map(stripHtml),
+        }
       : undefined,
     salesDetails: summary.salesDetails
       ? {
-        clientPainPoints: (summary.salesDetails.clientPainPoints || []).map(stripHtml),
-        budgetAndAuthority: stripHtml(summary.salesDetails.budgetAndAuthority),
-        timelineExpectations: stripHtml(summary.salesDetails.timelineExpectations),
-        nextSalesSteps: (summary.salesDetails.nextSalesSteps || []).map(stripHtml),
-      }
+          clientPainPoints: (summary.salesDetails.clientPainPoints || []).map(stripHtml),
+          budgetAndAuthority: stripHtml(summary.salesDetails.budgetAndAuthority),
+          timelineExpectations: stripHtml(summary.salesDetails.timelineExpectations),
+          nextSalesSteps: (summary.salesDetails.nextSalesSteps || []).map(stripHtml),
+        }
       : undefined,
   };
 }
@@ -291,15 +290,12 @@ export function cleanSummary(summary: MeetingSummary): MeetingSummary {
 /**
  * Heuristic fallback generator used when no AI API key is configured or when AI provider calls fail.
  * Extracts key sentences, decision keywords, and simple action items directly from transcript text lines.
- * 
+ *
  * @param rawTranscript - Raw transcript string.
  * @param title - Optional meeting title.
  * @returns A structured MeetingSummary generated via text heuristic extraction.
  */
-export function generateFallbackSummary(
-  rawTranscript: string,
-  title?: string
-): MeetingSummary {
+export function generateFallbackSummary(rawTranscript: string, title?: string): MeetingSummary {
   const plainTranscript = stripHtml(rawTranscript);
 
   const lines = plainTranscript
@@ -327,13 +323,24 @@ export function generateFallbackSummary(
 
   // Extract questions or unanswered items from transcript lines
   const extractedQuestions = lines
-    .filter((l) => l.endsWith("?") || l.toLowerCase().includes("unresolved") || l.toLowerCase().includes("tbd") || l.toLowerCase().includes("open question"))
+    .filter(
+      (l) =>
+        l.endsWith("?") ||
+        l.toLowerCase().includes("unresolved") ||
+        l.toLowerCase().includes("tbd") ||
+        l.toLowerCase().includes("open question")
+    )
     .slice(0, 3);
 
   const extractedDecisions: KeyDecision[] = [];
   const lowerText = cleanText.toLowerCase();
 
-  if (lowerText.includes("agreed") || lowerText.includes("decided") || lowerText.includes("outcome") || lowerText.includes("approved")) {
+  if (
+    lowerText.includes("agreed") ||
+    lowerText.includes("decided") ||
+    lowerText.includes("outcome") ||
+    lowerText.includes("approved")
+  ) {
     const decisionLine = lines.find((l) => {
       const low = l.toLowerCase();
       return low.includes("agreed") || low.includes("decided") || low.includes("approved") || low.includes("outcome");
@@ -394,10 +401,7 @@ export function generateFallbackSummary(
     nextSteps:
       points.length > 5
         ? points.slice(4, 7)
-        : [
-          "Complete assigned action items discussed in transcript.",
-          "Share updated documentation with team members.",
-        ],
+        : ["Complete assigned action items discussed in transcript.", "Share updated documentation with team members."],
     keyDecisions: extractedDecisions,
     actionItems: extractedActionItems,
     speakerAnalytics: (() => {
@@ -427,8 +431,11 @@ export function generateFallbackSummary(
     })(),
     sentimentAnalysis: (() => {
       const text = cleanText.toLowerCase();
-      let posCount = (text.match(/\b(good|great|agreed|approved|thanks|happy|excellent|successful|awesome|progress)\b/g) || []).length;
-      let conCount = (text.match(/\b(risk|issue|delay|problem|concern|blocked|stuck|difficult|worry|hard)\b/g) || []).length;
+      let posCount = (
+        text.match(/\b(good|great|agreed|approved|thanks|happy|excellent|successful|awesome|progress)\b/g) || []
+      ).length;
+      let conCount = (text.match(/\b(risk|issue|delay|problem|concern|blocked|stuck|difficult|worry|hard)\b/g) || [])
+        .length;
       let heatCount = (text.match(/\b(no|disagree|wrong|fail|failed|reject|refuse|argument)\b/g) || []).length;
       let totalHits = posCount + conCount + heatCount;
 
@@ -480,7 +487,7 @@ export function generateFallbackSummary(
  * 2. Rotating Keys Policy (GEMINI_API_KEYS)
  * 3. Fallback Model Key (GEMINI_FALL_BACK_KEY in error catch block)
  * 4. Last Resort Heuristic Summary Generator
- * 
+ *
  * @param rawTranscript - Raw transcript string.
  * @param customApiKey - Optional custom API key provided by user.
  * @param title - Optional title of the meeting.
@@ -526,7 +533,9 @@ export async function generateMeetingSummary(
         });
         return cleanSummary({ ...object, templateStyle: template });
       } catch (primaryError: any) {
-        console.warn(`Primary Google Key failed: ${primaryError?.message || primaryError}. Proceeding to Key Rotation policy...`);
+        console.warn(
+          `Primary Google Key failed: ${primaryError?.message || primaryError}. Proceeding to Key Rotation policy...`
+        );
       }
     }
 
@@ -559,14 +568,15 @@ export async function generateMeetingSummary(
 
     // If both Primary and Rotation Keys failed/exhausted, throw error to trigger Fallback catch block
     throw new Error("All Primary and Rotating Gemini API keys failed or were exhausted.");
-
   } catch (error: any) {
     // ========================================================
     // 3. FALLBACK PLAN (GEMINI_FALL_BACK_KEY in Error Catch Block)
     // ========================================================
     if (geminiFallBackKey) {
       try {
-        console.log("🆘 [Step 3] Primary & Rotating keys failed. Attempting Fallback Model Key (GEMINI_FALL_BACK_KEY)...");
+        console.log(
+          "🆘 [Step 3] Primary & Rotating keys failed. Attempting Fallback Model Key (GEMINI_FALL_BACK_KEY)..."
+        );
         const google = createGoogleGenerativeAI({ apiKey: geminiFallBackKey });
         const { object } = await generateObject({
           model: google("gemini-3.5-flash-lite"),
@@ -586,7 +596,9 @@ export async function generateMeetingSummary(
   // ========================================================
   // 4. LAST RESORT: HEURISTIC GENERATOR
   // ========================================================
-  console.warn("🚨 [Step 4] Primary Google Key, Key Rotation pool, and Fallback Key all failed. Using structured heuristic fallback.");
+  console.warn(
+    "🚨 [Step 4] Primary Google Key, Key Rotation pool, and Fallback Key all failed. Using structured heuristic fallback."
+  );
   return generateFallbackSummary(plainTranscript, title);
 }
 
@@ -595,10 +607,7 @@ import { appendDebugLog } from "../utils/appendLog";
 /**
  * Splits transcript into paragraph chunks, generates embeddings using OpenAI, and saves them to the vector database
  */
-export async function processAndSaveTranscriptEmbeddings(
-  meetingId: string,
-  transcript: string
-): Promise<void> {
+export async function processAndSaveTranscriptEmbeddings(meetingId: string, transcript: string): Promise<void> {
   const googleApiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
 
   appendDebugLog(`--- Starting Embedding Process for Meeting ID: ${meetingId} ---`);
@@ -613,8 +622,8 @@ export async function processAndSaveTranscriptEmbeddings(
     // Split by paragraphs
     const paragraphs = plainText
       .split(/\n\s*\n/)
-      .map(p => p.trim())
-      .filter(p => p.length > 20);
+      .map((p) => p.trim())
+      .filter((p) => p.length > 20);
 
     appendDebugLog(`Found ${paragraphs.length} paragraphs matching length criteria (> 20 chars).`);
 
@@ -704,9 +713,9 @@ export async function queryMeetingRAG(
           .orderBy(sql`${meetingChunks.embedding} <=> ${JSON.stringify(embedding)}::vector`)
           .limit(5);
 
-        const filtered = matchingChunks.filter(c => c.similarity >= similarityThreshold);
+        const filtered = matchingChunks.filter((c) => c.similarity >= similarityThreshold);
         if (filtered.length > 0) {
-          retrievedSources = filtered.map(f => f.content);
+          retrievedSources = filtered.map((f) => f.content);
         }
       }
     } catch (vecErr) {
@@ -716,12 +725,16 @@ export async function queryMeetingRAG(
 
   // 2. Fall back to text chunk parsing if pgvector is empty or not configured
   if (retrievedSources.length === 0) {
-    const lines = plainTranscript.split('\n').map(l => l.trim()).filter(Boolean);
-    const qKeywords = question.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+    const lines = plainTranscript
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean);
+    const qKeywords = question
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((w) => w.length > 3);
 
-    let matchingLines = lines.filter(line =>
-      qKeywords.some(keyword => line.toLowerCase().includes(keyword))
-    );
+    let matchingLines = lines.filter((line) => qKeywords.some((keyword) => line.toLowerCase().includes(keyword)));
 
     if (matchingLines.length === 0) {
       retrievedSources = lines.slice(0, 30);
@@ -730,8 +743,8 @@ export async function queryMeetingRAG(
     }
   }
 
-  const contextText = retrievedSources.join('\n');
-  const chatHistoryStr = history.map(h => `${h.role === 'user' ? 'Question' : 'Answer'}: ${h.content}`).join('\n');
+  const contextText = retrievedSources.join("\n");
+  const chatHistoryStr = history.map((h) => `${h.role === "user" ? "Question" : "Answer"}: ${h.content}`).join("\n");
 
   const prompt = `You are an expert AI meeting assistant. Answer the user's question based strictly on the following meeting transcript context.
   
@@ -753,8 +766,8 @@ Instructions:
   // Try API keys in order
   const apiKeys = [
     primaryGoogleKey,
-    ...getRotationPolicyApiKeys().filter(k => k !== primaryGoogleKey),
-    geminiFallBackKey
+    ...getRotationPolicyApiKeys().filter((k) => k !== primaryGoogleKey),
+    geminiFallBackKey,
   ].filter(Boolean) as string[];
 
   for (let i = 0; i < apiKeys.length; i++) {
@@ -777,7 +790,7 @@ Instructions:
   }
 
   return {
-    answer: `[Heuristic Fallback] Based on transcript: ${retrievedSources.slice(0, 3).join('; ')}`,
+    answer: `[Heuristic Fallback] Based on transcript: ${retrievedSources.slice(0, 3).join("; ")}`,
     retrievedSources,
   };
 }

@@ -14,13 +14,7 @@ interface MeetingsCardsProps {
   onDelete: (meeting: Meeting) => void;
 }
 
-export function MeetingsCards({
-  isLoading,
-  displayMeetings,
-  onViewDetails,
-  onEdit,
-  onDelete,
-}: MeetingsCardsProps) {
+export function MeetingsCards({ isLoading, displayMeetings, onViewDetails, onEdit, onDelete }: MeetingsCardsProps) {
   return (
     <div className="md:hidden space-y-3">
       {isLoading ? (
@@ -122,4 +116,3 @@ export function MeetingsCards({
     </div>
   );
 }
-

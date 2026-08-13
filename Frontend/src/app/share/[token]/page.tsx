@@ -169,7 +169,8 @@ export default function PublicSharePage() {
           </CardHeader>
           <CardContent className="space-y-4 pb-6">
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              The owner of this meeting has restricted access with a password. Enter the password below to view the summary.
+              The owner of this meeting has restricted access with a password. Enter the password below to view the
+              summary.
             </p>
 
             <form onSubmit={handlePasswordSubmit} className="space-y-3 pt-2">
@@ -181,9 +182,7 @@ export default function PublicSharePage() {
                 className="text-sm h-10 text-center"
                 autoFocus
               />
-              {passwordError && (
-                <p className="text-xs text-red-500 font-medium">{passwordError}</p>
-              )}
+              {passwordError && <p className="text-xs text-red-500 font-medium">{passwordError}</p>}
               <Button
                 type="submit"
                 disabled={isVerifyingPassword || !passwordInput.trim()}
@@ -219,7 +218,8 @@ export default function PublicSharePage() {
           </CardHeader>
           <CardContent className="space-y-4 pb-6">
             <p className="text-xs text-zinc-600 dark:text-zinc-400">
-              {error || "This shared meeting link is either invalid, expired, or sharing has been disabled by the owner."}
+              {error ||
+                "This shared meeting link is either invalid, expired, or sharing has been disabled by the owner."}
             </p>
           </CardContent>
         </Card>
@@ -236,7 +236,10 @@ export default function PublicSharePage() {
         <header className="bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border-amber-200">
+              <Badge
+                variant="outline"
+                className="text-xs bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border-amber-200"
+              >
                 <Share2 className="h-4 w-4 mr-1" /> Public Shared View
               </Badge>
               <Badge variant="secondary" className="text-xs font-normal">
@@ -248,9 +251,7 @@ export default function PublicSharePage() {
             </span>
           </div>
 
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-            {meeting.title}
-          </h1>
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{meeting.title}</h1>
 
           {/* Participants */}
           <div className="flex items-center gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/80">
@@ -279,9 +280,7 @@ export default function PublicSharePage() {
                 <h2 className="text-sm font-semibold text-amber-900 dark:text-amber-300 flex items-center gap-2">
                   <Sparkles className="h-5 w-5 text-amber-500" /> Executive Purpose
                 </h2>
-                <p className="text-sm text-amber-950 dark:text-amber-200/90 leading-relaxed">
-                  {summary.purpose}
-                </p>
+                <p className="text-sm text-amber-950 dark:text-amber-200/90 leading-relaxed">{summary.purpose}</p>
               </div>
             )}
 
@@ -328,19 +327,23 @@ export default function PublicSharePage() {
                 </h3>
                 <div className="grid gap-2.5">
                   {summary.keyDecisions.map((decision, idx) => (
-                    <div key={idx} className="p-3 bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/30 rounded-xl space-y-1">
+                    <div
+                      key={idx}
+                      className="p-3 bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/30 rounded-xl space-y-1"
+                    >
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-semibold text-purple-900 dark:text-purple-300">
                           {decision.decision}
                         </span>
-                        <Badge variant="outline" className="text-[10px] bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 border-none">
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 border-none"
+                        >
                           {decision.category}
                         </Badge>
                       </div>
                       {decision.context && (
-                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                          Context: {decision.context}
-                        </p>
+                        <p className="text-[11px] text-zinc-500 dark:text-zinc-400">Context: {decision.context}</p>
                       )}
                     </div>
                   ))}
@@ -356,10 +359,11 @@ export default function PublicSharePage() {
                 </h3>
                 <div className="space-y-2">
                   {summary.actionItems.map((item, idx) => (
-                    <div key={idx} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-100 dark:border-zinc-800 gap-2">
-                      <span className="text-xs font-medium text-zinc-800 dark:text-zinc-200">
-                        {item.task}
-                      </span>
+                    <div
+                      key={idx}
+                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-100 dark:border-zinc-800 gap-2"
+                    >
+                      <span className="text-xs font-medium text-zinc-800 dark:text-zinc-200">{item.task}</span>
                       <div className="flex items-center gap-2 shrink-0">
                         <Badge variant="outline" className="text-[10px]">
                           Owner: {item.owner}

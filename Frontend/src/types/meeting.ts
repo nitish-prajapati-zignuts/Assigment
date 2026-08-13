@@ -100,5 +100,5 @@ export interface Meeting {
   isMeetingPublished?: boolean;
   shareExpiresAt?: string | null;
   hasPassword?: boolean;
-  hasChunks: boolean
+  hasChunks: boolean;
 }

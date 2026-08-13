@@ -6,13 +6,7 @@ import { ActionItemWithContext } from "./types";
 import { getPriorityBadgeClass } from "./utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User, Calendar, Edit, Trash2, Loader2 } from "lucide-react";
 
 interface ActionItemsCardsProps {
@@ -39,9 +33,7 @@ export function ActionItemsCards({
       {isLoading || isFetching ? (
         <div className="flex flex-col items-center justify-center p-8 bg-white/80 dark:bg-zinc-900/80 rounded-2xl border border-zinc-200 dark:border-zinc-800 text-zinc-500">
           <Loader2 className="h-6 w-6 animate-spin text-indigo-500 mb-2" />
-          <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
-            Loading fresh action items...
-          </span>
+          <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Loading fresh action items...</span>
         </div>
       ) : displayItems.length === 0 ? (
         <div className="p-6 text-center bg-white/80 dark:bg-zinc-900/80 rounded-2xl border border-zinc-200 dark:border-zinc-800 text-zinc-500">
@@ -62,9 +54,7 @@ export function ActionItemsCards({
             }`}
           >
             <div className="flex items-start justify-between gap-2">
-              <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-snug">
-                {item.task}
-              </p>
+              <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-snug">{item.task}</p>
               <div className="flex items-center gap-1 shrink-0">
                 <Button
                   variant="ghost"
@@ -116,9 +106,7 @@ export function ActionItemsCards({
               <Select
                 value={item.status}
                 disabled={updatingItemId === item.id}
-                onValueChange={(val) =>
-                  val && onStatusChange(item.id, val as ActionItem["status"])
-                }
+                onValueChange={(val) => val && onStatusChange(item.id, val as ActionItem["status"])}
               >
                 <SelectTrigger className="h-8 text-xs w-30 border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-800/50 text-zinc-900 dark:text-zinc-100 flex items-center justify-between rounded-xl">
                   {updatingItemId === item.id ? (
@@ -144,4 +132,3 @@ export function ActionItemsCards({
     </div>
   );
 }
-

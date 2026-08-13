@@ -3,7 +3,7 @@
  * Provides type-safe API response handling with runtime validation
  */
 
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * API Error Response Schema
@@ -59,8 +59,8 @@ export const actionItemSchema = z.object({
   task: z.string(),
   owner: z.string(),
   dueDate: z.string(),
-  priority: z.enum(['low', 'medium', 'high', 'critical']),
-  status: z.enum(['pending', 'in_progress', 'completed', 'cancelled']),
+  priority: z.enum(["low", "medium", "high", "critical"]),
+  status: z.enum(["pending", "in_progress", "completed", "cancelled"]),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -107,10 +107,7 @@ export type AuthResponse = z.infer<typeof authResponseSchema>;
 /**
  * Validate API response against schema
  */
-export function validateResponse<T>(
-  data: unknown,
-  schema: z.ZodSchema<T>
-): T {
+export function validateResponse<T>(data: unknown, schema: z.ZodSchema<T>): T {
   return schema.parse(data);
 }
 
@@ -128,14 +125,12 @@ export function validateResponseSafe<T>(
     if (error instanceof z.ZodError) {
       return {
         success: false,
-        error: `Validation failed: ${error.issues
-          .map((e) => `${e.path.join('.')}: ${e.message}`)
-          .join('; ')}`,
+        error: `Validation failed: ${error.issues.map((e) => `${e.path.join(".")}: ${e.message}`).join("; ")}`,
       };
     }
     return {
       success: false,
-      error: 'Unknown validation error',
+      error: "Unknown validation error",
     };
   }
 }
@@ -154,33 +149,37 @@ export function isAPIError(data: unknown): data is APIError {
 
 export function getErrorMessage(error: unknown): string {
   if (isAPIError(error)) {
-    if (error.message && error.message !== 'Request validation failed') {
+    if (error.message && error.message !== "Request validation failed") {
       return error.message;
     }
-    if (error.details && typeof error.details === 'object' && Object.keys(error.details).length > 0) {
+    if (error.details && typeof error.details === "object" && Object.keys(error.details).length > 0) {
       const firstDetail = Object.values(error.details)[0];
-      if (typeof firstDetail === 'string' && firstDetail) return firstDetail;
+      if (typeof firstDetail === "string" && firstDetail) return firstDetail;
     }
     return error.message || error.error;
   }
 
-  if (error && typeof error === 'object') {
+  if (error && typeof error === "object") {
     const errObj = error as any;
     const responseData = errObj.response?.data || errObj.data;
 
     if (responseData) {
-      if (responseData.message && responseData.message !== 'Request validation failed') {
+      if (responseData.message && responseData.message !== "Request validation failed") {
         return responseData.message;
       }
-      if (responseData.details && typeof responseData.details === 'object' && Object.keys(responseData.details).length > 0) {
+      if (
+        responseData.details &&
+        typeof responseData.details === "object" &&
+        Object.keys(responseData.details).length > 0
+      ) {
         const firstDetail = Object.values(responseData.details)[0];
-        if (typeof firstDetail === 'string' && firstDetail) return firstDetail;
+        if (typeof firstDetail === "string" && firstDetail) return firstDetail;
       }
       if (responseData.message) return responseData.message;
-      if (responseData.error && typeof responseData.error === 'string') return responseData.error;
+      if (responseData.error && typeof responseData.error === "string") return responseData.error;
     }
 
-    if (errObj.message && typeof errObj.message === 'string') {
+    if (errObj.message && typeof errObj.message === "string") {
       return errObj.message;
     }
   }
@@ -189,9 +188,9 @@ export function getErrorMessage(error: unknown): string {
     return error.message;
   }
 
-  if (typeof error === 'string') {
+  if (typeof error === "string") {
     return error;
   }
 
-  return 'An unknown error occurred';
+  return "An unknown error occurred";
 }

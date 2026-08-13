@@ -2,13 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MeetingType, SummaryLength, SummaryTemplate } from "@/types/meeting";
 import { FieldErrors, UseFormRegister, UseFormSetValue } from "react-hook-form";
 
@@ -60,9 +54,7 @@ export function MeetingFormBasicInfo({
           {...register("title")}
           className="text-xs bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
         />
-        {errors.title && (
-          <p className="text-[11px] text-red-500 font-medium">{errors.title.message as string}</p>
-        )}
+        {errors.title && <p className="text-[11px] text-red-500 font-medium">{errors.title.message as string}</p>}
       </div>
 
       {/* Date & Type Grid */}
@@ -72,11 +64,7 @@ export function MeetingFormBasicInfo({
             <Label htmlFor="date" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
               Meeting Date <span className="text-red-500">*</span>
             </Label>
-            {isEditing && (
-              <span className="text-[10px] text-zinc-400 font-medium italic">
-                Date Locked (Preserved)
-              </span>
-            )}
+            {isEditing && <span className="text-[10px] text-zinc-400 font-medium italic">Date Locked (Preserved)</span>}
           </div>
           <Input
             id="date"
@@ -85,20 +73,14 @@ export function MeetingFormBasicInfo({
             {...register("date")}
             className="text-xs bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 disabled:opacity-60 disabled:cursor-not-allowed"
           />
-          {errors.date && (
-            <p className="text-[11px] text-red-500 font-medium">{errors.date.message as string}</p>
-          )}
+          {errors.date && <p className="text-[11px] text-red-500 font-medium">{errors.date.message as string}</p>}
         </div>
-
 
         <div className="space-y-1.5">
           <Label htmlFor="type" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
             Meeting Category <span className="text-red-500">*</span>
           </Label>
-          <Select
-            value={typeValue}
-            onValueChange={(val) => val && setValue("type", val as MeetingType)}
-          >
+          <Select value={typeValue} onValueChange={(val) => val && setValue("type", val as MeetingType)}>
             <SelectTrigger className="text-xs bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
               <SelectValue placeholder="Select type" />
             </SelectTrigger>
@@ -116,9 +98,7 @@ export function MeetingFormBasicInfo({
       {/* AI Customization Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 p-3 rounded-xl bg-zinc-50/70 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-zinc-800">
         <div className="space-y-1">
-          <Label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-            Summary Depth
-          </Label>
+          <Label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">Summary Depth</Label>
           <Select value={summaryLength} onValueChange={(v) => v && setSummaryLength(v as SummaryLength)}>
             <SelectTrigger className="h-7 text-xs bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700">
               <SelectValue />
@@ -132,9 +112,7 @@ export function MeetingFormBasicInfo({
         </div>
 
         <div className="space-y-1">
-          <Label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-            Prompt Template
-          </Label>
+          <Label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">Prompt Template</Label>
           <Select value={template} onValueChange={(v) => v && setTemplate(v as SummaryTemplate)}>
             <SelectTrigger className="h-7 text-xs bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700">
               <SelectValue />
@@ -150,9 +128,7 @@ export function MeetingFormBasicInfo({
         </div>
 
         <div className="space-y-1">
-          <Label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
-            Output Language
-          </Label>
+          <Label className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">Output Language</Label>
           <Select value={language} onValueChange={(v) => v && setLanguage(v)}>
             <SelectTrigger className="h-7 text-xs bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700">
               <SelectValue />

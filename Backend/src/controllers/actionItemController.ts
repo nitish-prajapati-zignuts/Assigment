@@ -7,17 +7,8 @@ import { AuthenticatedRequest } from "../middleware/authMiddleware";
 
 import { asyncHandler } from "../middleware/errorHandler";
 import { logger } from "../utils/logger";
-import { 
-  NotFoundError, 
-  ValidationError, 
-  InternalServerError,
-  AuthorizationError 
-} from "../utils/errors";
-import {
-  getPaginationOffset,
-  calculatePagination,
-  buildPaginatedResponse
-} from "../utils/queryOptimization";
+import { NotFoundError, ValidationError, InternalServerError, AuthorizationError } from "../utils/errors";
+import { getPaginationOffset, calculatePagination, buildPaginatedResponse } from "../utils/queryOptimization";
 import { ActionItemQueryInput, CreateActionItemInput, UpdateActionItemInput } from "../utils/validation";
 
 /**
@@ -25,10 +16,7 @@ import { ActionItemQueryInput, CreateActionItemInput, UpdateActionItemInput } fr
  * Retrieves a filtered and paginated list of action items accessible to the authenticated user.
  * Uses database indexes for efficient filtering.
  */
-export const getActionItems = asyncHandler(async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
+export const getActionItems = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { meetingId, status, priority, page, limit, sortBy, sortOrder } = req.query as unknown as ActionItemQueryInput;
   const currentUserEmail = req.user?.email?.toLowerCase();
 
@@ -42,11 +30,10 @@ export const getActionItems = asyncHandler(async (
     const userMeetingIds = new Set(
       allMeetings
         .filter(
-          (m: { participants: any[]; }) =>
-            Array.isArray(m.participants) &&
-            m.participants.some((p: string) => p.toLowerCase() === currentUserEmail)
+          (m: { participants: any[] }) =>
+            Array.isArray(m.participants) && m.participants.some((p: string) => p.toLowerCase() === currentUserEmail)
         )
-        .map((m: { id: any; }) => m.id)
+        .map((m: { id: any }) => m.id)
     );
 
     // Fetch all action items (in production, filter at DB level using indexes)
@@ -63,18 +50,18 @@ export const getActionItems = asyncHandler(async (
 
     // Apply additional filters
     if (meetingId) {
-      filtered = filtered.filter((item: { meetingId: string; }) => item.meetingId === meetingId);
+      filtered = filtered.filter((item: { meetingId: string }) => item.meetingId === meetingId);
     }
 
     if (status) {
       filtered = filtered.filter(
-        (item: { status: string | null; }) => item.status?.toLowerCase() === status.toLowerCase()
+        (item: { status: string | null }) => item.status?.toLowerCase() === status.toLowerCase()
       );
     }
 
     if (priority) {
       filtered = filtered.filter(
-        (item: { priority: string | null; }) => item.priority?.toLowerCase() === priority.toLowerCase()
+        (item: { priority: string | null }) => item.priority?.toLowerCase() === priority.toLowerCase()
       );
     }
 
@@ -103,18 +90,12 @@ export const getActionItems = asyncHandler(async (
  * GET /api/action-items/meeting/:meetingId
  * Retrieves all action items associated with a specific meeting.
  */
-export const getActionItemsByMeeting = asyncHandler(async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
+export const getActionItemsByMeeting = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const meetingId = String(req.params.meetingId);
 
   try {
     // Verify meeting exists and user has access
-    const meeting = await db
-      .select()
-      .from(meetings)
-      .where(eq(meetings.id, meetingId));
+    const meeting = await db.select().from(meetings).where(eq(meetings.id, meetingId));
 
     if (meeting.length === 0) {
       throw new NotFoundError("Meeting");
@@ -129,10 +110,7 @@ export const getActionItemsByMeeting = asyncHandler(async (
     }
 
     // Fetch items using index
-    const items = await db
-      .select()
-      .from(actionItems)
-      .where(eq(actionItems.meetingId, meetingId));
+    const items = await db.select().from(actionItems).where(eq(actionItems.meetingId, meetingId));
 
     logger.debug("Fetched meeting action items", { meetingId, count: items.length });
 
@@ -147,18 +125,12 @@ export const getActionItemsByMeeting = asyncHandler(async (
  * GET /api/action-items/:id
  * Retrieves details of a single action item with access control.
  */
-export const getActionItemById = asyncHandler(async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
+export const getActionItemById = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const targetId = String(req.params.id);
   const userEmail = req.user?.email?.toLowerCase();
 
   try {
-    const result = await db
-      .select()
-      .from(actionItems)
-      .where(eq(actionItems.id, targetId));
+    const result = await db.select().from(actionItems).where(eq(actionItems.id, targetId));
 
     if (result.length === 0) {
       throw new NotFoundError("Action item");
@@ -167,10 +139,7 @@ export const getActionItemById = asyncHandler(async (
     const actionItem = result[0];
 
     // Check access: user is meeting participant or assigned to item
-    const meeting = await db
-      .select()
-      .from(meetings)
-      .where(eq(meetings.id, actionItem.meetingId));
+    const meeting = await db.select().from(meetings).where(eq(meetings.id, actionItem.meetingId));
 
     if (meeting.length === 0) {
       throw new NotFoundError("Associated meeting");
@@ -199,81 +168,73 @@ export const getActionItemById = asyncHandler(async (
  * GET /api/action-items/leaderboard
  * Aggregates task execution metrics per owner for real-time Team Leaderboard.
  */
-export const getActionItemsLeaderboard = asyncHandler(async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
-  try {
-    const allItems = await db.select().from(actionItems);
+export const getActionItemsLeaderboard = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const allItems = await db.select().from(actionItems);
 
-    const map = new Map<string, { total: number; completed: number; inProgress: number; blocked: number }>();
+      const map = new Map<string, { total: number; completed: number; inProgress: number; blocked: number }>();
 
-    allItems.forEach((item) => {
-      const ownerName = item.owner || "Unassigned";
-      if (!map.has(ownerName)) {
-        map.set(ownerName, { total: 0, completed: 0, inProgress: 0, blocked: 0 });
-      }
-      const stats = map.get(ownerName)!;
-      stats.total += 1;
-      if (item.status === "Completed") stats.completed += 1;
-      else if (item.status === "In Progress") stats.inProgress += 1;
-      else if (item.status === "Blocked") stats.blocked += 1;
-    });
+      allItems.forEach((item) => {
+        const ownerName = item.owner || "Unassigned";
+        if (!map.has(ownerName)) {
+          map.set(ownerName, { total: 0, completed: 0, inProgress: 0, blocked: 0 });
+        }
+        const stats = map.get(ownerName)!;
+        stats.total += 1;
+        if (item.status === "Completed") stats.completed += 1;
+        else if (item.status === "In Progress") stats.inProgress += 1;
+        else if (item.status === "Blocked") stats.blocked += 1;
+      });
 
-    const leaderboard = Array.from(map.entries()).map(([owner, stats]) => {
-      const completionRate = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
-      let badgeTitle = "Task Contributor";
-      let badgeColor = "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 border-zinc-200";
+      const leaderboard = Array.from(map.entries()).map(([owner, stats]) => {
+        const completionRate = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+        let badgeTitle = "Task Contributor";
+        let badgeColor = "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 border-zinc-200";
 
-      if (completionRate >= 75 && stats.completed > 0) {
-        badgeTitle = "Execution Champion 🏆";
-        badgeColor = "bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border-amber-300";
-      } else if (completionRate >= 40 || stats.completed >= 2) {
-        badgeTitle = "Sprint Star ⚡";
-        badgeColor = "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/80 dark:text-indigo-300 border-indigo-300";
-      } else if (stats.inProgress > 0) {
-        badgeTitle = "Task Ninja 🥷";
-        badgeColor = "bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300 border-blue-300";
-      }
+        if (completionRate >= 75 && stats.completed > 0) {
+          badgeTitle = "Execution Champion 🏆";
+          badgeColor = "bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border-amber-300";
+        } else if (completionRate >= 40 || stats.completed >= 2) {
+          badgeTitle = "Sprint Star ⚡";
+          badgeColor = "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/80 dark:text-indigo-300 border-indigo-300";
+        } else if (stats.inProgress > 0) {
+          badgeTitle = "Task Ninja 🥷";
+          badgeColor = "bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300 border-blue-300";
+        }
 
-      return {
-        owner,
-        totalTasks: stats.total,
-        completedTasks: stats.completed,
-        inProgressTasks: stats.inProgress,
-        blockedTasks: stats.blocked,
-        completionRate,
-        badgeTitle,
-        badgeColor,
-      };
-    });
+        return {
+          owner,
+          totalTasks: stats.total,
+          completedTasks: stats.completed,
+          inProgressTasks: stats.inProgress,
+          blockedTasks: stats.blocked,
+          completionRate,
+          badgeTitle,
+          badgeColor,
+        };
+      });
 
-    leaderboard.sort((a, b) => b.completionRate - a.completionRate || b.completedTasks - a.completedTasks);
+      leaderboard.sort((a, b) => b.completionRate - a.completionRate || b.completedTasks - a.completedTasks);
 
-    res.json(leaderboard);
-  } catch (error) {
-    logger.error("Error fetching leaderboard stats", error as Error);
-    throw error instanceof (Error as any) ? error : new InternalServerError("Failed to fetch leaderboard stats");
+      res.json(leaderboard);
+    } catch (error) {
+      logger.error("Error fetching leaderboard stats", error as Error);
+      throw error instanceof (Error as any) ? error : new InternalServerError("Failed to fetch leaderboard stats");
+    }
   }
-});
-
+);
 
 /**
  * POST /api/action-items
  * Manually creates a new action item with automatic user ID matching.
  */
-export const createActionItem = asyncHandler(async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
+export const createActionItem = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { task, owner, dueDate, priority, status, meetingId } = req.body as CreateActionItemInput;
 
   try {
     // Verify meeting exists
-    const meetingResult = await db
-      .select()
-      .from(meetings)
-      .where(eq(meetings.id, meetingId));
+    const meetingResult = await db.select().from(meetings).where(eq(meetings.id, meetingId));
 
     if (meetingResult.length === 0) {
       throw new NotFoundError("Associated meeting");
@@ -282,10 +243,7 @@ export const createActionItem = asyncHandler(async (
     // Attempt user matching from email
     let matchedUserId: string | null = null;
     if (owner && owner !== "Unassigned") {
-      const userResult = await db
-        .select()
-        .from(users)
-        .where(eq(users.email, owner.toLowerCase().trim()));
+      const userResult = await db.select().from(users).where(eq(users.email, owner.toLowerCase().trim()));
 
       if (userResult.length > 0) {
         matchedUserId = userResult[0].id;
@@ -306,10 +264,7 @@ export const createActionItem = asyncHandler(async (
       updatedAt: new Date(),
     };
 
-    const inserted = await db
-      .insert(actionItems)
-      .values(newItem)
-      .returning();
+    const inserted = await db.insert(actionItems).values(newItem).returning();
 
     logger.info("Action item created", {
       itemId: newItemId,
@@ -336,18 +291,12 @@ export const createActionItem = asyncHandler(async (
  * PUT /api/action-items/:id
  * Updates an action item with optional user ID re-matching.
  */
-export const updateActionItem = asyncHandler(async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
+export const updateActionItem = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const targetId = String(req.params.id);
   const { task, owner, dueDate, priority, status } = req.body as UpdateActionItemInput;
 
   try {
-    const existing = await db
-      .select()
-      .from(actionItems)
-      .where(eq(actionItems.id, targetId));
+    const existing = await db.select().from(actionItems).where(eq(actionItems.id, targetId));
 
     if (existing.length === 0) {
       throw new NotFoundError("Action item");
@@ -356,10 +305,7 @@ export const updateActionItem = asyncHandler(async (
     // Attempt user re-matching if owner changes
     let updatedUserId = existing[0].userId;
     if (owner && owner !== existing[0].owner && owner !== "Unassigned") {
-      const userResult = await db
-        .select()
-        .from(users)
-        .where(eq(users.email, owner.toLowerCase().trim()));
+      const userResult = await db.select().from(users).where(eq(users.email, owner.toLowerCase().trim()));
 
       if (userResult.length > 0) {
         updatedUserId = userResult[0].id;
@@ -401,17 +347,11 @@ export const updateActionItem = asyncHandler(async (
  * DELETE /api/action-items/:id
  * Permanently removes an action item from the database.
  */
-export const deleteActionItem = asyncHandler(async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
+export const deleteActionItem = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const targetId = String(req.params.id);
 
   try {
-    const deleted = await db
-      .delete(actionItems)
-      .where(eq(actionItems.id, targetId))
-      .returning();
+    const deleted = await db.delete(actionItems).where(eq(actionItems.id, targetId)).returning();
 
     if (deleted.length === 0) {
       throw new NotFoundError("Action item");
@@ -431,7 +371,6 @@ export const deleteActionItem = asyncHandler(async (
       message: "Action item deleted successfully",
       actionItem: deleted[0],
     });
-
   } catch (error) {
     logger.error("Error deleting action item", error as Error, { itemId: targetId });
     throw error instanceof (Error as any) ? error : new InternalServerError("Failed to delete action item");

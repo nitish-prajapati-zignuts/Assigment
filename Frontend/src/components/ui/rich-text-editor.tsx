@@ -53,8 +53,7 @@ export function RichTextEditor({
           ],
           toolbar:
             "undo redo | blocks | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist | link removeformat | help",
-          content_style:
-            "body { font-family:Inter,sans-serif; font-size:14px; line-height:1.6 }",
+          content_style: "body { font-family:Inter,sans-serif; font-size:14px; line-height:1.6 }",
         }}
       />
     </div>

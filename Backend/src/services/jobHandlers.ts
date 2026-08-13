@@ -28,59 +28,56 @@ export const initializeJobHandlers = (): void => {
    * Summarize Meeting Job Handler
    * Generates AI summary and syncs action items
    */
-  jobQueue.registerHandler<SummarizeMeetingJobData>(
-    "summarize_meeting",
-    async (data) => {
-      const { meetingId, transcript, title, language, summaryLength, template, customPrompt } = data;
+  jobQueue.registerHandler<SummarizeMeetingJobData>("summarize_meeting", async (data) => {
+    const { meetingId, transcript, title, language, summaryLength, template, customPrompt } = data;
 
-      try {
-        logger.info("Starting meeting summarization", { meetingId, template, customPrompt: !!customPrompt });
+    try {
+      logger.info("Starting meeting summarization", { meetingId, template, customPrompt: !!customPrompt });
 
-        // Generate summary
-        const summary = await generateMeetingSummary(
-          transcript,
-          undefined,
-          title,
-          language,
-          summaryLength,
-          template,
-          customPrompt
-        );
+      // Generate summary
+      const summary = await generateMeetingSummary(
+        transcript,
+        undefined,
+        title,
+        language,
+        summaryLength,
+        template,
+        customPrompt
+      );
 
-        // Process and save pgvector embeddings for RAG chat chunks
-        const { processAndSaveTranscriptEmbeddings } = await import("./aiService");
-        await processAndSaveTranscriptEmbeddings(meetingId, transcript);
+      // Process and save pgvector embeddings for RAG chat chunks
+      const { processAndSaveTranscriptEmbeddings } = await import("./aiService");
+      await processAndSaveTranscriptEmbeddings(meetingId, transcript);
 
-        // Sync action items
-        await syncActionItemsToDb(meetingId, summary);
+      // Sync action items
+      await syncActionItemsToDb(meetingId, summary);
 
-        // Update meeting with summary
-        const updated = await db
-          .update(meetings)
-          .set({
-            summary,
-            updatedAt: new Date(),
-          })
-          .where(eq(meetings.id, meetingId))
-          .returning();
-
-        logger.info("Meeting summarization completed", {
-          meetingId,
-          actionItemCount: summary?.actionItems?.length || 0,
-        });
-
-        return {
-          success: true,
-          meetingId,
+      // Update meeting with summary
+      const updated = await db
+        .update(meetings)
+        .set({
           summary,
-          meeting: updated[0],
-        };
-      } catch (error) {
-        logger.error("Meeting summarization failed", error as Error, { meetingId });
-        throw error;
-      }
+          updatedAt: new Date(),
+        })
+        .where(eq(meetings.id, meetingId))
+        .returning();
+
+      logger.info("Meeting summarization completed", {
+        meetingId,
+        actionItemCount: summary?.actionItems?.length || 0,
+      });
+
+      return {
+        success: true,
+        meetingId,
+        summary,
+        meeting: updated[0],
+      };
+    } catch (error) {
+      logger.error("Meeting summarization failed", error as Error, { meetingId });
+      throw error;
     }
-  );
+  });
 
   logger.info("Job handlers initialized");
 };
@@ -89,10 +86,7 @@ export const initializeJobHandlers = (): void => {
  * Helper: Sync action items to database
  * (copied from meetingController for reuse)
  */
-async function syncActionItemsToDb(
-  meetingId: string,
-  summary: any | null
-): Promise<void> {
+async function syncActionItemsToDb(meetingId: string, summary: any | null): Promise<void> {
   try {
     // Delete previous action items for this meeting
     await db.delete(actionItems).where(eq(actionItems.meetingId, meetingId));
@@ -103,7 +97,7 @@ async function syncActionItemsToDb(
 
     // Fetch users once to avoid N+1 queries
     const allUsers = await db.select().from(users);
-    const userEmailMap = new Map(allUsers.map((u: { email: string; id: any; }) => [u.email.toLowerCase(), u.id]));
+    const userEmailMap = new Map(allUsers.map((u: { email: string; id: any }) => [u.email.toLowerCase(), u.id]));
 
     const rowsToInsert = summary.actionItems.map((item: any, index: number) => {
       // Find matching user by email

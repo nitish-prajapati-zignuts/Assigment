@@ -16,23 +16,22 @@ export interface AuthenticatedRequest extends Request {
  * from `Authorization: Bearer <token>` headers or `token` HTTP-only cookies.
  * Attaches decoded JWT user payload to `req.user` or returns 401 Unauthorized error.
  */
-export const protect = (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-): void => {
+export const protect = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
   let token: string | undefined;
 
   const authHeader = req.headers.authorization;
-  console.log("Auth Header", authHeader)
+  console.log("Auth Header", authHeader);
   if (authHeader && authHeader.startsWith("Bearer ")) {
     token = authHeader.split(" ")[1];
   } else if (req.headers.cookie) {
-    const cookies = req.headers.cookie.split(";").reduce((acc, current) => {
-      const [key, value] = current.trim().split("=");
-      if (key && value) acc[key] = value;
-      return acc;
-    }, {} as Record<string, string>);
+    const cookies = req.headers.cookie.split(";").reduce(
+      (acc, current) => {
+        const [key, value] = current.trim().split("=");
+        if (key && value) acc[key] = value;
+        return acc;
+      },
+      {} as Record<string, string>
+    );
     token = cookies["token"];
   }
 
@@ -52,7 +51,7 @@ export const protect = (
     logger.warn("JWT verification failed", {
       path: req.path,
       ip: req.ip,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
     });
     throw new AuthenticationError("Invalid or expired token.");
   }

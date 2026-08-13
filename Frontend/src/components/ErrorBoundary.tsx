@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * Error Boundary Component
@@ -6,11 +6,11 @@
  * Prevents entire app crash from a single component error
  */
 
-import React, { ReactNode, ReactElement } from 'react';
-import { AlertCircle, RefreshCw, Home } from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { logger } from '@/lib/logger';
+import React, { ReactNode, ReactElement } from "react";
+import { AlertCircle, RefreshCw, Home } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { logger } from "@/lib/logger";
 
 interface Props {
   children: ReactNode;
@@ -34,12 +34,12 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   static getDerivedStateFromError(error: Error): Partial<State> {
-    console.log("Get Derived State From Error", error)
+    console.log("Get Derived State From Error", error);
     return { hasError: true };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    logger.error('Error caught by boundary', error, {
+    logger.error("Error caught by boundary", error, {
       stack: error.stack,
       componentStack: errorInfo.componentStack,
     });
@@ -81,17 +81,13 @@ export class ErrorBoundary extends React.Component<Props, State> {
             </div>
 
             {/* Error Details (development only) */}
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {process.env.NODE_ENV === "development" && this.state.error && (
               <div className="bg-muted p-4 rounded-lg space-y-2 max-h-40 overflow-auto">
-                <p className="text-sm font-mono text-destructive">
-                  {this.state.error.message}
-                </p>
+                <p className="text-sm font-mono text-destructive">{this.state.error.message}</p>
                 {this.state.errorInfo && (
                   <details className="text-xs text-muted-foreground">
                     <summary className="cursor-pointer font-semibold">Stack Trace</summary>
-                    <pre className="mt-2 text-xs overflow-auto whitespace-pre-wrap">
-                      {this.state.errorInfo}
-                    </pre>
+                    <pre className="mt-2 text-xs overflow-auto whitespace-pre-wrap">{this.state.errorInfo}</pre>
                   </details>
                 )}
               </div>
@@ -99,11 +95,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
             {/* Action Buttons */}
             <div className="space-y-2">
-              <Button
-                onClick={this.handleReset}
-                className="w-full"
-                variant="default"
-              >
+              <Button onClick={this.handleReset} className="w-full" variant="default">
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Try Again
               </Button>

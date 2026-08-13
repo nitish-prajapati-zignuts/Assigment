@@ -32,11 +32,11 @@ export function DeleteMeetingModal({
           <div className="w-12 h-12 rounded-2xl bg-red-100 dark:bg-red-950/50 flex items-center justify-center text-red-600 dark:text-red-400 border border-red-200/60 dark:border-red-900/40">
             <AlertTriangle className="h-6 w-6" />
           </div>
-          <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-            Delete Meeting
-          </DialogTitle>
+          <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Delete Meeting</DialogTitle>
           <DialogDescription className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-            Are you sure you want to delete <span className="font-semibold text-zinc-900 dark:text-zinc-100">&quot;{meetingToDelete?.title}&quot;</span>? This will permanently remove the meeting transcript, AI summary, and action items.
+            Are you sure you want to delete{" "}
+            <span className="font-semibold text-zinc-900 dark:text-zinc-100">&quot;{meetingToDelete?.title}&quot;</span>
+            ? This will permanently remove the meeting transcript, AI summary, and action items.
           </DialogDescription>
         </DialogHeader>
 

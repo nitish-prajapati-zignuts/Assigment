@@ -138,9 +138,7 @@ export function ActionItemsKanban({
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-200/60 dark:border-zinc-800/60">
               <div className="flex items-center gap-2">
                 <Icon className="h-4.5 w-4.5 text-zinc-600 dark:text-zinc-400" />
-                <h3 className="text-sm font-extrabold text-zinc-900 dark:text-zinc-100">
-                  {col.title}
-                </h3>
+                <h3 className="text-sm font-extrabold text-zinc-900 dark:text-zinc-100">{col.title}</h3>
               </div>
               <Badge variant="secondary" className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${col.badgeClass}`}>
                 {columnItems.length}
@@ -221,7 +219,9 @@ export function ActionItemsKanban({
                             {item.priority}
                           </Badge>
                           {item.dueDate && (
-                            <span className={`flex items-center gap-1 font-semibold ${item.isOverdue ? "text-red-500" : "text-zinc-500"}`}>
+                            <span
+                              className={`flex items-center gap-1 font-semibold ${item.isOverdue ? "text-red-500" : "text-zinc-500"}`}
+                            >
                               <Calendar className="h-3 w-3" />
                               {item.dueDate}
                             </span>

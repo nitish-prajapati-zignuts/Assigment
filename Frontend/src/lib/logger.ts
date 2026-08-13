@@ -3,7 +3,7 @@
  * Provides structured logging for client-side operations
  */
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LogLevel = "debug" | "info" | "warn" | "error";
 
 interface LogEntry {
   timestamp: string;
@@ -17,18 +17,13 @@ interface LogEntry {
 }
 
 class ClientLogger {
-  private isDevelopment = process.env.NODE_ENV === 'development';
+  private isDevelopment = process.env.NODE_ENV === "development";
 
   private formatLog(entry: LogEntry): string {
     return JSON.stringify(entry);
   }
 
-  private log(
-    level: LogLevel,
-    message: string,
-    context?: Record<string, unknown>,
-    error?: Error
-  ): void {
+  private log(level: LogLevel, message: string, context?: Record<string, unknown>, error?: Error): void {
     const entry: LogEntry = {
       timestamp: new Date().toISOString(),
       level,
@@ -46,40 +41,40 @@ class ClientLogger {
 
     // Log to console based on level
     switch (level) {
-      case 'debug':
+      case "debug":
         if (this.isDevelopment) console.log(formatted);
         break;
-      case 'info':
+      case "info":
         console.log(formatted);
         break;
-      case 'warn':
+      case "warn":
         console.warn(formatted);
         break;
-      case 'error':
+      case "error":
         console.error(formatted);
         break;
     }
 
     // Send errors to backend for monitoring (in production)
-    if (level === 'error' && !this.isDevelopment) {
+    if (level === "error" && !this.isDevelopment) {
       this.sendErrorToBackend(entry);
     }
   }
 
   debug(message: string, context?: Record<string, unknown>): void {
-    this.log('debug', message, context);
+    this.log("debug", message, context);
   }
 
   info(message: string, context?: Record<string, unknown>): void {
-    this.log('info', message, context);
+    this.log("info", message, context);
   }
 
   warn(message: string, context?: Record<string, unknown>): void {
-    this.log('warn', message, context);
+    this.log("warn", message, context);
   }
 
   error(message: string, error?: Error, context?: Record<string, unknown>): void {
-    this.log('error', message, context, error);
+    this.log("error", message, context, error);
   }
 
   /**
@@ -91,8 +86,8 @@ class ClientLogger {
     if (process.env.NEXT_PUBLIC_API_URL) {
       try {
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/logs/errors`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(entry),
         }).catch(() => {
           // Silently fail if error logging fails

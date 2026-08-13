@@ -25,10 +25,7 @@ export function buildExecutiveReportHTML(meeting: Meeting): string {
     .join("");
 
   const discussionPointsHTML = (summary.discussionPoints || [])
-    .map(
-      (point: string) =>
-        `<li style="margin-bottom: 6px; color: #334155; font-size: 14px;">▫️ ${point}</li>`
-    )
+    .map((point: string) => `<li style="margin-bottom: 6px; color: #334155; font-size: 14px;">▫️ ${point}</li>`)
     .join("");
 
   const actionItemsHTML = (summary.actionItems || [])
@@ -151,32 +148,36 @@ export function buildExecutiveReportHTML(meeting: Meeting): string {
       </div>
     </div>
 
-    ${summary.purpose
-      ? `<div class="section">
+    ${
+      summary.purpose
+        ? `<div class="section">
             <div class="section-title">Purpose & Overview</div>
             <div class="card">${summary.purpose}</div>
           </div>`
-      : ""
+        : ""
     }
 
-    ${keyDecisionsHTML
-      ? `<div class="section">
+    ${
+      keyDecisionsHTML
+        ? `<div class="section">
             <div class="section-title">Key Strategic Decisions</div>
             <ul style="padding-left: 20px; margin: 0;">${keyDecisionsHTML}</ul>
           </div>`
-      : ""
+        : ""
     }
 
-    ${discussionPointsHTML
-      ? `<div class="section">
+    ${
+      discussionPointsHTML
+        ? `<div class="section">
             <div class="section-title">Main Discussion Points</div>
             <ul style="padding-left: 20px; margin: 0;">${discussionPointsHTML}</ul>
           </div>`
-      : ""
+        : ""
     }
 
-    ${actionItemsHTML
-      ? `<div class="section">
+    ${
+      actionItemsHTML
+        ? `<div class="section">
             <div class="section-title">Extracted Action Items</div>
             <table>
               <thead>
@@ -192,7 +193,7 @@ export function buildExecutiveReportHTML(meeting: Meeting): string {
               </tbody>
             </table>
           </div>`
-      : ""
+        : ""
     }
 
     <div class="footer">

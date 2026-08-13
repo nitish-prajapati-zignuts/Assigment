@@ -9,27 +9,10 @@ import * as z from "zod";
 import api from "@/lib/axios";
 import { getErrorMessage } from "@/lib/apiTypes";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Lock,
-  Mail,
-  User,
-  ArrowRight,
-  Video,
-  Eye,
-  EyeOff,
-  Loader2,
-  AlertCircle,
-} from "lucide-react";
+import { Lock, Mail, User, ArrowRight, Video, Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 
 const registerSchema = z
   .object({
@@ -71,7 +54,7 @@ export default function RegisterPage() {
         }
       } catch (err) {
         // Clear invalid token/user state if authentication fails
-        console.log("Auth Error", err)
+        console.log("Auth Error", err);
         localStorage.removeItem("token");
         localStorage.removeItem("user");
       } finally {
@@ -129,9 +112,7 @@ export default function RegisterPage() {
       }
     } catch (err: any) {
       console.error("Registration Error:", err);
-      const serverMsg =
-        getErrorMessage(err) ||
-        "Failed to create account. Please check your credentials or try again.";
+      const serverMsg = getErrorMessage(err) || "Failed to create account. Please check your credentials or try again.";
       setErrorMessage(serverMsg);
     } finally {
       setIsLoading(false);
@@ -154,9 +135,7 @@ export default function RegisterPage() {
             <Video className="h-6 w-6 stroke-[2.2]" />
           </div>
           <div className="space-y-1">
-            <h1 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-white">
-              MeetNotes AI
-            </h1>
+            <h1 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-white">MeetNotes AI</h1>
             <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
               Create an account to start summarizing meetings automatically
             </p>
@@ -186,10 +165,7 @@ export default function RegisterPage() {
 
               {/* Full Name */}
               <div className="space-y-1.5">
-                <Label
-                  htmlFor="name"
-                  className="text-xs font-semibold text-zinc-700 dark:text-zinc-300"
-                >
+                <Label htmlFor="name" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                   Full Name
                 </Label>
                 <div className="relative group">
@@ -202,17 +178,12 @@ export default function RegisterPage() {
                     {...register("name")}
                   />
                 </div>
-                {errors.name && (
-                  <p className="text-[11px] font-medium text-red-500 pl-1">{errors.name.message}</p>
-                )}
+                {errors.name && <p className="text-[11px] font-medium text-red-500 pl-1">{errors.name.message}</p>}
               </div>
 
               {/* Email Address */}
               <div className="space-y-1.5">
-                <Label
-                  htmlFor="email"
-                  className="text-xs font-semibold text-zinc-700 dark:text-zinc-300"
-                >
+                <Label htmlFor="email" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                   Email Address
                 </Label>
                 <div className="relative group">
@@ -225,17 +196,12 @@ export default function RegisterPage() {
                     {...register("email")}
                   />
                 </div>
-                {errors.email && (
-                  <p className="text-[11px] font-medium text-red-500 pl-1">{errors.email.message}</p>
-                )}
+                {errors.email && <p className="text-[11px] font-medium text-red-500 pl-1">{errors.email.message}</p>}
               </div>
 
               {/* Password */}
               <div className="space-y-1.5">
-                <Label
-                  htmlFor="password"
-                  className="text-xs font-semibold text-zinc-700 dark:text-zinc-300"
-                >
+                <Label htmlFor="password" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                   Password
                 </Label>
                 <div className="relative group">
@@ -253,11 +219,7 @@ export default function RegisterPage() {
                     className="absolute right-3 top-2.5 p-1 rounded-md text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all"
                     tabIndex={-1}
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
                 {errors.password && (
@@ -267,10 +229,7 @@ export default function RegisterPage() {
 
               {/* Confirm Password */}
               <div className="space-y-1.5">
-                <Label
-                  htmlFor="confirmPassword"
-                  className="text-xs font-semibold text-zinc-700 dark:text-zinc-300"
-                >
+                <Label htmlFor="confirmPassword" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                   Confirm Password
                 </Label>
                 <div className="relative group">
@@ -284,9 +243,7 @@ export default function RegisterPage() {
                   />
                 </div>
                 {errors.confirmPassword && (
-                  <p className="text-[11px] font-medium text-red-500 pl-1">
-                    {errors.confirmPassword.message}
-                  </p>
+                  <p className="text-[11px] font-medium text-red-500 pl-1">{errors.confirmPassword.message}</p>
                 )}
               </div>
             </CardContent>

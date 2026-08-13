@@ -68,7 +68,6 @@ export function Sidebar() {
     }
   };
 
-
   const userName = user?.name || "Nitish Prajapati";
   const userEmail = user?.email || "nitish@zignuts.com";
   const userInitials =
@@ -120,22 +119,15 @@ export function Sidebar() {
               <X className="h-5 w-5" />
             </button>
           </div>
-
         </div>
 
         <nav className="space-y-1.5 relative">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive =
-              pathname === item.href ||
-              (item.href !== "/dashboard" && pathname.startsWith(item.href));
+            const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
 
             return (
-              <Link
-                key={item.label}
-                href={item.href}
-                className="relative block"
-              >
+              <Link key={item.label} href={item.href} className="relative block">
                 <motion.div
                   whileHover={{ x: 3 }}
                   whileTap={{ scale: 0.98 }}
@@ -152,7 +144,9 @@ export function Sidebar() {
                       transition={{ type: "spring", stiffness: 350, damping: 30 }}
                     />
                   )}
-                  <Icon className={`relative z-10 h-4.5 w-4.5 ${isActive ? "text-indigo-600 dark:text-indigo-400" : "text-zinc-500"}`} />
+                  <Icon
+                    className={`relative z-10 h-4.5 w-4.5 ${isActive ? "text-indigo-600 dark:text-indigo-400" : "text-zinc-500"}`}
+                  />
                   <span className="relative z-10">{item.label}</span>
                 </motion.div>
               </Link>
@@ -170,9 +164,7 @@ export function Sidebar() {
             </AvatarFallback>
           </Avatar>
           <div className="text-xs overflow-hidden">
-            <p className="font-semibold text-zinc-900 dark:text-zinc-100 truncate max-w-[110px]">
-              {userName}
-            </p>
+            <p className="font-semibold text-zinc-900 dark:text-zinc-100 truncate max-w-[110px]">{userName}</p>
             <p className="text-zinc-500 truncate max-w-[110px]" title={userEmail}>
               {userEmail}
             </p>
@@ -211,19 +203,18 @@ export function Sidebar() {
           <span className="font-bold text-base text-zinc-900 dark:text-zinc-100">MeetNotes</span>
         </div>
         <div className="flex items-center gap-2">
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => window.dispatchEvent(new CustomEvent("open-shortcuts-dialog"))}
-          className="p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-          title="Keyboard Shortcuts (?)"
-        >
-          <Keyboard className="h-4 w-4" />
-        </motion.button>
-        <ModeToggle />
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => window.dispatchEvent(new CustomEvent("open-shortcuts-dialog"))}
+            className="p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+            title="Keyboard Shortcuts (?)"
+          >
+            <Keyboard className="h-4 w-4" />
+          </motion.button>
+          <ModeToggle />
+        </div>
       </div>
-    </div>
-
 
       {/* Mobile Drawer Overlay */}
       <AnimatePresence>
@@ -254,4 +245,3 @@ export function Sidebar() {
     </>
   );
 }
-

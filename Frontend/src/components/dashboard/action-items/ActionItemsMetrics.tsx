@@ -23,7 +23,6 @@ const cardVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } },
 };
 
-
 export function ActionItemsMetricsCards({ metrics, isLoading }: ActionItemsMetricsProps) {
   return (
     <motion.div
@@ -144,4 +143,3 @@ export function ActionItemsMetricsCards({ metrics, isLoading }: ActionItemsMetri
     </motion.div>
   );
 }
-

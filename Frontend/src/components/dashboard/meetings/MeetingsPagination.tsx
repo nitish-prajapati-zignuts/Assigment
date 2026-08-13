@@ -28,15 +28,18 @@ export function MeetingsPagination({
     return (
       <div className="bg-white dark:bg-zinc-900 px-5 py-3 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-sm text-xs">
         <div className="text-zinc-500 dark:text-zinc-400">
-          Found <span className="font-semibold text-zinc-900 dark:text-zinc-100">{displayCount}</span> matching meeting(s)
+          Found <span className="font-semibold text-zinc-900 dark:text-zinc-100">{displayCount}</span> matching
+          meeting(s)
           {searchQuery && (
             <span>
-              {" "}for &quot;<span className="font-semibold text-zinc-900 dark:text-zinc-100">{searchQuery}</span>&quot;
+              {" "}
+              for &quot;<span className="font-semibold text-zinc-900 dark:text-zinc-100">{searchQuery}</span>&quot;
             </span>
           )}
           {selectedType !== "All" && (
             <span>
-              {" "}in <span className="font-semibold text-zinc-900 dark:text-zinc-100">{selectedType}</span>
+              {" "}
+              in <span className="font-semibold text-zinc-900 dark:text-zinc-100">{selectedType}</span>
             </span>
           )}
         </div>
@@ -51,7 +54,9 @@ export function MeetingsPagination({
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white dark:bg-zinc-900 p-4 sm:px-5 sm:py-3.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-sm text-xs">
       <div className="text-zinc-500 dark:text-zinc-400 text-center sm:text-left text-[11px] sm:text-xs">
-        Showing <span className="font-semibold text-zinc-900 dark:text-zinc-100">{(currentPage - 1) * itemsPerPage + 1}</span> to{" "}
+        Showing{" "}
+        <span className="font-semibold text-zinc-900 dark:text-zinc-100">{(currentPage - 1) * itemsPerPage + 1}</span>{" "}
+        to{" "}
         <span className="font-semibold text-zinc-900 dark:text-zinc-100">
           {Math.min(currentPage * itemsPerPage, totalItems)}
         </span>{" "}

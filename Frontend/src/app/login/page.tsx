@@ -12,14 +12,7 @@ import api from "@/lib/axios";
 
 import { getErrorMessage } from "@/lib/apiTypes";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock, Mail, ArrowRight, Video, Eye, EyeOff, Loader2, AlertCircle, Sparkles } from "lucide-react";
@@ -54,7 +47,7 @@ export default function LoginPage() {
           return;
         }
       } catch (err) {
-        console.log("Auth Error", err)
+        console.log("Auth Error", err);
         localStorage.removeItem("token");
         localStorage.removeItem("user");
       } finally {
@@ -119,7 +112,6 @@ export default function LoginPage() {
     }
   };
 
-
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-4 text-zinc-900 dark:text-zinc-100 overflow-hidden">
       {/* Ambient glowing gradients */}
@@ -151,9 +143,7 @@ export default function LoginPage() {
           </motion.div>
           <div className="space-y-1">
             <div className="flex items-center justify-center gap-1.5">
-              <h1 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-white">
-                MeetNotes AI
-              </h1>
+              <h1 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-white">MeetNotes AI</h1>
               <Sparkles className="h-4 w-4 text-indigo-500 animate-pulse" />
             </div>
             <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
@@ -189,10 +179,7 @@ export default function LoginPage() {
 
               {/* Email Address Input */}
               <div className="space-y-1.5">
-                <Label
-                  htmlFor="email"
-                  className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
-                >
+                <Label htmlFor="email" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
                   Email Address
                 </Label>
                 <div className="relative group">
@@ -205,18 +192,13 @@ export default function LoginPage() {
                     {...register("email")}
                   />
                 </div>
-                {errors.email && (
-                  <p className="text-[11px] font-semibold text-red-500 pl-1">{errors.email.message}</p>
-                )}
+                {errors.email && <p className="text-[11px] font-semibold text-red-500 pl-1">{errors.email.message}</p>}
               </div>
 
               {/* Password Input */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <Label
-                    htmlFor="password"
-                    className="text-xs font-bold text-zinc-700 dark:text-zinc-300"
-                  >
+                  <Label htmlFor="password" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
                     Password
                   </Label>
                   <Link
@@ -241,11 +223,7 @@ export default function LoginPage() {
                     className="absolute right-3 top-3 p-1 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all"
                     tabIndex={-1}
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
                 {errors.password && (

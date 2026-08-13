@@ -4,16 +4,7 @@ import { MeetingSummary } from "@/types/meeting";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SentimentSpeakerAnalytics } from "../meetings/SentimentSpeakerAnalytics";
-import {
-  Sparkles,
-  Target,
-  MessageSquare,
-  CheckCircle2,
-  Gavel,
-  CheckSquare,
-  User,
-  Loader2,
-} from "lucide-react";
+import { Sparkles, Target, MessageSquare, CheckCircle2, Gavel, CheckSquare, User, Loader2 } from "lucide-react";
 
 interface MeetingSummaryContentProps {
   summaryData: MeetingSummary | null | undefined;
@@ -26,20 +17,15 @@ function stripHtml(htmlStr?: string): string {
   return htmlStr.replace(/<[^>]*>?/gm, "").trim();
 }
 
-export function MeetingSummaryContent({
-  summaryData,
-  isGenerating,
-  onGenerateSummary,
-}: MeetingSummaryContentProps) {
+export function MeetingSummaryContent({ summaryData, isGenerating, onGenerateSummary }: MeetingSummaryContentProps) {
   if (!summaryData) {
     return (
       <div className="text-center py-8 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg">
         <Sparkles className="mx-auto h-10 w-10 text-amber-400 mb-2" />
-        <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          No AI Summary generated yet
-        </p>
+        <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">No AI Summary generated yet</p>
         <p className="text-xs text-zinc-500 mb-4">
-          Click below to generate structured meeting notes covering purpose, discussion, outcomes, concerns & next steps.
+          Click below to generate structured meeting notes covering purpose, discussion, outcomes, concerns & next
+          steps.
         </p>
         <Button
           size="sm"
@@ -63,17 +49,17 @@ export function MeetingSummaryContent({
             <Sparkles className="h-4 w-4 text-indigo-500" />
             <span>AI Prompt Template Style:</span>
           </div>
-          <Badge variant="secondary" className="bg-indigo-100 dark:bg-indigo-900/60 text-indigo-800 dark:text-indigo-200 border-indigo-300 font-semibold">
+          <Badge
+            variant="secondary"
+            className="bg-indigo-100 dark:bg-indigo-900/60 text-indigo-800 dark:text-indigo-200 border-indigo-300 font-semibold"
+          >
             {summaryData.templateStyle}
           </Badge>
         </div>
       )}
 
       {/* Sentiment & Speaker Analytics Visual Widget */}
-      <SentimentSpeakerAnalytics
-        sentiment={summaryData.sentimentAnalysis}
-        speakers={summaryData.speakerAnalytics}
-      />
+      <SentimentSpeakerAnalytics sentiment={summaryData.sentimentAnalysis} speakers={summaryData.speakerAnalytics} />
 
       {/* Executive Strategic Briefing */}
       {summaryData.executiveDetails && (
@@ -165,12 +151,17 @@ export function MeetingSummaryContent({
             </h5>
             <div className="space-y-2">
               {summaryData.keyDecisions.map((kd, index) => (
-                <div key={index} className="text-xs bg-white dark:bg-zinc-800/60 p-2 rounded border border-indigo-100 dark:border-indigo-900/50">
+                <div
+                  key={index}
+                  className="text-xs bg-white dark:bg-zinc-800/60 p-2 rounded border border-indigo-100 dark:border-indigo-900/50"
+                >
                   <span className="font-semibold text-indigo-600 dark:text-indigo-400 font-mono text-[10px] block uppercase">
                     {kd.category}
                   </span>
                   <span className="text-zinc-800 dark:text-zinc-200 font-medium block">{stripHtml(kd.decision)}</span>
-                  {kd.context && <span className="text-zinc-500 text-[11px] block mt-0.5 font-sans">{stripHtml(kd.context)}</span>}
+                  {kd.context && (
+                    <span className="text-zinc-500 text-[11px] block mt-0.5 font-sans">{stripHtml(kd.context)}</span>
+                  )}
                 </div>
               ))}
             </div>

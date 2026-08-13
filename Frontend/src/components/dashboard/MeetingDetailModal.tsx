@@ -9,31 +9,10 @@ import { exportMeetingToHTMLReport, exportMeetingToPDF } from "@/lib/reportExpor
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Calendar,
-  Users,
-  FileText,
-  FileCode,
-  Printer,
-  Sparkles,
-  Loader2,
-  Bot,
-} from "lucide-react";
-
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar, Users, FileText, FileCode, Printer, Sparkles, Loader2, Bot } from "lucide-react";
 
 import { MeetingShareableSection } from "./meeting-detail/MeetingShareableSection";
 import { MeetingSummaryContent } from "./meeting-detail/MeetingSummaryContent";
@@ -60,9 +39,7 @@ export function MeetingDetailModal({
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedLanguage] = useState<string>("English");
   const [selectedTemplate, setSelectedTemplate] = useState<SummaryTemplate>("Standard");
-  const [currentSummary, setCurrentSummary] = useState<MeetingSummary | null | undefined>(
-    meeting?.summary
-  );
+  const [currentSummary, setCurrentSummary] = useState<MeetingSummary | null | undefined>(meeting?.summary);
 
   // RAG Chat State
   const [chatInput, setChatInput] = useState("");
@@ -111,7 +88,8 @@ export function MeetingDetailModal({
 
     if (published && meeting?.id) {
       setIsPublishing(true);
-      api.patch(`/meetings/${meeting.id}/publish`, { isMeetingPublished: true })
+      api
+        .patch(`/meetings/${meeting.id}/publish`, { isMeetingPublished: true })
         .then((res) => {
           if (res.data?.shareToken) {
             setShareToken(res.data.shareToken);
@@ -285,11 +263,13 @@ export function MeetingDetailModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[92vw] max-w-5xl sm:max-w-5xl md:max-w-5xl max-h-[90vh] overflow-y-auto bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 p-6">
         <DialogHeader className="pb-3 border-b border-zinc-100 dark:border-zinc-800">
-
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <Badge variant="outline" className="text-xs bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200">
+                <Badge
+                  variant="outline"
+                  className="text-xs bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200"
+                >
                   {meeting.type || "General"}
                 </Badge>
                 <div className="flex items-center gap-1 text-xs text-zinc-500">
@@ -297,9 +277,7 @@ export function MeetingDetailModal({
                   <span>{new Date(meeting.date).toLocaleDateString(undefined, { dateStyle: "medium" })}</span>
                 </div>
               </div>
-              <DialogTitle className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
-                {meeting.title}
-              </DialogTitle>
+              <DialogTitle className="text-xl font-bold text-zinc-900 dark:text-zinc-50">{meeting.title}</DialogTitle>
             </div>
 
             {/* Header Export & Edit Action Buttons */}
@@ -340,7 +318,6 @@ export function MeetingDetailModal({
                 <Printer className="h-3.5 w-3.5 text-indigo-500" /> Save as PDF
               </Button>
             </div>
-
           </div>
 
           {/* Participant Chips */}
@@ -350,7 +327,11 @@ export function MeetingDetailModal({
                 <Users className="h-3.5 w-3.5" /> Attendees:
               </span>
               {participantList.map((p, idx) => (
-                <Badge key={idx} variant="secondary" className="text-[11px] font-normal bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+                <Badge
+                  key={idx}
+                  variant="secondary"
+                  className="text-[11px] font-normal bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
+                >
                   {p}
                 </Badge>
               ))}
@@ -426,8 +407,9 @@ export function MeetingDetailModal({
                   variant="outline"
                   onClick={handleGenerateSummary}
                   disabled={isGenerating || isPublished}
-                  className={`h-8 text-xs gap-1.5 border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40 ${isPublished ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
+                  className={`h-8 text-xs gap-1.5 border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40 ${
+                    isPublished ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
                 >
                   {isGenerating ? (
                     <Loader2 className="h-4 w-4 animate-spin text-amber-500" />
@@ -458,9 +440,7 @@ export function MeetingDetailModal({
                     <div className="whitespace-pre-wrap">{meeting.transcript}</div>
                   )
                 ) : (
-                  <span className="text-zinc-400 italic">
-                    No transcript available for this meeting.
-                  </span>
+                  <span className="text-zinc-400 italic">No transcript available for this meeting.</span>
                 )}
               </div>
             </TabsContent>

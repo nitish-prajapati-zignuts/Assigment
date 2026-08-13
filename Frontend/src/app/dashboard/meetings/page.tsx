@@ -119,9 +119,7 @@ export default function MeetingsPage() {
         setActiveJobIds((prev) => [...prev, data.jobId!]);
         toast.info("Meeting saved! Generating AI Summary in background...");
       } else {
-        toast.success(
-          variables.id ? "Meeting updated successfully" : "Meeting created successfully"
-        );
+        toast.success(variables.id ? "Meeting updated successfully" : "Meeting created successfully");
       }
       queryClient.invalidateQueries({ queryKey: ["meetings"] });
       queryClient.invalidateQueries({ queryKey: ["meetingsList"] });
@@ -162,20 +160,15 @@ export default function MeetingsPage() {
 
   const isDeleting = deleteMeetingMutation.isPending;
 
-
   // Client-side filtering (for search and type filter)
   const filteredMeetings = useMemo(() => {
     return meetings.filter((meeting) => {
       const matchesSearch =
         meeting.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        meeting.participants.some((p) =>
-          p.toLowerCase().includes(searchQuery.toLowerCase())
-        ) ||
-        (meeting.transcript &&
-          meeting.transcript.toLowerCase().includes(searchQuery.toLowerCase()));
+        meeting.participants.some((p) => p.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (meeting.transcript && meeting.transcript.toLowerCase().includes(searchQuery.toLowerCase()));
 
-      const matchesType =
-        selectedType === "All" || meeting.type === selectedType;
+      const matchesType = selectedType === "All" || meeting.type === selectedType;
 
       return matchesSearch && matchesType;
     });
@@ -221,7 +214,6 @@ export default function MeetingsPage() {
           toast.success(`Exported ${displayMeetings.length} meetings to CSV`);
         }}
       />
-
 
       {/* Controls: Search and Filter */}
       <MeetingsFilters

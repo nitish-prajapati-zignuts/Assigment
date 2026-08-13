@@ -15,13 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface AppUser {
   id: string;
@@ -77,7 +71,7 @@ export function CreateActionItemModal({
     if (isOpen) {
       if (initialData) {
         setTask(initialData.task || "");
-        setMeetingId(initialData.meetingId || (meetings[0]?.id || ""));
+        setMeetingId(initialData.meetingId || meetings[0]?.id || "");
         setOwner(initialData.owner || "Unassigned");
         setDueDate(initialData.dueDate || "");
         setPriority(initialData.priority || "Medium");
@@ -133,7 +127,9 @@ export function CreateActionItemModal({
         <form onSubmit={handleSubmit} className="space-y-4 py-2">
           {/* Task Description */}
           <div className="space-y-1.5">
-            <Label htmlFor="task" className="text-xs sm:text-sm">Task Description</Label>
+            <Label htmlFor="task" className="text-xs sm:text-sm">
+              Task Description
+            </Label>
             <Input
               id="task"
               placeholder="e.g. Set up database backup cron job"
@@ -146,7 +142,9 @@ export function CreateActionItemModal({
 
           {/* Meeting Selection */}
           <div className="space-y-1.5">
-            <Label htmlFor="meeting" className="text-xs sm:text-sm">Associated Meeting</Label>
+            <Label htmlFor="meeting" className="text-xs sm:text-sm">
+              Associated Meeting
+            </Label>
             <Select
               value={meetingId}
               onValueChange={(val) => {
@@ -173,7 +171,9 @@ export function CreateActionItemModal({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {/* Owner / Assignee Select Dropdown */}
             <div className="space-y-1.5">
-              <Label htmlFor="owner" className="text-xs sm:text-sm">Assignee / Owner</Label>
+              <Label htmlFor="owner" className="text-xs sm:text-sm">
+                Assignee / Owner
+              </Label>
               <Select
                 value={owner}
                 onValueChange={(val) => {
@@ -184,7 +184,9 @@ export function CreateActionItemModal({
                   <SelectValue placeholder="Select assignee">{owner}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Unassigned" className="text-xs sm:text-sm">Unassigned</SelectItem>
+                  <SelectItem value="Unassigned" className="text-xs sm:text-sm">
+                    Unassigned
+                  </SelectItem>
                   {appUsers.map((user) => (
                     <SelectItem key={user.id} value={user.name} className="text-xs sm:text-sm">
                       <div className="flex flex-col text-left">
@@ -199,7 +201,9 @@ export function CreateActionItemModal({
 
             {/* Due Date */}
             <div className="space-y-1.5">
-              <Label htmlFor="dueDate" className="text-xs sm:text-sm">Due Date</Label>
+              <Label htmlFor="dueDate" className="text-xs sm:text-sm">
+                Due Date
+              </Label>
               <Input
                 id="dueDate"
                 type="date"
@@ -213,55 +217,73 @@ export function CreateActionItemModal({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {/* Priority */}
             <div className="space-y-1.5">
-              <Label htmlFor="priority" className="text-xs sm:text-sm">Priority</Label>
-              <Select
-                value={priority}
-                onValueChange={(val) =>
-                  val && setPriority(val as ActionItem["priority"])
-                }
-              >
+              <Label htmlFor="priority" className="text-xs sm:text-sm">
+                Priority
+              </Label>
+              <Select value={priority} onValueChange={(val) => val && setPriority(val as ActionItem["priority"])}>
                 <SelectTrigger id="priority" className="text-xs sm:text-sm h-9">
                   <SelectValue placeholder="Select priority" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Low" className="text-xs sm:text-sm">Low</SelectItem>
-                  <SelectItem value="Medium" className="text-xs sm:text-sm">Medium</SelectItem>
-                  <SelectItem value="High" className="text-xs sm:text-sm">High</SelectItem>
-                  <SelectItem value="Urgent" className="text-xs sm:text-sm">Urgent</SelectItem>
+                  <SelectItem value="Low" className="text-xs sm:text-sm">
+                    Low
+                  </SelectItem>
+                  <SelectItem value="Medium" className="text-xs sm:text-sm">
+                    Medium
+                  </SelectItem>
+                  <SelectItem value="High" className="text-xs sm:text-sm">
+                    High
+                  </SelectItem>
+                  <SelectItem value="Urgent" className="text-xs sm:text-sm">
+                    Urgent
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {/* Status */}
             <div className="space-y-1.5">
-              <Label htmlFor="status" className="text-xs sm:text-sm">Status</Label>
-              <Select
-                value={status}
-                onValueChange={(val) =>
-                  val && setStatus(val as ActionItem["status"])
-                }
-              >
+              <Label htmlFor="status" className="text-xs sm:text-sm">
+                Status
+              </Label>
+              <Select value={status} onValueChange={(val) => val && setStatus(val as ActionItem["status"])}>
                 <SelectTrigger id="status" className="text-xs sm:text-sm h-9">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Open" className="text-xs sm:text-sm">Open</SelectItem>
-                  <SelectItem value="In Progress" className="text-xs sm:text-sm">In Progress</SelectItem>
-                  <SelectItem value="Blocked" className="text-xs sm:text-sm">Blocked</SelectItem>
-                  <SelectItem value="Completed" className="text-xs sm:text-sm">Completed</SelectItem>
+                  <SelectItem value="Open" className="text-xs sm:text-sm">
+                    Open
+                  </SelectItem>
+                  <SelectItem value="In Progress" className="text-xs sm:text-sm">
+                    In Progress
+                  </SelectItem>
+                  <SelectItem value="Blocked" className="text-xs sm:text-sm">
+                    Blocked
+                  </SelectItem>
+                  <SelectItem value="Completed" className="text-xs sm:text-sm">
+                    Completed
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <DialogFooter className="pt-3 flex flex-col-reverse sm:flex-row gap-2 sm:gap-0">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting || localSubmitting} className="w-full sm:w-auto h-9 text-xs sm:text-sm">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={isSubmitting || localSubmitting}
+              className="w-full sm:w-auto h-9 text-xs sm:text-sm"
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting || localSubmitting} className="w-full sm:w-auto h-9 text-xs sm:text-sm">
-              {(isSubmitting || localSubmitting) && (
-                <Loader2 className="h-4 w-4 animate-spin mr-1.5" />
-              )}
+            <Button
+              type="submit"
+              disabled={isSubmitting || localSubmitting}
+              className="w-full sm:w-auto h-9 text-xs sm:text-sm"
+            >
+              {(isSubmitting || localSubmitting) && <Loader2 className="h-4 w-4 animate-spin mr-1.5" />}
               {initialData ? "Save Changes" : "Create Task"}
             </Button>
           </DialogFooter>

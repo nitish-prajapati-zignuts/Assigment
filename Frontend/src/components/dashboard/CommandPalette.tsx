@@ -268,7 +268,9 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                           <Calendar className="h-4.5 w-4.5 text-indigo-500 shrink-0" />
                           <div className="flex flex-col text-left truncate">
                             <span className="truncate font-semibold">{m.title}</span>
-                            <span className="text-[11px] text-zinc-400">{m.date} &bull; {m.type}</span>
+                            <span className="text-[11px] text-zinc-400">
+                              {m.date} &bull; {m.type}
+                            </span>
                           </div>
                         </div>
                         <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity text-indigo-500 shrink-0" />
@@ -311,7 +313,8 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                 filteredMeetings.length === 0 &&
                 filteredActionItems.length === 0 && (
                   <div className="p-8 text-center text-zinc-400 text-xs sm:text-sm">
-                    No results found for &quot;<span className="font-semibold text-zinc-600 dark:text-zinc-300">{query}</span>&quot;
+                    No results found for &quot;
+                    <span className="font-semibold text-zinc-600 dark:text-zinc-300">{query}</span>&quot;
                   </div>
                 )}
             </div>
@@ -320,10 +323,16 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
             <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-50 dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 text-[11px] text-zinc-400">
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1">
-                  <kbd className="px-1.5 py-0.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded font-mono text-[10px] shadow-2xs">Cmd K</kbd> Toggle
+                  <kbd className="px-1.5 py-0.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded font-mono text-[10px] shadow-2xs">
+                    Cmd K
+                  </kbd>{" "}
+                  Toggle
                 </span>
                 <span className="flex items-center gap-1">
-                  <kbd className="px-1.5 py-0.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded font-mono text-[10px] shadow-2xs">Esc</kbd> Close
+                  <kbd className="px-1.5 py-0.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded font-mono text-[10px] shadow-2xs">
+                    Esc
+                  </kbd>{" "}
+                  Close
                 </span>
               </div>
               <span className="font-semibold text-indigo-500">MeetNotes Assistant</span>

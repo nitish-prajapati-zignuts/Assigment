@@ -7,14 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Calendar, Eye, ArrowRight } from "lucide-react";
 
 interface RecentMeetingsSectionProps {
@@ -23,11 +16,7 @@ interface RecentMeetingsSectionProps {
   onViewDetails: (meeting: Meeting) => void;
 }
 
-export function RecentMeetingsSection({
-  isLoading,
-  recentMeetings,
-  onViewDetails,
-}: RecentMeetingsSectionProps) {
+export function RecentMeetingsSection({ isLoading, recentMeetings, onViewDetails }: RecentMeetingsSectionProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
@@ -175,7 +164,10 @@ export function RecentMeetingsSection({
           <div className="md:hidden space-y-3 p-4">
             {isLoading ? (
               Array.from({ length: 3 }).map((_, idx) => (
-                <div key={idx} className="p-4 rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-900/70 space-y-3">
+                <div
+                  key={idx}
+                  className="p-4 rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-900/70 space-y-3"
+                >
                   <div className="flex items-center justify-between">
                     <Skeleton className="h-5 w-40 rounded-md" />
                     <Skeleton className="h-5 w-20 rounded-md" />

@@ -59,7 +59,10 @@ export function FormattedChatMessage({ content }: { content: string }) {
         }
         if (trimmed.startsWith("## ")) {
           return (
-            <h4 key={idx} className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider mt-2 mb-1">
+            <h4
+              key={idx}
+              className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider mt-2 mb-1"
+            >
               {formatInlineText(trimmed.replace(/^##\s+/, ""))}
             </h4>
           );
@@ -121,7 +124,10 @@ export function MeetingChatTab({
           <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-indigo-500" /> RAG Knowledge Assistant
           </span>
-          <Badge variant="outline" className="text-[10px] font-semibold bg-indigo-50/80 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border-indigo-200/80">
+          <Badge
+            variant="outline"
+            className="text-[10px] font-semibold bg-indigo-50/80 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border-indigo-200/80"
+          >
             AI Co-Pilot
           </Badge>
         </div>
@@ -185,7 +191,10 @@ export function MeetingChatTab({
                     {showSources && (
                       <div className="mt-2 max-h-[140px] overflow-y-auto rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 p-3 border border-zinc-100 dark:border-zinc-800 space-y-2 text-[10px] leading-relaxed text-zinc-500 dark:text-zinc-400 font-mono">
                         {msg.sources.map((src, i) => (
-                          <div key={i} className="pb-2 last:pb-0 border-b border-zinc-100 dark:border-zinc-800/50 last:border-0">
+                          <div
+                            key={i}
+                            className="pb-2 last:pb-0 border-b border-zinc-100 dark:border-zinc-800/50 last:border-0"
+                          >
                             <span className="text-indigo-500 font-semibold mr-1">[{i + 1}]</span>
                             {src}
                           </div>

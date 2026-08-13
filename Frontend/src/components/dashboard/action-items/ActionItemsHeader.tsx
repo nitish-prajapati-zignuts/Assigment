@@ -12,12 +12,7 @@ interface ActionItemsHeaderProps {
   onExportMarkdown?: () => void;
 }
 
-export function ActionItemsHeader({
-  isSyncing,
-  onAddClick,
-  onExportCSV,
-  onExportMarkdown,
-}: ActionItemsHeaderProps) {
+export function ActionItemsHeader({ isSyncing, onAddClick, onExportCSV, onExportMarkdown }: ActionItemsHeaderProps) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-zinc-200/80 dark:border-zinc-800/80 pb-5 gap-4">
       <div>
@@ -82,4 +77,3 @@ export function ActionItemsHeader({
     </div>
   );
 }
-

@@ -7,21 +7,8 @@ import { getPriorityBadgeClass } from "./utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   User,
   Calendar,
@@ -74,8 +61,7 @@ export function ActionItemsTable({
     return BADGE_COLORS[Math.floor(Math.random() * BADGE_COLORS.length)];
   }
 
-  const isAllSelected =
-    displayItems.length > 0 && displayItems.every((item) => selectedIds.includes(item.id));
+  const isAllSelected = displayItems.length > 0 && displayItems.every((item) => selectedIds.includes(item.id));
 
   const handleToggleSelectAll = () => {
     if (isAllSelected) {
@@ -86,9 +72,7 @@ export function ActionItemsTable({
   };
 
   const handleToggleSelectRow = (id: string) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
   };
 
   const handleBulkStatus = (newStatus: ActionItem["status"]) => {
@@ -184,12 +168,7 @@ export function ActionItemsTable({
               <span className="hidden sm:inline">Export CSV</span>
             </Button>
 
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={handleBulkDeleteAction}
-              className="h-8 text-xs gap-1"
-            >
+            <Button size="sm" variant="destructive" onClick={handleBulkDeleteAction} className="h-8 text-xs gap-1">
               <Trash2 className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Delete</span>
             </Button>
@@ -284,8 +263,9 @@ export function ActionItemsTable({
                 return (
                   <TableRow
                     key={item.id}
-                    className={`border-b border-zinc-100 dark:border-zinc-800/50 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/50 transition-colors ${isSelected ? "bg-indigo-50/50 dark:bg-indigo-950/30" : ""
-                      }`}
+                    className={`border-b border-zinc-100 dark:border-zinc-800/50 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/50 transition-colors ${
+                      isSelected ? "bg-indigo-50/50 dark:bg-indigo-950/30" : ""
+                    }`}
                   >
                     <TableCell className="pl-4 py-3.5">
                       <input
@@ -297,13 +277,12 @@ export function ActionItemsTable({
                     </TableCell>
                     <TableCell className="py-3.5 font-medium text-xs text-zinc-900 dark:text-zinc-100">
                       <div className="flex flex-col gap-1.5">
-                        <span className="truncate font-medium text-zinc-900 dark:text-zinc-100">
-                          {item.task}
-                        </span>
+                        <span className="truncate font-medium text-zinc-900 dark:text-zinc-100">{item.task}</span>
                         {item.meetingTitle && (
                           <Badge
                             variant="outline"
-                            className={`w-fit text-[10px] font-normal px-2 py-0.5 border ${getRandomBadgeColor()}`}>
+                            className={`w-fit text-[10px] font-normal px-2 py-0.5 border ${getRandomBadgeColor()}`}
+                          >
                             {item.meetingTitle}
                           </Badge>
                         )}
@@ -377,6 +356,6 @@ export function ActionItemsTable({
           </TableBody>
         </Table>
       </div>
-    </div >
+    </div>
   );
 }

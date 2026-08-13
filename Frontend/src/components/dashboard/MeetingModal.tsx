@@ -55,16 +55,18 @@ type MeetingFormValues = z.infer<typeof meetingSchema>;
 interface MeetingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (meeting: Partial<Meeting> & { language?: string; summaryLength?: SummaryLength; template?: SummaryTemplate; customPrompt?: string }) => Promise<void> | void;
+  onSave: (
+    meeting: Partial<Meeting> & {
+      language?: string;
+      summaryLength?: SummaryLength;
+      template?: SummaryTemplate;
+      customPrompt?: string;
+    }
+  ) => Promise<void> | void;
   initialData?: Meeting | null;
 }
 
-export function MeetingModal({
-  isOpen,
-  onClose,
-  onSave,
-  initialData,
-}: MeetingModalProps) {
+export function MeetingModal({ isOpen, onClose, onSave, initialData }: MeetingModalProps) {
   const [appUsers, setAppUsers] = useState<AppUser[]>([]);
   const [summaryLength, setSummaryLength] = useState<SummaryLength>("Medium");
   const [template, setTemplate] = useState<SummaryTemplate>("Standard");
@@ -96,10 +98,7 @@ export function MeetingModal({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [usersRes, settingsRes] = await Promise.allSettled([
-          api.get("/auth/users"),
-          api.get("/settings"),
-        ]);
+        const [usersRes, settingsRes] = await Promise.allSettled([api.get("/auth/users"), api.get("/settings")]);
 
         if (usersRes.status === "fulfilled" && Array.isArray(usersRes.value.data)) {
           setAppUsers(usersRes.value.data);
@@ -188,7 +187,6 @@ export function MeetingModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[90vw] max-w-3xl sm:max-w-3xl md:max-w-3xl max-h-[90vh] overflow-y-auto bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 p-6">
         <DialogHeader>
-
           <DialogTitle className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
             {initialData ? "Edit Meeting Note" : "Log New Meeting & Generate Summary"}
           </DialogTitle>
@@ -213,7 +211,6 @@ export function MeetingModal({
             isEditing={!!initialData}
           />
 
-
           {/* Attendees Chips & Mentions Autocomplete */}
           <MeetingFormParticipants
             register={register}
@@ -224,16 +221,17 @@ export function MeetingModal({
           />
 
           {/* Notes & Transcript Editor (File Upload + Rich Text) */}
-          <MeetingFormTranscriptEditor
-            watchTranscript={watchTranscript}
-            setValue={setValue}
-          />
+          <MeetingFormTranscriptEditor watchTranscript={watchTranscript} setValue={setValue} />
 
           <DialogFooter className="pt-2 border-t border-zinc-100 dark:border-zinc-800 gap-2 sm:gap-0">
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting} className="h-9 text-xs">
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting} className="h-9 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white">
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="h-9 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white"
+            >
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

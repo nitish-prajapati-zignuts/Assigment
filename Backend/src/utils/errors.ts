@@ -17,74 +17,80 @@ export class AppError extends Error {
   constructor(
     public message: string,
     public statusCode: number = 500,
-    public code: string = 'INTERNAL_ERROR'
+    public code: string = "INTERNAL_ERROR"
   ) {
     super(message);
-    this.name = 'AppError';
+    this.name = "AppError";
     Object.setPrototypeOf(this, AppError.prototype);
   }
 }
 
 export class ValidationError extends AppError {
-  constructor(message: string, public details?: Record<string, unknown>) {
-    super(message, 400, 'VALIDATION_ERROR');
-    this.name = 'ValidationError';
+  constructor(
+    message: string,
+    public details?: Record<string, unknown>
+  ) {
+    super(message, 400, "VALIDATION_ERROR");
+    this.name = "ValidationError";
     Object.setPrototypeOf(this, ValidationError.prototype);
   }
 }
 
 export class AuthenticationError extends AppError {
-  constructor(message: string = 'Authentication required') {
-    super(message, 401, 'AUTHENTICATION_ERROR');
-    this.name = 'AuthenticationError';
+  constructor(message: string = "Authentication required") {
+    super(message, 401, "AUTHENTICATION_ERROR");
+    this.name = "AuthenticationError";
     Object.setPrototypeOf(this, AuthenticationError.prototype);
   }
 }
 
 export class AuthorizationError extends AppError {
-  constructor(message: string = 'Insufficient permissions') {
-    super(message, 403, 'AUTHORIZATION_ERROR');
-    this.name = 'AuthorizationError';
+  constructor(message: string = "Insufficient permissions") {
+    super(message, 403, "AUTHORIZATION_ERROR");
+    this.name = "AuthorizationError";
     Object.setPrototypeOf(this, AuthorizationError.prototype);
   }
 }
 
 export class NotFoundError extends AppError {
-  constructor(resource: string = 'Resource') {
-    super(`${resource} not found`, 404, 'NOT_FOUND');
-    this.name = 'NotFoundError';
+  constructor(resource: string = "Resource") {
+    super(`${resource} not found`, 404, "NOT_FOUND");
+    this.name = "NotFoundError";
     Object.setPrototypeOf(this, NotFoundError.prototype);
   }
 }
 
 export class ConflictError extends AppError {
-  constructor(message: string, public details?: Record<string, unknown>) {
-    super(message, 409, 'CONFLICT');
-    this.name = 'ConflictError';
+  constructor(
+    message: string,
+    public details?: Record<string, unknown>
+  ) {
+    super(message, 409, "CONFLICT");
+    this.name = "ConflictError";
     Object.setPrototypeOf(this, ConflictError.prototype);
   }
 }
 
 export class RateLimitError extends AppError {
-  constructor(message: string = 'Too many requests') {
-    super(message, 429, 'RATE_LIMIT_EXCEEDED');
-    this.name = 'RateLimitError';
+  constructor(message: string = "Too many requests") {
+    super(message, 429, "RATE_LIMIT_EXCEEDED");
+    this.name = "RateLimitError";
     Object.setPrototypeOf(this, RateLimitError.prototype);
   }
 }
 
 export class InternalServerError extends AppError {
-  constructor(message: string = 'Internal server error') {
-    super(message, 500, 'INTERNAL_ERROR');
-    this.name = 'InternalServerError';
+  constructor(message: string = "Internal server error") {
+    super(message, 500, "INTERNAL_ERROR");
+    this.name = "InternalServerError";
     Object.setPrototypeOf(this, InternalServerError.prototype);
   }
 }
 
 export class BadGatewayError extends AppError {
-  constructor(service: string = 'External service') {
-    super(`${service} is temporarily unavailable`, 502, 'BAD_GATEWAY');
-    this.name = 'BadGatewayError';
+  constructor(service: string = "External service") {
+    super(`${service} is temporarily unavailable`, 502, "BAD_GATEWAY");
+    this.name = "BadGatewayError";
     Object.setPrototypeOf(this, BadGatewayError.prototype);
   }
 }
@@ -108,5 +114,5 @@ export const toAppError = (error: unknown): AppError => {
     return new InternalServerError(error.message);
   }
 
-  return new InternalServerError('An unknown error occurred');
+  return new InternalServerError("An unknown error occurred");
 };

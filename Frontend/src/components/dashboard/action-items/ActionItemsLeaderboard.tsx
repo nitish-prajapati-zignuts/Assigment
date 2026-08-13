@@ -18,7 +18,11 @@ export interface OwnerPerformance {
 }
 
 export function ActionItemsLeaderboard() {
-  const { data: leaderboardData = [], isLoading, isFetching } = useQuery<OwnerPerformance[]>({
+  const {
+    data: leaderboardData = [],
+    isLoading,
+    isFetching,
+  } = useQuery<OwnerPerformance[]>({
     queryKey: ["actionItemsLeaderboard"],
     queryFn: async () => {
       const res = await api.get("/action-items/leaderboard");
@@ -42,7 +46,10 @@ export function ActionItemsLeaderboard() {
             </p>
           </div>
         </div>
-        <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200">
+        <Badge
+          variant="outline"
+          className="text-xs bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border-amber-200"
+        >
           {isLoading ? "Loading..." : `${leaderboardData.length} Contributor(s)`}
         </Badge>
       </div>
@@ -80,9 +87,7 @@ export function ActionItemsLeaderboard() {
                   <div className="p-1.5 rounded-full bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 shrink-0">
                     <User className="h-3.5 w-3.5" />
                   </div>
-                  <span className="font-bold text-xs text-zinc-900 dark:text-zinc-100 truncate">
-                    {perf.owner}
-                  </span>
+                  <span className="font-bold text-xs text-zinc-900 dark:text-zinc-100 truncate">{perf.owner}</span>
                 </div>
                 <Badge variant="outline" className={`text-[10px] ${perf.badgeColor} shrink-0`}>
                   {perf.badgeTitle}

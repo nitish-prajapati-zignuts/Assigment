@@ -6,34 +6,19 @@ import { generateMeetingSummary } from "../services/aiService";
 import { AuthenticatedRequest } from "../middleware/authMiddleware";
 import { asyncHandler } from "../middleware/errorHandler";
 import { logger } from "../utils/logger";
-import {
-  NotFoundError,
-  ValidationError,
-  InternalServerError,
-  AuthorizationError
-} from "../utils/errors";
-import {
-  getPaginationOffset,
-  calculatePagination,
-  buildPaginatedResponse
-} from "../utils/queryOptimization";
+import { NotFoundError, ValidationError, InternalServerError, AuthorizationError } from "../utils/errors";
+import { getPaginationOffset, calculatePagination, buildPaginatedResponse } from "../utils/queryOptimization";
 import { MeetingQueryInput, CreateMeetingInput, UpdateMeetingInput } from "../utils/validation";
 import { processAndSaveTranscriptEmbeddings } from "../services/aiService";
-import { jobQueue } from "../services/jobQueue"
+import { jobQueue } from "../services/jobQueue";
 import { queryMeetingRAG } from "../services/aiService";
 import { appendDebugLog } from "../utils/appendLog";
-
-
-
 
 /**
  * Helper function that synchronizes extracted AI action items into the relational PostgreSQL `action_items` DB table.
  * Uses batch insert for performance and prevents N+1 queries by fetching users once.
  */
-const syncActionItemsToDb = async (
-  meetingId: string,
-  summary: MeetingSummary | null
-): Promise<void> => {
+const syncActionItemsToDb = async (meetingId: string, summary: MeetingSummary | null): Promise<void> => {
   try {
     // Delete previous action items for this meeting (cascade handled by DB)
     await db.delete(actionItems).where(eq(actionItems.meetingId, meetingId));
@@ -44,7 +29,7 @@ const syncActionItemsToDb = async (
 
     // Fetch users once to avoid N+1 queries
     const allUsers = await db.select().from(users);
-    const userEmailMap = new Map(allUsers.map((u: { email: string; id: any; }) => [u.email.toLowerCase(), u.id]));
+    const userEmailMap = new Map(allUsers.map((u: { email: string; id: any }) => [u.email.toLowerCase(), u.id]));
 
     const rowsToInsert = summary.actionItems.map((item, index) => {
       // Find matching user by email
@@ -84,10 +69,7 @@ const syncActionItemsToDb = async (
  * Retrieves meetings associated with the authenticated user with filtering and pagination.
  * Uses database indexes for efficient querying.
  */
-export const getMeetings = asyncHandler(async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
+export const getMeetings = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { search, type, page, limit, sortBy, sortOrder } = req.query as unknown as MeetingQueryInput;
   const userEmail = req.user?.email?.toLowerCase();
 
@@ -97,17 +79,19 @@ export const getMeetings = asyncHandler(async (
 
   try {
     // Fetch all meetings ordered by createdAt descending (newest first)
-    const allMeetings = await db.select({ ...getTableColumns(meetings), hasChunks: sql<boolean> `COUNT(${meetingChunks.id}) > 0` }).
-      from(meetings).leftJoin(meetingChunks, eq(meetingChunks.meetingId, meetings.id)).
-      groupBy(meetings.id).orderBy(desc(meetings.createdAt))
-    appendDebugLog(JSON.stringify(allMeetings))
-    console.log("All Meetings", allMeetings)
+    const allMeetings = await db
+      .select({ ...getTableColumns(meetings), hasChunks: sql<boolean>`COUNT(${meetingChunks.id}) > 0` })
+      .from(meetings)
+      .leftJoin(meetingChunks, eq(meetingChunks.meetingId, meetings.id))
+      .groupBy(meetings.id)
+      .orderBy(desc(meetings.createdAt));
+    appendDebugLog(JSON.stringify(allMeetings));
+    console.log("All Meetings", allMeetings);
 
     // Filter meetings where user is a participant
     let userMeetings = allMeetings.filter(
-      (m: { participants: any[]; }) =>
-        Array.isArray(m.participants) &&
-        m.participants.some((p: string) => p.toLowerCase() === userEmail)
+      (m: { participants: any[] }) =>
+        Array.isArray(m.participants) && m.participants.some((p: string) => p.toLowerCase() === userEmail)
     );
 
     let filtered = userMeetings;
@@ -125,7 +109,7 @@ export const getMeetings = asyncHandler(async (
 
     // Apply type filter
     if (type && (type as string) !== "All") {
-      filtered = filtered.filter((m: { type: string; }) => m.type === type);
+      filtered = filtered.filter((m: { type: string }) => m.type === type);
     }
 
     // Ensure strict sorting by createdAt descending (newest first)
@@ -146,7 +130,7 @@ export const getMeetings = asyncHandler(async (
       count: paginatedItems.length,
       total,
       page,
-      limit
+      limit,
     });
 
     res.json(buildPaginatedResponse(paginatedItems, pagination));
@@ -160,18 +144,12 @@ export const getMeetings = asyncHandler(async (
  * GET /api/meetings/:id
  * Fetches a single meeting record by its unique ID with access control.
  */
-export const getMeetingById = asyncHandler(async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
+export const getMeetingById = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const targetId = String(req.params.id);
   const userEmail = req.user?.email?.toLowerCase();
 
   try {
-    const result = await db
-      .select()
-      .from(meetings)
-      .where(eq(meetings.id, targetId));
+    const result = await db.select().from(meetings).where(eq(meetings.id, targetId));
 
     if (result.length === 0) {
       throw new NotFoundError("Meeting");
@@ -201,11 +179,9 @@ export const getMeetingById = asyncHandler(async (
  * Creates a new meeting with async AI summarization via job queue.
  * Returns immediately with meeting record, summary processes in background.
  */
-export const createMeeting = asyncHandler(async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
-  const { title, date, participants, transcript, type, language, summaryLength, template, customPrompt } = req.body as CreateMeetingInput & { language?: string; summaryLength?: any; template?: any; customPrompt?: string };
+export const createMeeting = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  const { title, date, participants, transcript, type, language, summaryLength, template, customPrompt } =
+    req.body as CreateMeetingInput & { language?: string; summaryLength?: any; template?: any; customPrompt?: string };
   const userEmail = req.user?.email;
 
   if (!userEmail) {
@@ -234,10 +210,7 @@ export const createMeeting = asyncHandler(async (
       updatedAt: new Date(),
     };
 
-    const inserted = await db
-      .insert(meetings)
-      .values(newMeeting)
-      .returning();
+    const inserted = await db.insert(meetings).values(newMeeting).returning();
 
     let jobId: string | undefined;
 
@@ -259,13 +232,13 @@ export const createMeeting = asyncHandler(async (
         meetingId,
         jobId,
         userEmail,
-        participantCount: finalParticipants.length
+        participantCount: finalParticipants.length,
       });
     } else {
       logger.info("Meeting created (no transcript)", {
         meetingId,
         userEmail,
-        participantCount: finalParticipants.length
+        participantCount: finalParticipants.length,
       });
     }
 
@@ -283,18 +256,13 @@ export const createMeeting = asyncHandler(async (
  * PUT /api/meetings/:id
  * Updates an existing meeting with optional re-summarization.
  */
-export const updateMeeting = asyncHandler(async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
+export const updateMeeting = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const targetId = String(req.params.id);
-  const { title, date, type, participants, transcript, language, summaryLength, isMeetingPublished } = req.body as UpdateMeetingInput & { language?: string; summaryLength?: any; isMeetingPublished?: boolean };
+  const { title, date, type, participants, transcript, language, summaryLength, isMeetingPublished } =
+    req.body as UpdateMeetingInput & { language?: string; summaryLength?: any; isMeetingPublished?: boolean };
 
   try {
-    const existing = await db
-      .select()
-      .from(meetings)
-      .where(eq(meetings.id, targetId));
+    const existing = await db.select().from(meetings).where(eq(meetings.id, targetId));
 
     if (existing.length === 0) {
       throw new NotFoundError("Meeting");
@@ -351,18 +319,12 @@ export const updateMeeting = asyncHandler(async (
  * POST /api/meetings/:id/summarize
  * Queues async AI summarization on demand with immediate response.
  */
-export const summarizeMeeting = asyncHandler(async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
+export const summarizeMeeting = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const targetId = String(req.params.id);
   const { language, summaryLength, template } = req.body || {};
 
   try {
-    const existing = await db
-      .select()
-      .from(meetings)
-      .where(eq(meetings.id, targetId));
+    const existing = await db.select().from(meetings).where(eq(meetings.id, targetId));
 
     if (existing.length === 0) {
       throw new NotFoundError("Meeting");
@@ -401,19 +363,13 @@ export const summarizeMeeting = asyncHandler(async (
  * POST /api/meetings/:id/chat
  * RAG chatbot Q&A endpoint for query transcripts.
  */
-export const chatMeeting = asyncHandler(async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
+export const chatMeeting = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const targetId = String(req.params.id);
   const { question, history } = req.body;
   const userEmail = req.user?.email?.toLowerCase();
 
   try {
-    const existing = await db
-      .select()
-      .from(meetings)
-      .where(eq(meetings.id, targetId));
+    const existing = await db.select().from(meetings).where(eq(meetings.id, targetId));
 
     if (existing.length === 0) {
       throw new NotFoundError("Meeting");
@@ -446,17 +402,11 @@ export const chatMeeting = asyncHandler(async (
  * DELETE /api/meetings/:id
  * Deletes a meeting and its associated action items (cascade).
  */
-export const deleteMeeting = asyncHandler(async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
+export const deleteMeeting = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const targetId = String(req.params.id);
 
   try {
-    const deleted = await db
-      .delete(meetings)
-      .where(eq(meetings.id, targetId))
-      .returning();
+    const deleted = await db.delete(meetings).where(eq(meetings.id, targetId)).returning();
 
     if (deleted.length === 0) {
       throw new NotFoundError("Meeting");
@@ -475,10 +425,7 @@ export const deleteMeeting = asyncHandler(async (
  * PATCH /api/meetings/:id/publish
  * Toggles or sets the isMeetingPublished state and returns an encrypted share link.
  */
-export const toggleMeetingPublish = asyncHandler(async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
+export const toggleMeetingPublish = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const targetId = String(req.params.id);
   const { isMeetingPublished, sharePassword, expiresInHours, removePassword, clearExpiration } = req.body as {
     isMeetingPublished?: boolean;
@@ -496,9 +443,7 @@ export const toggleMeetingPublish = asyncHandler(async (
 
     const currentMeeting = existing[0];
     const nextPublishedState =
-      typeof isMeetingPublished === "boolean"
-        ? isMeetingPublished
-        : !currentMeeting.isMeetingPublished;
+      typeof isMeetingPublished === "boolean" ? isMeetingPublished : !currentMeeting.isMeetingPublished;
 
     const { hashSharePassword } = await import("../utils/shareUtils");
 
@@ -554,10 +499,7 @@ export const toggleMeetingPublish = asyncHandler(async (
  * GET /api/meetings/public/share/:token
  * Public endpoint to fetch a meeting via an encrypted share token (if published).
  */
-export const getPublicMeetingByToken = asyncHandler(async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const getPublicMeetingByToken = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const token = String(req.params.token);
   const password = req.body?.password as string | undefined;
 

@@ -8,6 +8,8 @@
     "install:all": "npm install --prefix Backend && npm install --prefix Frontend",
     "lint": "(cd Frontend && npm run lint) && (cd Backend && npm run lint)",
     "lint:fix": "(cd Frontend && npm run lint:fix)",
+    "format": "concurrently -n \"Backend,Frontend\" -c \"cyan,magenta\" \"npm run format --prefix Backend\" \"npm run format --prefix Frontend\"",
+    "format:check": "concurrently -n \"Backend,Frontend\" -c \"cyan,magenta\" \"npm run format:check --prefix Backend\" \"npm run format:check --prefix Frontend\"",
     "prepare": "husky"
   },
 

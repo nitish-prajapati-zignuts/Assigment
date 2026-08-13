@@ -1,23 +1,18 @@
-import { Request, Response, NextFunction } from 'express';
-import { logger } from '../utils/logger';
-import { isAppError, AppError, ErrorResponse } from '../utils/errors';
+import { Request, Response, NextFunction } from "express";
+import { logger } from "../utils/logger";
+import { isAppError, AppError, ErrorResponse } from "../utils/errors";
 
 /**
  * Express error handler middleware
  * Must be registered as the last middleware in the app
  */
-export const errorHandler = (
-  error: Error | AppError,
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
-  const isDevelopment = process.env.NODE_ENV !== 'production';
+export const errorHandler = (error: Error | AppError, req: Request, res: Response, next: NextFunction): void => {
+  const isDevelopment = process.env.NODE_ENV !== "production";
 
   // Extract error details
   const appError = isAppError(error)
     ? error
-    : new AppError(error.message || 'Internal server error', 500, 'INTERNAL_ERROR');
+    : new AppError(error.message || "Internal server error", 500, "INTERNAL_ERROR");
 
   const { statusCode, code, message, details } = appError;
 
@@ -29,7 +24,7 @@ export const errorHandler = (
     errorCode: code,
     userId: (req as any).user?.userId,
     ip: req.ip,
-    userAgent: req.get('user-agent'),
+    userAgent: req.get("user-agent"),
     requestBody: isDevelopment ? sanitizeBody(req.body) : undefined,
     queryParams: isDevelopment ? req.query : undefined,
   };
@@ -41,7 +36,7 @@ export const errorHandler = (
   } else {
     logger.info(message, logContext);
   }
-  console.log("Response", message)
+  console.log("Response", message);
   // Format error response
   const response: ErrorResponse = {
     error: code,
@@ -51,7 +46,7 @@ export const errorHandler = (
     ...(details && Object.keys(details).length > 0 && { details }),
   };
 
-  console.log(response)
+  console.log(response);
 
   res.status(statusCode).json(response);
 };
@@ -71,7 +66,7 @@ export const asyncHandler = (fn: Function) => {
  * Handles requests that don't match any route
  */
 export const notFoundHandler = (req: Request, res: Response, next: NextFunction): void => {
-  const error = new AppError(`Route not found: ${req.method} ${req.path}`, 404, 'ROUTE_NOT_FOUND');
+  const error = new AppError(`Route not found: ${req.method} ${req.path}`, 404, "ROUTE_NOT_FOUND");
   next(error);
 };
 
@@ -79,14 +74,14 @@ export const notFoundHandler = (req: Request, res: Response, next: NextFunction)
  * Sanitize sensitive data from logs
  */
 function sanitizeBody(body: any): any {
-  if (!body || typeof body !== 'object') return body;
+  if (!body || typeof body !== "object") return body;
 
   const sanitized = { ...body };
-  const sensitiveFields = ['password', 'token', 'secret', 'apiKey', 'authorization'];
+  const sensitiveFields = ["password", "token", "secret", "apiKey", "authorization"];
 
-  sensitiveFields.forEach(field => {
+  sensitiveFields.forEach((field) => {
     if (field in sanitized) {
-      sanitized[field] = '***REDACTED***';
+      sanitized[field] = "***REDACTED***";
     }
   });
 

@@ -12,7 +12,7 @@ router.post("/register", validateBody(registerSchema), register);
 router.post("/login", validateBody(loginSchema), login);
 router.post("/logout", logout);
 router.get("/users", asyncHandler(getUsers));
-router.post("/change-password", protect, validateBody(updatePasswordSchema), changePassword)
+router.post("/change-password", protect, validateBody(updatePasswordSchema), changePassword);
 
 // Protected routes
 router.get("/me", protect, getMe);

@@ -190,10 +190,7 @@ class JobQueue {
     let removed = 0;
 
     for (const [jobId, job] of this.jobs.entries()) {
-      if (
-        (job.status === "completed" || job.status === "failed") &&
-        now - job.createdAt.getTime() > maxAgeMs
-      ) {
+      if ((job.status === "completed" || job.status === "failed") && now - job.createdAt.getTime() > maxAgeMs) {
         this.jobs.delete(jobId);
         removed++;
       }
@@ -226,6 +223,9 @@ class JobQueue {
 export const jobQueue = new JobQueue();
 
 // Auto-cleanup every hour
-setInterval(() => {
-  jobQueue.cleanup();
-}, 60 * 60 * 1000);
+setInterval(
+  () => {
+    jobQueue.cleanup();
+  },
+  60 * 60 * 1000
+);

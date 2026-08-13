@@ -10,12 +10,7 @@ import {
 } from "../controllers/actionItemController";
 import { protect } from "../middleware/authMiddleware";
 import { validateBody, validateQuery, validateParams } from "../middleware/validation";
-import {
-  createActionItemSchema,
-  updateActionItemSchema,
-  actionItemQuerySchema,
-  idSchema,
-} from "../utils/validation";
+import { createActionItemSchema, updateActionItemSchema, actionItemQuerySchema, idSchema } from "../utils/validation";
 
 const router = Router();
 
@@ -27,7 +22,6 @@ router.get("/", validateQuery(actionItemQuerySchema), getActionItems);
 
 // GET /api/action-items/leaderboard - Real-time leaderboard aggregation
 router.get("/leaderboard", getActionItemsLeaderboard);
-
 
 // GET /api/action-items/meeting/:meetingId - View action items for a specific meeting
 router.get("/meeting/:meetingId", validateParams(idSchema), getActionItemsByMeeting);
@@ -46,6 +40,5 @@ router.patch("/:id", validateParams(idSchema), updateActionItem);
 
 // DELETE /api/action-items/:id - Delete an action item
 router.delete("/:id", validateParams(idSchema), deleteActionItem);
-
 
 export default router;

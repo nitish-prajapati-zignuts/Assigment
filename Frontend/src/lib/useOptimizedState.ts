@@ -3,7 +3,7 @@
  * Provides efficient state management with memoization and batch updates
  */
 
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef } from "react";
 
 /**
  * Custom hook for async state with loading and error handling
@@ -55,17 +55,20 @@ export function usePaginatedState<T>(initialItems: T[] = [], initialPage = 1, in
     totalPages: 1,
   });
 
-  const updateItems = useCallback((newItems: T[], total: number) => {
-    setItems(newItems);
-    const totalPages = Math.ceil(total / pagination.limit);
-    setPagination((prev) => ({
-      ...prev,
-      total,
-      totalPages,
-      hasNextPage: prev.page < totalPages,
-      hasPrevPage: prev.page > 1,
-    }));
-  }, [pagination.limit]);
+  const updateItems = useCallback(
+    (newItems: T[], total: number) => {
+      setItems(newItems);
+      const totalPages = Math.ceil(total / pagination.limit);
+      setPagination((prev) => ({
+        ...prev,
+        total,
+        totalPages,
+        hasNextPage: prev.page < totalPages,
+        hasPrevPage: prev.page > 1,
+      }));
+    },
+    [pagination.limit]
+  );
 
   const goToPage = useCallback((page: number) => {
     setPagination((prev) => ({
@@ -157,19 +160,22 @@ export function useDebouncedState<T>(initialValue: T, delay: number = 500) {
   const [debouncedValue, setDebouncedValue] = useState(initialValue);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const updateValue = useCallback((newValue: T) => {
-    setValue(newValue);
+  const updateValue = useCallback(
+    (newValue: T) => {
+      setValue(newValue);
 
-    // Clear previous timeout
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
+      // Clear previous timeout
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
 
-    // Set new timeout
-    timeoutRef.current = setTimeout(() => {
-      setDebouncedValue(newValue);
-    }, delay);
-  }, [delay]);
+      // Set new timeout
+      timeoutRef.current = setTimeout(() => {
+        setDebouncedValue(newValue);
+      }, delay);
+    },
+    [delay]
+  );
 
   return {
     value,

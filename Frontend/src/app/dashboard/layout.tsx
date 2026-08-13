@@ -6,11 +6,7 @@ import { Sidebar } from "@/components/dashboard/Sidebar";
 import { CommandPalette } from "@/components/dashboard/CommandPalette";
 import { ShortcutsDialog } from "@/components/dashboard/ShortcutsDialog";
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
@@ -21,12 +17,7 @@ export default function DashboardLayout({
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ignore hotkeys if user is typing inside input/textarea/editable element
       const target = e.target as HTMLElement;
-      if (
-        target &&
-        (target.tagName === "INPUT" ||
-          target.tagName === "TEXTAREA" ||
-          target.isContentEditable)
-      ) {
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
         return;
       }
 
@@ -115,17 +106,8 @@ export default function DashboardLayout({
     <div className="flex min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <Sidebar />
       <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pt-16 md:pt-16 lg:pt-8">{children}</main>
-      <CommandPalette
-        isOpen={isCommandPaletteOpen}
-        onClose={() => setIsCommandPaletteOpen(false)}
-      />
-      <ShortcutsDialog
-        isOpen={isShortcutsOpen}
-        onClose={() => setIsShortcutsOpen(false)}
-      />
+      <CommandPalette isOpen={isCommandPaletteOpen} onClose={() => setIsCommandPaletteOpen(false)} />
+      <ShortcutsDialog isOpen={isShortcutsOpen} onClose={() => setIsShortcutsOpen(false)} />
     </div>
   );
 }
-
-
-

@@ -79,9 +79,7 @@ api.interceptors.response.use(
     // Handle 429 Rate Limit Exceeded - Toast notification
     if (status === 429 || (errorData && (errorData as any).code === "RATE_LIMIT_EXCEEDED")) {
       if (typeof window !== "undefined") {
-        const rateLimitMessage =
-          (errorData as any)?.message ||
-          "API rate limit exceeded. Please try again later.";
+        const rateLimitMessage = (errorData as any)?.message || "API rate limit exceeded. Please try again later.";
         window.dispatchEvent(
           new CustomEvent("app-notification", {
             detail: {

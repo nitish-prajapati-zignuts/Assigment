@@ -22,11 +22,7 @@ export interface PaginationMeta {
   totalPages: number;
 }
 
-export const calculatePagination = (
-  page: number,
-  limit: number,
-  total: number
-): PaginationMeta => {
+export const calculatePagination = (page: number, limit: number, total: number): PaginationMeta => {
   const totalPages = Math.ceil(total / limit);
   return {
     page,
@@ -54,13 +50,10 @@ export const getSortOrder = (order: SortOrder) => {
 /**
  * Text search utility (for simple text search across fields)
  */
-export const buildSearchQuery = (
-  fields: any[],
-  searchTerm: string
-): any => {
+export const buildSearchQuery = (fields: any[], searchTerm: string): any => {
   if (!searchTerm) return undefined;
   const searchPattern = `%${searchTerm.toLowerCase()}%`;
-  return or(...fields.map(field => like(field, searchPattern)));
+  return or(...fields.map((field) => like(field, searchPattern)));
 };
 
 /**
@@ -82,10 +75,7 @@ export const buildFilterQuery = (filters: Record<string, any>): any[] => {
 /**
  * Response builder with pagination
  */
-export const buildPaginatedResponse = <T>(
-  data: T[],
-  pagination: PaginationMeta
-) => {
+export const buildPaginatedResponse = <T>(data: T[], pagination: PaginationMeta) => {
   return {
     data,
     pagination,
@@ -101,11 +91,7 @@ export interface BatchQueryOptions<T> {
   processor: (batch: string[]) => Promise<T[]>;
 }
 
-export const batchQuery = async <T>({
-  ids,
-  batchSize = 100,
-  processor,
-}: BatchQueryOptions<T>): Promise<T[]> => {
+export const batchQuery = async <T>({ ids, batchSize = 100, processor }: BatchQueryOptions<T>): Promise<T[]> => {
   const results: T[] = [];
 
   for (let i = 0; i < ids.length; i += batchSize) {

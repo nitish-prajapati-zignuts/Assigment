@@ -56,8 +56,7 @@ export function buildMeetingSummaryPrompt({
       break;
     case "Standard":
     default:
-      templateInstruction =
-        "\nSTANDARD SUMMARY FOCUS: Provide a balanced overview suitable for all team members.";
+      templateInstruction = "\nSTANDARD SUMMARY FOCUS: Provide a balanced overview suitable for all team members.";
       break;
   }
 

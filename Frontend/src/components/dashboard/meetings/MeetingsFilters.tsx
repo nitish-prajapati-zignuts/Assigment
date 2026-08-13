@@ -1,11 +1,5 @@
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter } from "lucide-react";
 
 interface MeetingsFiltersProps {
@@ -15,12 +9,7 @@ interface MeetingsFiltersProps {
   setSelectedType: (type: string) => void;
 }
 
-export function MeetingsFilters({
-  searchQuery,
-  setSearchQuery,
-  selectedType,
-  setSelectedType,
-}: MeetingsFiltersProps) {
+export function MeetingsFilters({ searchQuery, setSearchQuery, selectedType, setSelectedType }: MeetingsFiltersProps) {
   return (
     <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-white dark:bg-zinc-900 p-4 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-sm">
       <div className="relative w-full sm:w-96">
@@ -52,9 +41,7 @@ export function MeetingsFilters({
             <SelectItem value="Sales Meeting">Sales Meeting</SelectItem>
             <SelectItem value="Project Meeting">Project Meeting</SelectItem>
             <SelectItem value="Internal Meeting">Internal Meeting</SelectItem>
-            <SelectItem value="Requirement Discussion">
-              Requirement Discussion
-            </SelectItem>
+            <SelectItem value="Requirement Discussion">Requirement Discussion</SelectItem>
             <SelectItem value="Retrospective">Retrospective</SelectItem>
             <SelectItem value="Other">Other</SelectItem>
           </SelectContent>

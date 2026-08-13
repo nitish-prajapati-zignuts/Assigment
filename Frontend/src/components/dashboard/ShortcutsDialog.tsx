@@ -1,17 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Keyboard,
-  Command,
-  Search,
-  Plus,
-  Calendar,
-  LayoutDashboard,
-  CheckSquare,
-  Settings,
-  X,
-} from "lucide-react";
+import { Keyboard, Command, Search, Plus, Calendar, LayoutDashboard, CheckSquare, Settings, X } from "lucide-react";
 
 interface ShortcutsDialogProps {
   isOpen: boolean;
@@ -74,9 +64,7 @@ export function ShortcutsDialog({ isOpen, onClose }: ShortcutsDialogProps) {
                   <Keyboard className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
-                    Keyboard Shortcuts
-                  </h2>
+                  <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">Keyboard Shortcuts</h2>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">
                     Boost your productivity with global hotkey shortcuts.
                   </p>
@@ -136,7 +124,10 @@ export function ShortcutsDialog({ isOpen, onClose }: ShortcutsDialogProps) {
 
             {/* Dialog Footer */}
             <div className="pt-3 border-t border-zinc-200/80 dark:border-zinc-800/80 flex items-center justify-between text-xs text-zinc-400">
-              <span>Press <kbd className="px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded font-mono text-[10px]">?</kbd> anytime to open</span>
+              <span>
+                Press <kbd className="px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded font-mono text-[10px]">?</kbd>{" "}
+                anytime to open
+              </span>
               <span className="font-semibold text-indigo-500">MeetNotes Productivity</span>
             </div>
           </motion.div>

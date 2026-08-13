@@ -45,7 +45,6 @@ export function DashboardHeader() {
           </Button>
         </motion.div>
 
-
         <Link href="/dashboard/action-items" className="w-full sm:w-auto">
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button
@@ -70,5 +69,3 @@ export function DashboardHeader() {
     </motion.div>
   );
 }
-
-

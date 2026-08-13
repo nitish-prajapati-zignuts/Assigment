@@ -37,7 +37,8 @@ export function SecurityTabContent({ sessions }: SecurityTabContentProps) {
           Account Security & Authentication Status
         </h3>
         <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-          Your account is secured with JWT tokens and role-based access control. All active sessions are monitored below in real time.
+          Your account is secured with JWT tokens and role-based access control. All active sessions are monitored below
+          in real time.
         </p>
       </div>
 
@@ -126,4 +127,3 @@ export function SecurityTabContent({ sessions }: SecurityTabContentProps) {
     </motion.div>
   );
 }
-

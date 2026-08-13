@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Bot, FileText, MessageSquare } from "lucide-react";
 
-
 export interface AppSettings {
   summaryLength: "Short" | "Medium" | "Long";
   template: "Standard" | "Executive" | "Developer" | "Technical" | "Sales";
@@ -40,7 +39,8 @@ export function AiTabContent({ settings, setSettings }: AiTabContentProps) {
               Custom AI System Prompt Rules
             </h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Set explicit priority instructions for the AI when analyzing meeting transcripts and extracting action items.
+              Set explicit priority instructions for the AI when analyzing meeting transcripts and extracting action
+              items.
             </p>
           </div>
           <span className="text-[11px] bg-indigo-50 text-indigo-600 dark:bg-indigo-950/80 dark:text-indigo-300 px-3 py-1 rounded-full font-semibold border border-indigo-200/50 dark:border-indigo-800/50">
@@ -60,7 +60,8 @@ export function AiTabContent({ settings, setSettings }: AiTabContentProps) {
             className="w-full text-xs sm:text-sm p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-800/40 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all font-sans"
           />
           <p className="text-[11px] text-zinc-400">
-            These instructions will be automatically stored in PostgreSQL and applied to all transcript processing requests.
+            These instructions will be automatically stored in PostgreSQL and applied to all transcript processing
+            requests.
           </p>
         </div>
 
@@ -118,7 +119,6 @@ export function AiTabContent({ settings, setSettings }: AiTabContentProps) {
             >
               📈 Sales Discovery Focus
             </motion.button>
-
           </div>
         </div>
       </div>
@@ -157,9 +157,7 @@ export function AiTabContent({ settings, setSettings }: AiTabContentProps) {
           </h3>
           <select
             value={settings.template}
-            onChange={(e) =>
-              setSettings({ ...settings, template: e.target.value as AppSettings["template"] })
-            }
+            onChange={(e) => setSettings({ ...settings, template: e.target.value as AppSettings["template"] })}
             className="w-full text-xs sm:text-sm p-3.5 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-800/40 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all cursor-pointer font-medium"
           >
             <option value="Standard">Standard Summary (Balanced)</option>
@@ -173,4 +171,3 @@ export function AiTabContent({ settings, setSettings }: AiTabContentProps) {
     </motion.div>
   );
 }
-

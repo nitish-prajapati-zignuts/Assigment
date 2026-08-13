@@ -34,16 +34,13 @@ export default function ActionTrackerPage() {
   const [showOverdueOnly, setShowOverdueOnly] = useState(false);
   const [viewMode, setViewMode] = useState<ActionTrackerViewMode>("table");
 
-
   // Pagination constant
   const ITEMS_PER_PAGE = 10;
   const [currentPage, setCurrentPage] = useState(1);
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<
-    (ActionItem & { meetingId?: string; id?: string }) | null
-  >(null);
+  const [editingItem, setEditingItem] = useState<(ActionItem & { meetingId?: string; id?: string }) | null>(null);
 
   // Delete modal states
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -63,7 +60,11 @@ export default function ActionTrackerPage() {
   const meetings: Meeting[] = Array.isArray(meetingsData) ? meetingsData : [];
 
   // TanStack Query for Action Items (Always fetch fresh data from API)
-  const { data: actionItemsResponse, isLoading, isFetching: isActionItemsFetching } = useQuery({
+  const {
+    data: actionItemsResponse,
+    isLoading,
+    isFetching: isActionItemsFetching,
+  } = useQuery({
     queryKey: ["actionItems", currentPage],
     queryFn: async () => {
       const res = await api.get("/action-items", {
@@ -84,8 +85,7 @@ export default function ActionTrackerPage() {
   const actionItems: ActionItemWithContext[] = rawItems.map((item: any) => ({
     id: item.id || `item-${Math.random()}`,
     meetingId: item.meetingId || "1",
-    meetingTitle:
-      meetings.find((m) => m.id === item.meetingId)?.title || "General Meeting",
+    meetingTitle: meetings.find((m) => m.id === item.meetingId)?.title || "General Meeting",
     task: stripHtml(item.task),
     owner: stripHtml(item.owner) || "Unassigned",
     dueDate: stripHtml(item.dueDate) || "Not specified",
@@ -138,9 +138,7 @@ export default function ActionTrackerPage() {
       queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
       queryClient.invalidateQueries({ queryKey: ["actionItemsLeaderboard"] });
 
-      toast.success(
-        variables.id ? "Action item updated successfully" : "Action item created successfully"
-      );
+      toast.success(variables.id ? "Action item updated successfully" : "Action item created successfully");
     },
     onError: (err) => {
       toast.error("Failed to save action item");
@@ -175,9 +173,7 @@ export default function ActionTrackerPage() {
 
   const handleBulkStatusChange = async (ids: string[], newStatus: ActionItem["status"]) => {
     try {
-      await Promise.all(
-        ids.map((id) => api.patch(`/action-items/${id}`, { status: newStatus }))
-      );
+      await Promise.all(ids.map((id) => api.patch(`/action-items/${id}`, { status: newStatus })));
       queryClient.invalidateQueries({ queryKey: ["actionItems"] });
       queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] });
       queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
@@ -201,7 +197,6 @@ export default function ActionTrackerPage() {
 
   const isDeleting = deleteActionItemMutation.isPending;
 
-
   // Extract unique owners for filter dropdown
   const uniqueOwners = useMemo(() => {
     const set = new Set<string>();
@@ -219,38 +214,26 @@ export default function ActionTrackerPage() {
         item.owner.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.meetingTitle.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesStatus =
-        selectedStatus === "All" || item.status === selectedStatus;
+      const matchesStatus = selectedStatus === "All" || item.status === selectedStatus;
 
-      const matchesPriority =
-        selectedPriority === "All" || item.priority === selectedPriority;
+      const matchesPriority = selectedPriority === "All" || item.priority === selectedPriority;
 
-      const matchesOwner =
-        selectedOwner === "All" || item.owner === selectedOwner;
+      const matchesOwner = selectedOwner === "All" || item.owner === selectedOwner;
 
       const matchesOverdue = !showOverdueOnly || item.isOverdue;
 
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesPriority &&
-        matchesOwner &&
-        matchesOverdue
-      );
+      return matchesSearch && matchesStatus && matchesPriority && matchesOwner && matchesOverdue;
     });
-  }, [
-    actionItems,
-    searchQuery,
-    selectedStatus,
-    selectedPriority,
-    selectedOwner,
-    showOverdueOnly,
-  ]);
+  }, [actionItems, searchQuery, selectedStatus, selectedPriority, selectedOwner, showOverdueOnly]);
 
   const displayItems = filteredItems;
 
   // TanStack Query for all action items metrics (unpaginated count - always fresh)
-  const { data: allMetricsData, isLoading: isMetricsLoading, isFetching: isMetricsFetching } = useQuery({
+  const {
+    data: allMetricsData,
+    isLoading: isMetricsLoading,
+    isFetching: isMetricsFetching,
+  } = useQuery({
     queryKey: ["allActionItemsMetrics"],
     queryFn: async () => {
       const res = await api.get("/action-items", {
@@ -279,9 +262,7 @@ export default function ActionTrackerPage() {
 
   const metrics = useMemo(() => {
     const total = allActionItems.length;
-    const inProgress = allActionItems.filter(
-      (i) => i.status === "In Progress"
-    ).length;
+    const inProgress = allActionItems.filter((i) => i.status === "In Progress").length;
     const blocked = allActionItems.filter((i) => i.status === "Blocked").length;
     const overdue = allActionItems.filter((i) => i.isOverdue).length;
 
@@ -289,10 +270,7 @@ export default function ActionTrackerPage() {
   }, [allActionItems]);
 
   // Status Change Handler
-  const handleStatusChange = async (
-    id: string,
-    newStatus: ActionItem["status"]
-  ) => {
+  const handleStatusChange = async (id: string, newStatus: ActionItem["status"]) => {
     try {
       await updateStatusMutation.mutateAsync({ id, status: newStatus });
       if (newStatus === "Completed") {
@@ -303,11 +281,8 @@ export default function ActionTrackerPage() {
     }
   };
 
-
   // Create / Edit Handler
-  const handleSaveItem = async (
-    itemData: Partial<ActionItem> & { meetingId: string }
-  ) => {
+  const handleSaveItem = async (itemData: Partial<ActionItem> & { meetingId: string }) => {
     try {
       await saveActionItemMutation.mutateAsync(itemData);
       setIsModalOpen(false);
@@ -334,7 +309,6 @@ export default function ActionTrackerPage() {
       console.error("Failed to delete action item:", err);
     }
   };
-
 
   const isFilterActive =
     Boolean(searchQuery) ||
@@ -370,17 +344,11 @@ export default function ActionTrackerPage() {
         }}
       />
 
-
       {/* Metric Cards */}
-      <ActionItemsMetricsCards
-        metrics={metrics}
-        isLoading={isMetricsLoading || isMetricsFetching}
-      />
+      <ActionItemsMetricsCards metrics={metrics} isLoading={isMetricsLoading || isMetricsFetching} />
 
       {/* Team Velocity Leaderboard */}
       <ActionItemsLeaderboard />
-
-
 
       {/* Control Bar: Search & Multi-Filters */}
       <ActionItemsFilters
@@ -430,7 +398,6 @@ export default function ActionTrackerPage() {
             onBulkDelete={handleBulkDelete}
           />
 
-
           {/* Mobile Responsive Cards View */}
           <ActionItemsCards
             isLoading={isLoading}
@@ -446,7 +413,6 @@ export default function ActionTrackerPage() {
           />
         </>
       )}
-
 
       {/* Pagination Controls / Filter Info */}
       <ActionItemsPagination

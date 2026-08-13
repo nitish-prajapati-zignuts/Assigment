@@ -3,8 +3,8 @@
  * Implements various security headers and protections
  */
 
-import { Request, Response, NextFunction } from 'express';
-import { logger } from '../utils/logger';
+import { Request, Response, NextFunction } from "express";
+import { logger } from "../utils/logger";
 
 /**
  * Security Headers Middleware
@@ -12,29 +12,29 @@ import { logger } from '../utils/logger';
  */
 export const securityHeaders = (req: Request, res: Response, next: NextFunction) => {
   // Prevent clickjacking
-  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader("X-Frame-Options", "DENY");
 
   // Prevent MIME type sniffing
-  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader("X-Content-Type-Options", "nosniff");
 
   // Enable XSS protection
-  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader("X-XSS-Protection", "1; mode=block");
 
   // Referrer Policy
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
 
   // Content Security Policy (basic)
   res.setHeader(
-    'Content-Security-Policy',
+    "Content-Security-Policy",
     "default-src 'self'; script-src 'self'; object-src 'none'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'"
   );
 
   // Permissions Policy (formerly Feature Policy)
-  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+  res.setHeader("Permissions-Policy", "geolocation=(), microphone=(), camera=()");
 
   // Strict Transport Security (only in production)
-  if (process.env.NODE_ENV === 'production') {
-    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  if (process.env.NODE_ENV === "production") {
+    res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
   }
 
   next();
@@ -58,7 +58,7 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
       status: res.statusCode,
       duration: `${duration}ms`,
       ip: req.ip,
-      userAgent: req.get('user-agent'),
+      userAgent: req.get("user-agent"),
       userId: (req as any).user?.userId,
     });
 
@@ -74,12 +74,12 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
  */
 export const sanitizeInput = (req: Request, res: Response, next: NextFunction) => {
   // Sanitize body
-  if (req.body && typeof req.body === 'object') {
+  if (req.body && typeof req.body === "object") {
     req.body = sanitizeObject(req.body);
   }
 
   // Sanitize query parameters
-  if (req.query && typeof req.query === 'object') {
+  if (req.query && typeof req.query === "object") {
     req.query = sanitizeObject(req.query);
   }
 
@@ -94,7 +94,7 @@ function sanitizeObject(obj: any): any {
     return obj.map(sanitizeObject);
   }
 
-  if (obj !== null && typeof obj === 'object') {
+  if (obj !== null && typeof obj === "object") {
     const sanitized: any = {};
     for (const [key, value] of Object.entries(obj)) {
       sanitized[key] = sanitizeObject(value);
@@ -102,11 +102,11 @@ function sanitizeObject(obj: any): any {
     return sanitized;
   }
 
-  if (typeof obj === 'string') {
+  if (typeof obj === "string") {
     // Remove potential NoSQL injection patterns
-    obj = obj.replace(/[$]/g, '');
+    obj = obj.replace(/[$]/g, "");
     // Remove potential script injection
-    obj = obj.replace(/<script[^>]*>.*?<\/script>/gi, '');
+    obj = obj.replace(/<script[^>]*>.*?<\/script>/gi, "");
   }
 
   return obj;
@@ -116,9 +116,9 @@ function sanitizeObject(obj: any): any {
  * Trust Proxy Middleware (for production behind reverse proxy)
  */
 export const trustProxy = (req: Request, res: Response, next: NextFunction) => {
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV === "production") {
     // Trust the first proxy (adjust if behind multiple proxies)
-    req.app.set('trust proxy', 1);
+    req.app.set("trust proxy", 1);
   }
   next();
 };
@@ -127,6 +127,6 @@ export const trustProxy = (req: Request, res: Response, next: NextFunction) => {
  * Disable Powered-By Header to avoid leaking Express info
  */
 export const disablePoweredBy = (req: Request, res: Response, next: NextFunction) => {
-  res.removeHeader('X-Powered-By');
+  res.removeHeader("X-Powered-By");
   next();
 };

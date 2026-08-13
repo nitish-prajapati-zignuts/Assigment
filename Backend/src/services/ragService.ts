@@ -169,9 +169,7 @@ export async function generateRAGAnswer({
   const chunks = chunkMeetingContent(meeting);
   const topChunks = retrieveRelevantChunks(chunks, question, 4);
 
-  const contextText = topChunks
-    .map((c, idx) => `[Source #${idx + 1}: ${c.title}]\n${c.content}`)
-    .join("\n\n");
+  const contextText = topChunks.map((c, idx) => `[Source #${idx + 1}: ${c.title}]\n${c.content}`).join("\n\n");
 
   const promptText = `
 You are an expert AI Meeting Assistant answering questions about a meeting titled "${meeting.title || "Meeting"}".
@@ -233,10 +231,11 @@ PROVIDE ACCURATE, GROUNDED ANSWER:
   }
 
   // Fallback heuristic answer if AI keys fail
-  const fallbackAnswer = topChunks.length > 0
-    ? `Based on retrieved meeting records for "${meeting.title}":\n\n` +
-      topChunks.map((c) => `**${c.title}**:\n${c.content}`).join("\n\n")
-    : "No matching context found in this meeting notes.";
+  const fallbackAnswer =
+    topChunks.length > 0
+      ? `Based on retrieved meeting records for "${meeting.title}":\n\n` +
+        topChunks.map((c) => `**${c.title}**:\n${c.content}`).join("\n\n")
+      : "No matching context found in this meeting notes.";
 
   return { answer: fallbackAnswer, retrievedSources: sources };
 }

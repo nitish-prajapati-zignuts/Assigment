@@ -38,10 +38,7 @@ export async function createNotificationLog({
  * GET /api/notifications
  * Fetch user's notifications (auto-seeds welcome log if empty)
  */
-export const getNotifications = asyncHandler(async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
+export const getNotifications = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const userId = req.user?.userId || (req.user as any)?.id;
 
   if (!userId) {
@@ -95,30 +92,26 @@ export const getNotifications = asyncHandler(async (
  * PATCH /api/notifications/read-all
  * Mark all notifications as read
  */
-export const markAllNotificationsRead = asyncHandler(async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
-  const userId = req.user?.userId || (req.user as any)?.id;
+export const markAllNotificationsRead = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    const userId = req.user?.userId || (req.user as any)?.id;
 
-  if (userId) {
-    await db
-      .update(notifications)
-      .set({ isRead: true })
-      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+    if (userId) {
+      await db
+        .update(notifications)
+        .set({ isRead: true })
+        .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+    }
+
+    res.json({ message: "All notifications marked as read" });
   }
-
-  res.json({ message: "All notifications marked as read" });
-});
+);
 
 /**
  * DELETE /api/notifications
  * Clear user's notifications
  */
-export const clearNotifications = asyncHandler(async (
-  req: AuthenticatedRequest,
-  res: Response
-): Promise<void> => {
+export const clearNotifications = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const userId = req.user?.userId || (req.user as any)?.id;
 
   if (userId) {
