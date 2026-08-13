@@ -53,7 +53,9 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
    - Visual `Loader2` feedback across all table rows, mobile cards, status dropdowns, metric cards, and a top header `"Syncing live API..."` badge during background refetches.
 4. **Sentiment & Speaker Analytics Widget**:
    - Visual progress bars displaying emotional tone breakdown (*Positive*, *Neutral*, *Concerned*, *Heated*) and speaker participation percentages.
-5. **Custom AI Summary Template Selector**:
+5. **RAG Knowledge Assistant Chat widget**:
+   - Interactive modal tab showing message flow with styled bot suggestions, gradient border details, and a collapsible source attribution accordion view to inspect matched transcript contexts.
+6. **Custom AI Summary Template Selector**:
    - Integrated template selector dropdown (*Standard Briefing*, *Executive Summary*, *Developer Tasks*, *Technical Decisions*, *Sales Qualification*) in meeting creation modal and detail modal.
    - Renders custom themed detail cards for role-tailored AI output objects.
 6. **Password Protected & Expiring Public Share Links (`/share/[token]`)**:

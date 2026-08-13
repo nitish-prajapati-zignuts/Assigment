@@ -47,6 +47,10 @@ export const initializeJobHandlers = (): void => {
           customPrompt
         );
 
+        // Process and save pgvector embeddings for RAG chat chunks
+        const { processAndSaveTranscriptEmbeddings } = await import("./aiService");
+        await processAndSaveTranscriptEmbeddings(meetingId, transcript);
+
         // Sync action items
         await syncActionItemsToDb(meetingId, summary);
 

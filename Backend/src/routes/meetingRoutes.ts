@@ -8,6 +8,7 @@ import {
   deleteMeeting,
   toggleMeetingPublish,
   getPublicMeetingByToken,
+  chatMeeting,
 } from "../controllers/meetingController";
 import { protect } from "../middleware/authMiddleware";
 import { validateBody, validateQuery, validateParams } from "../middleware/validation";
@@ -16,6 +17,7 @@ import {
   updateMeetingSchema,
   meetingQuerySchema,
   idSchema,
+  chatValidationSchema,
 } from "../utils/validation";
 
 const router = Router();
@@ -44,6 +46,9 @@ router.patch("/:id/publish", validateParams(idSchema), toggleMeetingPublish);
 
 // POST /api/meetings/:id/summarize - Generate AI summary
 router.post("/:id/summarize", validateParams(idSchema), summarizeMeeting);
+
+// POST /api/meetings/:id/chat - RAG chat engine
+router.post("/:id/chat", validateParams(idSchema), validateBody(chatValidationSchema), chatMeeting);
 
 // DELETE /api/meetings/:id - Delete a meeting
 router.delete("/:id", validateParams(idSchema), deleteMeeting);

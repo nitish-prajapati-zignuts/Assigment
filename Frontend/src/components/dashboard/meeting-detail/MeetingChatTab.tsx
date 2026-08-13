@@ -1,6 +1,5 @@
-"use client";
-
-import { Bot, Send, Loader2 } from "lucide-react";
+import { Bot, Send, Loader2, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,7 @@ export interface ChatMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
-  sources?: { title: string; type: string }[];
+  sources?: string[];
 }
 
 function formatInlineText(text: string) {
@@ -108,32 +107,38 @@ export function MeetingChatTab({
   isChatSending,
   onSendChatMessage,
 }: MeetingChatTabProps) {
+  const [openSources, setOpenSources] = useState<Record<string, boolean>>({});
+
+  const toggleSources = (msgId: string) => {
+    setOpenSources((prev) => ({ ...prev, [msgId]: !prev[msgId] }));
+  };
+
   return (
-    <div className="bg-zinc-50/70 dark:bg-zinc-900/70 backdrop-blur-md rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 p-4 space-y-4">
+    <div className="bg-zinc-50/70 dark:bg-zinc-900/40 backdrop-blur-md rounded-3xl border border-zinc-200/80 dark:border-zinc-800/80 p-5 space-y-5 shadow-xs">
       {/* Header & Quick Suggestion Chips */}
-      <div className="space-y-2 border-b border-zinc-200/60 dark:border-zinc-800/60 pb-3">
+      <div className="space-y-3 border-b border-zinc-200/60 dark:border-zinc-800/60 pb-4">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
-            <Bot className="h-4 w-4" /> RAG Knowledge Assistant
+          <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-indigo-500" /> RAG Knowledge Assistant
           </span>
-          <Badge variant="outline" className="text-[10px] bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-300 border-indigo-200">
-            Grounded Answers
+          <Badge variant="outline" className="text-[10px] font-semibold bg-indigo-50/80 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border-indigo-200/80">
+            AI Co-Pilot
           </Badge>
         </div>
 
-        <div className="flex flex-wrap gap-1.5 pt-1">
+        <div className="flex flex-wrap gap-2 pt-1">
           {[
-            "💻 What technical blockers were discussed?",
-            "👤 Who handles deliverables & tasks?",
-            "📋 Summary of key decisions made",
-            "📅 What are the deadline dates?",
+            "💻 What blockers were discussed?",
+            "👤 Who handles deliverables?",
+            "📋 Summary of key decisions",
+            "📅 Key target deadlines?",
           ].map((suggestion) => (
             <button
               key={suggestion}
               type="button"
               onClick={() => onSendChatMessage(suggestion.replace(/^[^\s]+\s*/, ""))}
               disabled={isChatSending}
-              className="text-[11px] px-2.5 py-1 bg-white hover:bg-indigo-50 dark:bg-zinc-800 dark:hover:bg-indigo-950/60 text-zinc-700 dark:text-zinc-300 hover:text-indigo-600 dark:hover:text-indigo-300 rounded-lg border border-zinc-200/80 dark:border-zinc-700/60 transition-all cursor-pointer font-medium shadow-2xs"
+              className="text-[11px] px-3 py-1.5 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50/55 dark:hover:bg-zinc-800/80 rounded-2xl border border-zinc-200 dark:border-zinc-800 transition-all cursor-pointer font-medium shadow-xs"
             >
               {suggestion}
             </button>
@@ -142,47 +147,62 @@ export function MeetingChatTab({
       </div>
 
       {/* Messages Container */}
-      <div className="min-h-[220px] max-h-[350px] overflow-y-auto space-y-3 pr-1">
-        {chatMessages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}
-          >
+      <div className="min-h-[250px] max-h-[380px] overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-zinc-200 dark:scrollbar-thumb-zinc-800">
+        {chatMessages.map((msg) => {
+          const showSources = openSources[msg.id];
+          return (
             <div
-              className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-xs sm:text-sm leading-relaxed ${
-                msg.role === "user"
-                  ? "bg-indigo-600 text-white shadow-xs rounded-br-none"
-                  : "bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-200/80 dark:border-zinc-700/60 rounded-bl-none shadow-xs"
-              }`}
+              key={msg.id}
+              className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"} space-y-1`}
             >
-              {msg.role === "user" ? (
-                <div className="whitespace-pre-wrap font-sans font-medium">{msg.content}</div>
-              ) : (
-                <FormattedChatMessage content={msg.content} />
-              )}
+              <span className="text-[10px] text-zinc-400 font-semibold px-2">
+                {msg.role === "user" ? "You" : "Assistant"}
+              </span>
+              <div
+                className={`max-w-[90%] rounded-3xl px-5 py-3.5 text-xs sm:text-sm leading-relaxed shadow-xs ${
+                  msg.role === "user"
+                    ? "bg-indigo-600 text-white rounded-tr-none font-medium"
+                    : "bg-white dark:bg-zinc-950 text-zinc-800 dark:text-zinc-200 border border-zinc-200/85 dark:border-zinc-800 rounded-tl-none"
+                }`}
+              >
+                {msg.role === "user" ? (
+                  <div className="whitespace-pre-wrap font-sans">{msg.content}</div>
+                ) : (
+                  <FormattedChatMessage content={msg.content} />
+                )}
 
-              {/* RAG Source Attribution Badges */}
-              {msg.sources && msg.sources.length > 0 && (
-                <div className="mt-2.5 pt-2 border-t border-zinc-100 dark:border-zinc-700/60 flex flex-wrap items-center gap-1.5 text-[10px]">
-                  <span className="text-zinc-400 font-semibold">Sources:</span>
-                  {msg.sources.map((src, i) => (
-                    <span
-                      key={i}
-                      className="px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-300 font-medium"
+                {/* RAG Source Attribution Accordion */}
+                {msg.sources && msg.sources.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800/80">
+                    <button
+                      onClick={() => toggleSources(msg.id)}
+                      className="flex items-center gap-1.5 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 uppercase tracking-wider transition-colors cursor-pointer"
                     >
-                      {src.title}
-                    </span>
-                  ))}
-                </div>
-              )}
+                      {showSources ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                      <span>Transcript Sources ({msg.sources.length})</span>
+                    </button>
+
+                    {showSources && (
+                      <div className="mt-2 max-h-[140px] overflow-y-auto rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 p-3 border border-zinc-100 dark:border-zinc-800 space-y-2 text-[10px] leading-relaxed text-zinc-500 dark:text-zinc-400 font-mono">
+                        {msg.sources.map((src, i) => (
+                          <div key={i} className="pb-2 last:pb-0 border-b border-zinc-100 dark:border-zinc-800/50 last:border-0">
+                            <span className="text-indigo-500 font-semibold mr-1">[{i + 1}]</span>
+                            {src}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {isChatSending && (
-          <div className="flex items-center gap-2 text-xs text-indigo-500 font-medium p-2 bg-indigo-50/50 dark:bg-indigo-950/30 rounded-xl max-w-[200px]">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span>RAG Assistant searching context...</span>
+          <div className="flex items-center gap-2.5 text-xs text-indigo-600 dark:text-indigo-400 font-semibold p-3 bg-indigo-50/40 dark:bg-indigo-950/20 border border-indigo-100/50 dark:border-indigo-950/45 rounded-2xl max-w-[240px] animate-pulse">
+            <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
+            <span>AI RAG Co-Pilot searching context...</span>
           </div>
         )}
       </div>
@@ -193,25 +213,25 @@ export function MeetingChatTab({
           e.preventDefault();
           onSendChatMessage();
         }}
-        className="flex items-center gap-2 pt-2 border-t border-zinc-200/60 dark:border-zinc-800/60"
+        className="flex items-center gap-2 pt-3 border-t border-zinc-200/60 dark:border-zinc-800/60"
       >
         <Input
           placeholder="Ask anything about this meeting..."
           value={chatInput}
           onChange={(e) => setChatInput(e.target.value)}
           disabled={isChatSending}
-          className="h-10 text-xs sm:text-sm bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 focus-visible:ring-indigo-500/40 rounded-xl"
+          className="h-11 text-xs sm:text-sm bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 focus-visible:ring-indigo-500/30 rounded-2xl shadow-xs"
         />
         <Button
           type="submit"
           disabled={isChatSending || !chatInput.trim()}
-          className="h-10 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold flex items-center gap-1.5 text-xs shadow-xs"
+          className="h-11 px-5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-2xl font-bold flex items-center gap-2 text-xs shadow-md transition-all shrink-0 cursor-pointer"
         >
           {isChatSending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <>
-              <span>Ask</span>
+              <span>Ask AI</span>
               <Send className="h-3.5 w-3.5" />
             </>
           )}

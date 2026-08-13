@@ -26,6 +26,7 @@ const envSchema = z.object({
   AUTH_RATE_LIMITER: z.string().regex(/^\d+$/).default('100').transform(Number),
   AI_RATE_LIMITER: z.string().regex(/^\d+$/).default('100').transform(Number),
   API_RATE_LIMITER: z.string().regex(/^\d+$/).default('1000').transform(Number),
+  ENABLE_DEBUG_LOGGING: z.string().transform((val) => val === 'true').default(false),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

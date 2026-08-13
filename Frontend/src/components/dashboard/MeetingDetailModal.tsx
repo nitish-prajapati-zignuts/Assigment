@@ -387,7 +387,7 @@ export function MeetingDetailModal({
             className="w-full"
           >
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-              <TabsList className="grid w-full sm:w-[380px] grid-cols-3">
+              <TabsList className={`grid w-full sm:w-[380px] ${meeting.hasChunks ? "grid-cols-3" : "grid-cols-2"}`}>
                 <TabsTrigger value="summary" className="flex items-center justify-center gap-1.5 text-xs">
                   <Sparkles className="h-4 w-4 text-amber-500" />
                   AI Summary
@@ -396,10 +396,12 @@ export function MeetingDetailModal({
                   <FileText className="h-4 w-4 text-blue-500" />
                   Transcript
                 </TabsTrigger>
-                <TabsTrigger value="chat" className="flex items-center justify-center gap-1.5 text-xs">
-                  <Bot className="h-4 w-4 text-indigo-500" />
-                  Ask AI Chat
-                </TabsTrigger>
+                {meeting.hasChunks && (
+                  <TabsTrigger value="chat" className="flex items-center justify-center gap-1.5 text-xs">
+                    <Bot className="h-4 w-4 text-indigo-500" />
+                    Ask AI Chat
+                  </TabsTrigger>
+                )}
               </TabsList>
 
               <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2">

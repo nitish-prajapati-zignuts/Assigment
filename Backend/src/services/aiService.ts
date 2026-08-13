@@ -4,7 +4,13 @@ import { z } from "zod";
 import { MeetingSummary, KeyDecision, ActionItem, SummaryLength, SummaryTemplate } from "../db/schema";
 import { buildMeetingSummaryPrompt } from "../utils/aiPrompts";
 import dotenv from "dotenv";
-import { createXai } from "@ai-sdk/xai";
+import { embed } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { meetingChunks } from "../db/schema";
+import { sql, eq } from "drizzle-orm";
+import db from "../db";
+import { embedMany } from "ai";
+
 
 dotenv.config();
 
@@ -240,9 +246,9 @@ export function cleanSummary(summary: MeetingSummary): MeetingSummary {
     speakerAnalytics: summary.speakerAnalytics && summary.speakerAnalytics.length > 0
       ? summary.speakerAnalytics
       : [
-          { name: "Speaker 1", talkTimePercentage: 60, wordCount: 350 },
-          { name: "Speaker 2", talkTimePercentage: 40, wordCount: 230 },
-        ],
+        { name: "Speaker 1", talkTimePercentage: 60, wordCount: 350 },
+        { name: "Speaker 2", talkTimePercentage: 40, wordCount: 230 },
+      ],
     sentimentAnalysis: summary.sentimentAnalysis || {
       overallTone: "Positive",
       score: 82,
@@ -251,33 +257,33 @@ export function cleanSummary(summary: MeetingSummary): MeetingSummary {
     templateStyle: summary.templateStyle || "Standard",
     executiveDetails: summary.executiveDetails
       ? {
-          strategicImpact: stripHtml(summary.executiveDetails.strategicImpact),
-          financialOrTimelineRisks: (summary.executiveDetails.financialOrTimelineRisks || []).map(stripHtml),
-          executiveRecommendations: (summary.executiveDetails.executiveRecommendations || []).map(stripHtml),
-        }
+        strategicImpact: stripHtml(summary.executiveDetails.strategicImpact),
+        financialOrTimelineRisks: (summary.executiveDetails.financialOrTimelineRisks || []).map(stripHtml),
+        executiveRecommendations: (summary.executiveDetails.executiveRecommendations || []).map(stripHtml),
+      }
       : undefined,
     developerDetails: summary.developerDetails
       ? {
-          codeDeliverables: (summary.developerDetails.codeDeliverables || []).map(stripHtml),
-          architecturalChanges: (summary.developerDetails.architecturalChanges || []).map(stripHtml),
-          apiContractsAndDependencies: (summary.developerDetails.apiContractsAndDependencies || []).map(stripHtml),
-          technicalBlockers: (summary.developerDetails.technicalBlockers || []).map(stripHtml),
-        }
+        codeDeliverables: (summary.developerDetails.codeDeliverables || []).map(stripHtml),
+        architecturalChanges: (summary.developerDetails.architecturalChanges || []).map(stripHtml),
+        apiContractsAndDependencies: (summary.developerDetails.apiContractsAndDependencies || []).map(stripHtml),
+        technicalBlockers: (summary.developerDetails.technicalBlockers || []).map(stripHtml),
+      }
       : undefined,
     technicalDetails: summary.technicalDetails
       ? {
-          systemArchitectureChoices: (summary.technicalDetails.systemArchitectureChoices || []).map(stripHtml),
-          techStackTradeoffs: (summary.technicalDetails.techStackTradeoffs || []).map(stripHtml),
-          engineeringConstraints: (summary.technicalDetails.engineeringConstraints || []).map(stripHtml),
-        }
+        systemArchitectureChoices: (summary.technicalDetails.systemArchitectureChoices || []).map(stripHtml),
+        techStackTradeoffs: (summary.technicalDetails.techStackTradeoffs || []).map(stripHtml),
+        engineeringConstraints: (summary.technicalDetails.engineeringConstraints || []).map(stripHtml),
+      }
       : undefined,
     salesDetails: summary.salesDetails
       ? {
-          clientPainPoints: (summary.salesDetails.clientPainPoints || []).map(stripHtml),
-          budgetAndAuthority: stripHtml(summary.salesDetails.budgetAndAuthority),
-          timelineExpectations: stripHtml(summary.salesDetails.timelineExpectations),
-          nextSalesSteps: (summary.salesDetails.nextSalesSteps || []).map(stripHtml),
-        }
+        clientPainPoints: (summary.salesDetails.clientPainPoints || []).map(stripHtml),
+        budgetAndAuthority: stripHtml(summary.salesDetails.budgetAndAuthority),
+        timelineExpectations: stripHtml(summary.salesDetails.timelineExpectations),
+        nextSalesSteps: (summary.salesDetails.nextSalesSteps || []).map(stripHtml),
+      }
       : undefined,
   };
 }
@@ -582,4 +588,196 @@ export async function generateMeetingSummary(
   // ========================================================
   console.warn("🚨 [Step 4] Primary Google Key, Key Rotation pool, and Fallback Key all failed. Using structured heuristic fallback.");
   return generateFallbackSummary(plainTranscript, title);
+}
+
+import { appendDebugLog } from "../utils/appendLog";
+
+/**
+ * Splits transcript into paragraph chunks, generates embeddings using OpenAI, and saves them to the vector database
+ */
+export async function processAndSaveTranscriptEmbeddings(
+  meetingId: string,
+  transcript: string
+): Promise<void> {
+  const googleApiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+
+  appendDebugLog(`--- Starting Embedding Process for Meeting ID: ${meetingId} ---`);
+
+  if (!googleApiKey || !transcript || transcript.trim().length === 0) {
+    appendDebugLog(`Skipped: Missing API key or empty transcript. API Key Present: ${!!googleApiKey}`);
+    return;
+  }
+
+  try {
+    const plainText = stripHtml(transcript);
+    // Split by paragraphs
+    const paragraphs = plainText
+      .split(/\n\s*\n/)
+      .map(p => p.trim())
+      .filter(p => p.length > 20);
+
+    appendDebugLog(`Found ${paragraphs.length} paragraphs matching length criteria (> 20 chars).`);
+
+    if (paragraphs.length === 0) {
+      appendDebugLog("Skipped: No valid paragraph chunks found.");
+      return;
+    }
+
+    appendDebugLog("Sending paragraphs to Gemini Embedding API...");
+    const dynamicGoogle = createGoogleGenerativeAI({ apiKey: googleApiKey });
+    const { embeddings } = await embedMany({
+      model: dynamicGoogle.embedding("gemini-embedding-001"),
+      values: paragraphs,
+      providerOptions: {
+        google: {
+          outputDimensionality: 1536,
+        },
+      },
+    });
+
+    appendDebugLog(`Gemini generated ${embeddings.length} embeddings successfully.`);
+
+    // Delete existing chunks first to prevent duplicates on update
+    await db.delete(meetingChunks).where(eq(meetingChunks.meetingId, meetingId));
+    appendDebugLog(`Cleaned old chunks for meeting: ${meetingId}`);
+
+    const chunkRows = paragraphs.map((content, index) => ({
+      id: `${meetingId}-chunk-${Date.now()}-${index}`,
+      meetingId,
+      content,
+      embedding: embeddings[index],
+      createdAt: new Date(),
+    }));
+
+    await db.insert(meetingChunks).values(chunkRows);
+    appendDebugLog(`Successfully inserted ${chunkRows.length} chunks into Neon pgvector DB.`);
+  } catch (err: any) {
+    appendDebugLog(`ERROR during generation/saving: ${err?.message || err}`);
+    console.error("Failed to generate and save transcript chunks to pgvector:", err);
+  }
+}
+
+/**
+ * RAG query engine to answer questions based on the meeting transcript
+ * Uses pgvector cosine similarity matching if database is populated, otherwise falls back to text search heuristics
+ */
+export async function queryMeetingRAG(
+  question: string,
+  transcript: string,
+  history: { role: string; content: string }[] = [],
+  customApiKey?: string,
+  meetingId?: string
+): Promise<{ answer: string; retrievedSources: string[] }> {
+  const primaryGoogleKey = customApiKey || process.env.GOOGLE_GENERATIVE_AI_API_KEY || process.env.GEMINI_API_KEY;
+  const geminiFallBackKey = process.env.GEMINI_FALL_BACK_KEY;
+  const plainTranscript = stripHtml(transcript);
+
+  let retrievedSources: string[] = [];
+
+  // 1. Try vector database embedding retrieval first if meetingId is provided
+  if (meetingId) {
+    try {
+      const googleApiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+      if (googleApiKey) {
+        appendDebugLog(`RAG similarity query searching vector chunks for meeting: ${meetingId}`);
+        // Generate embedding vector for the question query
+        const dynamicGoogle = createGoogleGenerativeAI({ apiKey: googleApiKey });
+        const { embedding } = await embed({
+          model: dynamicGoogle.embedding("gemini-embedding-001"),
+          value: question,
+          providerOptions: {
+            google: {
+              outputDimensionality: 1536,
+            },
+          },
+        });
+
+        // Similarity search query using cosine distance (<=> operator in pgvector)
+        const similarityThreshold = 0.5;
+        const matchingChunks = await db
+          .select({
+            content: meetingChunks.content,
+            similarity: sql<number>`1 - (${meetingChunks.embedding} <=> ${JSON.stringify(embedding)}::vector)`,
+          })
+          .from(meetingChunks)
+          .where(sql`${meetingChunks.meetingId} = ${meetingId}`)
+          .orderBy(sql`${meetingChunks.embedding} <=> ${JSON.stringify(embedding)}::vector`)
+          .limit(5);
+
+        const filtered = matchingChunks.filter(c => c.similarity >= similarityThreshold);
+        if (filtered.length > 0) {
+          retrievedSources = filtered.map(f => f.content);
+        }
+      }
+    } catch (vecErr) {
+      console.warn("Vector search failed, falling back to text heuristics:", vecErr);
+    }
+  }
+
+  // 2. Fall back to text chunk parsing if pgvector is empty or not configured
+  if (retrievedSources.length === 0) {
+    const lines = plainTranscript.split('\n').map(l => l.trim()).filter(Boolean);
+    const qKeywords = question.toLowerCase().split(/\s+/).filter(w => w.length > 3);
+
+    let matchingLines = lines.filter(line =>
+      qKeywords.some(keyword => line.toLowerCase().includes(keyword))
+    );
+
+    if (matchingLines.length === 0) {
+      retrievedSources = lines.slice(0, 30);
+    } else {
+      retrievedSources = matchingLines.slice(0, 25);
+    }
+  }
+
+  const contextText = retrievedSources.join('\n');
+  const chatHistoryStr = history.map(h => `${h.role === 'user' ? 'Question' : 'Answer'}: ${h.content}`).join('\n');
+
+  const prompt = `You are an expert AI meeting assistant. Answer the user's question based strictly on the following meeting transcript context.
+  
+Context:
+"""
+${contextText}
+"""
+
+Chat History:
+${chatHistoryStr}
+
+Question: ${question}
+
+Instructions:
+- Keep the answer concise, accurate, and completely grounded in the provided context.
+- If the context doesn't contain the answer, say "I could not find information regarding that in this meeting transcript."
+- Do not use any markdown formatting or HTML elements. Return plain text only.`;
+
+  // Try API keys in order
+  const apiKeys = [
+    primaryGoogleKey,
+    ...getRotationPolicyApiKeys().filter(k => k !== primaryGoogleKey),
+    geminiFallBackKey
+  ].filter(Boolean) as string[];
+
+  for (let i = 0; i < apiKeys.length; i++) {
+    const apiKey = apiKeys[i];
+    const masked = apiKey.length > 8 ? `${apiKey.substring(0, 4)}...${apiKey.slice(-4)}` : "key";
+    try {
+      const google = createGoogleGenerativeAI({ apiKey });
+      const { object } = await generateObject({
+        model: google("gemini-3.5-flash-lite"),
+        schema: z.object({ answer: z.string() }),
+        prompt,
+      });
+      return {
+        answer: object.answer || "I could not find information regarding that in this meeting.",
+        retrievedSources,
+      };
+    } catch (err: any) {
+      console.warn(`RAG Key attempt #${i + 1} (${masked}) failed: ${err?.message || err}`);
+    }
+  }
+
+  return {
+    answer: `[Heuristic Fallback] Based on transcript: ${retrievedSources.slice(0, 3).join('; ')}`,
+    retrievedSources,
+  };
 }

@@ -19,7 +19,7 @@
   "license": "ISC",
   "dependencies": {
     "@ai-sdk/google": "^4.0.34",
-    "@ai-sdk/openai": "^4.0.30",
+    "@ai-sdk/openai": "^4.0.41",
     "@ai-sdk/xai": "^4.0.33",
     "@neondatabase/serverless": "^1.1.0",
     "ai": "^7.0.52",
@@ -30,6 +30,7 @@
     "drizzle-orm": "^0.45.2",
     "express": "^4.22.2",
     "jsonwebtoken": "^9.0.3",
+    "pgvector": "^0.3.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {

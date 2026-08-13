@@ -76,6 +76,9 @@ The API will start at `http://localhost:4000`.
    - Non-blocking background worker processes AI meeting summarization (`summarize_meeting`).
    - Resilient retry strategy with exponential backoff on failure.
 
+- **RAG Chatbot Q&A System with pgvector (`POST /api/meetings/:id/chat`)**:
+   - Vector-similarity chunk retrieval using cosine distance query matching.
+   - Text heuristic fallback implementation guaranteeing zero downtime.
 - **Dedicated Dashboard Stats & Analytics Endpoint (`GET /api/dashboard/stats`)**:
    - Computes aggregated user statistics directly in the database layer (Total Meetings, Action Items, Open, Completed, Overdue, Blocked, Saved Transcripts).
 

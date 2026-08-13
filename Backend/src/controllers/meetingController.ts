@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import db from "../db";
-import { meetings, actionItems, users, MeetingSummary } from "../db/schema";
-import { eq, and, inArray, desc } from "drizzle-orm";
+import { meetings, actionItems, users, MeetingSummary, meetingChunks } from "../db/schema";
+import { eq, and, inArray, desc, getTableColumns, sql } from "drizzle-orm";
 import { generateMeetingSummary } from "../services/aiService";
 import { AuthenticatedRequest } from "../middleware/authMiddleware";
 import { asyncHandler } from "../middleware/errorHandler";
@@ -18,6 +18,13 @@ import {
   buildPaginatedResponse
 } from "../utils/queryOptimization";
 import { MeetingQueryInput, CreateMeetingInput, UpdateMeetingInput } from "../utils/validation";
+import { processAndSaveTranscriptEmbeddings } from "../services/aiService";
+import { jobQueue } from "../services/jobQueue"
+import { queryMeetingRAG } from "../services/aiService";
+import { appendDebugLog } from "../utils/appendLog";
+
+
+
 
 /**
  * Helper function that synchronizes extracted AI action items into the relational PostgreSQL `action_items` DB table.
@@ -90,7 +97,11 @@ export const getMeetings = asyncHandler(async (
 
   try {
     // Fetch all meetings ordered by createdAt descending (newest first)
-    const allMeetings = await db.select().from(meetings).orderBy(desc(meetings.createdAt));
+    const allMeetings = await db.select({ ...getTableColumns(meetings), hasChunks: sql<boolean> `COUNT(${meetingChunks.id}) > 0` }).
+      from(meetings).leftJoin(meetingChunks, eq(meetingChunks.meetingId, meetings.id)).
+      groupBy(meetings.id).orderBy(desc(meetings.createdAt))
+    appendDebugLog(JSON.stringify(allMeetings))
+    console.log("All Meetings", allMeetings)
 
     // Filter meetings where user is a participant
     let userMeetings = allMeetings.filter(
@@ -232,8 +243,8 @@ export const createMeeting = asyncHandler(async (
 
     // Queue async summarization if transcript provided
     if (transcript && transcript.trim().length > 0) {
-      const { jobQueue } = await import("../services/jobQueue");
-
+      // Seed meeting chunks vector embeddings immediately
+      await processAndSaveTranscriptEmbeddings(meetingId, transcript);
       jobId = await jobQueue.addJob("summarize_meeting", {
         meetingId,
         transcript,
@@ -244,7 +255,7 @@ export const createMeeting = asyncHandler(async (
         customPrompt,
       });
 
-      logger.info("Meeting created with async summarization", {
+      logger.info("Meeting created with async summarization & vector embeddings initialized", {
         meetingId,
         jobId,
         userEmail,
@@ -322,6 +333,11 @@ export const updateMeeting = asyncHandler(async (
       await syncActionItemsToDb(targetId, generatedSummary);
     }
 
+    // Process and save updated embeddings if transcript is modified in update request
+    if (transcript !== undefined && transcript !== null) {
+      await processAndSaveTranscriptEmbeddings(targetId, transcript);
+    }
+
     logger.info("Meeting updated", { meetingId: targetId });
 
     res.json(updated[0]);
@@ -359,8 +375,6 @@ export const summarizeMeeting = asyncHandler(async (
     }
 
     // Queue async summarization
-    const { jobQueue } = await import("../services/jobQueue");
-
     const jobId = await jobQueue.addJob("summarize_meeting", {
       meetingId: targetId,
       transcript: meeting.transcript,
@@ -380,6 +394,51 @@ export const summarizeMeeting = asyncHandler(async (
   } catch (error) {
     logger.error("Error queuing meeting summarization", error as Error, { meetingId: targetId });
     throw error instanceof (Error as any) ? error : new InternalServerError("Failed to queue meeting summarization");
+  }
+});
+
+/**
+ * POST /api/meetings/:id/chat
+ * RAG chatbot Q&A endpoint for query transcripts.
+ */
+export const chatMeeting = asyncHandler(async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  const targetId = String(req.params.id);
+  const { question, history } = req.body;
+  const userEmail = req.user?.email?.toLowerCase();
+
+  try {
+    const existing = await db
+      .select()
+      .from(meetings)
+      .where(eq(meetings.id, targetId));
+
+    if (existing.length === 0) {
+      throw new NotFoundError("Meeting");
+    }
+
+    const meeting = existing[0];
+
+    // Check participation
+    if (
+      !Array.isArray(meeting.participants) ||
+      !meeting.participants.some((p: string) => p.toLowerCase() === userEmail)
+    ) {
+      throw new AuthorizationError("You are not a participant in this meeting");
+    }
+
+    if (!meeting.transcript || meeting.transcript.trim().length === 0) {
+      throw new ValidationError("Meeting has no transcript to chat with");
+    }
+
+    const result = await queryMeetingRAG(question, meeting.transcript, history, undefined, targetId);
+
+    res.json(result);
+  } catch (error) {
+    logger.error("RAG Chatbot handler error", error as Error, { meetingId: targetId });
+    throw error instanceof (Error as any) ? error : new InternalServerError("Failed to query meeting chatbot");
   }
 });
 

@@ -201,6 +201,15 @@ The PostgreSQL database uses three core relational tables defined via **Drizzle 
 | `priority` | TEXT | `Low`, `Medium`, `High`, `Urgent` |
 | `status` | TEXT | `Pending`, `In Progress`, `Completed`, `Blocked` |
 
+### `meeting_chunks`
+| Column | Type | Attributes |
+|---|---|---|
+| `id` | VARCHAR(255) | PRIMARY KEY |
+| `meeting_id` | VARCHAR(255) | FOREIGN KEY (references `meetings.id` ON DELETE CASCADE) |
+| `content` | TEXT | Plain text paragraph block |
+| `embedding` | VECTOR(1536) | pgvector OpenAI-compatible embedding array |
+| `created_at` | TIMESTAMP | DEFAULT NOW() |
+
 ---
 
 ### **Dashboard & Jobs**
@@ -241,6 +250,8 @@ The PostgreSQL database uses three core relational tables defined via **Drizzle 
 
 ## Features Completed
 
+- [x] **RAG Chatbot Q&A System with pgvector**: Context-grounded Q&A chatbot (`POST /api/meetings/:id/chat`) utilizing OpenAI text embeddings (`text-embedding-3-small`) to run similarity matches on pgvector `VECTOR(1536)` database chunks.
+- [x] **Collapsible Sources Interface**: Animated source accordion toggle under RAG assistant responses to review exact transcript passages and dialogue lines matching user queries.
 - [x] **TanStack Query Client Caching & Cross-Query Invalidation**: Integrated `@tanstack/react-query` v5 with custom `QueryProvider` (stale-time control, auto garbage collection, and automatic cross-query cache invalidations across meetings, action items, and dashboard stats).
 - [x] **Zero-Stale Real-Time Fresh API Fetching**: Set `staleTime: 0` and `refetchOnMount: "always"` on action items & metrics queries to ensure every navigation and component mount fetches fresh live database records.
 - [x] **Comprehensive Action Item Loaders & Visual Sync Badges**: Visual `Loader2` feedback across all action tracker interactions (table rows, mobile cards, status dropdowns, metric cards, and a header `"Syncing live API..."` badge during refetches).

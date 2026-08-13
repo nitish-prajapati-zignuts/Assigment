@@ -130,6 +130,16 @@ export const idSchema = z.object({
   id: z.string().min(1, 'ID is required'),
 });
 
+export const chatValidationSchema = z.object({
+  question: z.string().min(1, 'Question must not be empty'),
+  history: z.array(
+    z.object({
+      role: z.enum(['user', 'assistant', 'system']),
+      content: z.string(),
+    })
+  ).optional(),
+});
+
 // Type exports for TypeScript
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
@@ -139,3 +149,4 @@ export type MeetingQueryInput = z.infer<typeof meetingQuerySchema>;
 export type CreateActionItemInput = z.infer<typeof createActionItemSchema>;
 export type UpdateActionItemInput = z.infer<typeof updateActionItemSchema>;
 export type ActionItemQueryInput = z.infer<typeof actionItemQuerySchema>;
+export type ChatValidationInput = z.infer<typeof chatValidationSchema>;

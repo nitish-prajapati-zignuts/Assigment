@@ -244,3 +244,45 @@ export const notifications = pgTable(
 
 export type NotificationRecord = typeof notifications.$inferSelect;
 export type NewNotificationRecord = typeof notifications.$inferInsert;
+
+import { customType } from "drizzle-orm/pg-core";
+
+const vector = customType<{ data: number[] }>({
+  dataType() {
+    return "vector(1536)";
+  },
+  toDriver(value: number[]): string {
+    return JSON.stringify(value);
+  },
+  fromDriver(value: unknown): number[] {
+    if (typeof value === "string") {
+      return value
+        .replace(/[\[\]]/g, "")
+        .split(",")
+        .map(Number);
+    }
+    return value as number[];
+  },
+});
+
+/**
+ * Meeting Chunks Table for pgvector RAG system
+ */
+export const meetingChunks = pgTable(
+  "meeting_chunks",
+  {
+    id: varchar("id", { length: 255 }).primaryKey(),
+    meetingId: varchar("meeting_id", { length: 255 })
+      .notNull()
+      .references(() => meetings.id, { onDelete: "cascade" }),
+    content: text("content").notNull(),
+    embedding: vector("embedding").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (table) => [
+    index("meeting_chunks_meeting_id_idx").on(table.meetingId),
+  ]
+);
+
+export type MeetingChunkRecord = typeof meetingChunks.$inferSelect;
+export type NewMeetingChunkRecord = typeof meetingChunks.$inferInsert;
