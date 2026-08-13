@@ -1,6 +1,7 @@
 import { Meeting } from "@/types/meeting";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -10,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Calendar, Eye, Edit, Trash2, Share2, Loader2 } from "lucide-react";
+
 
 interface MeetingsTableProps {
   isLoading: boolean;
@@ -50,15 +52,27 @@ export function MeetingsTable({
         </TableHeader>
         <TableBody>
           {isLoading ? (
-            <TableRow>
-              <TableCell colSpan={5} className="text-center py-12">
-                <div className="flex items-center justify-center gap-2 text-zinc-500">
-                  <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
-                  <span className="text-sm font-medium">Loading meetings...</span>
-                </div>
-              </TableCell>
-            </TableRow>
+            Array.from({ length: 5 }).map((_, idx) => (
+              <TableRow key={idx} className="border-b border-zinc-100 dark:border-zinc-800/50">
+                <TableCell className="pl-6 py-4">
+                  <Skeleton className="h-4 w-48 rounded-md" />
+                </TableCell>
+                <TableCell className="py-4">
+                  <Skeleton className="h-4 w-24 rounded-md" />
+                </TableCell>
+                <TableCell className="py-4">
+                  <Skeleton className="h-4 w-28 rounded-md" />
+                </TableCell>
+                <TableCell className="py-4">
+                  <Skeleton className="h-4 w-36 rounded-md" />
+                </TableCell>
+                <TableCell className="pr-6 py-4 text-right">
+                  <Skeleton className="h-6 w-20 rounded-md ml-auto" />
+                </TableCell>
+              </TableRow>
+            ))
           ) : displayMeetings.length === 0 ? (
+
             <TableRow>
               <TableCell
                 colSpan={5}

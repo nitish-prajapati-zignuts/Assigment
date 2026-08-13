@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/dashboard/Sidebar";
+import { CommandPalette } from "@/components/dashboard/CommandPalette";
 
 export default function DashboardLayout({
   children,
@@ -11,6 +12,13 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+
+  useEffect(() => {
+    const handleOpenPalette = () => setIsCommandPaletteOpen(true);
+    window.addEventListener("open-command-palette", handleOpenPalette);
+    return () => window.removeEventListener("open-command-palette", handleOpenPalette);
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -52,7 +60,12 @@ export default function DashboardLayout({
     <div className="flex min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <Sidebar />
       <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pt-16 md:pt-16 lg:pt-8">{children}</main>
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+      />
     </div>
   );
 }
+
 

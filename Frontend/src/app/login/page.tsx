@@ -7,7 +7,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import api from "@/lib/axios";
+
 import { getErrorMessage } from "@/lib/apiTypes";
 import { Button } from "@/components/ui/button";
 import {
@@ -100,18 +102,22 @@ export default function LoginPage() {
         if (res.data.user) {
           localStorage.setItem("user", JSON.stringify(res.data.user));
         }
+        toast.success("Welcome back! Signed in successfully.");
         router.push("/dashboard");
       } else {
         setErrorMessage("Login failed. Unexpected server response.");
+        toast.error("Login failed. Unexpected server response.");
       }
     } catch (err: any) {
       console.error("Login Error:", err);
       const serverMsg = getErrorMessage(err) || "Invalid email or password. Please try again.";
       setErrorMessage(serverMsg);
+      toast.error(serverMsg);
     } finally {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-4 text-zinc-900 dark:text-zinc-100 overflow-hidden">

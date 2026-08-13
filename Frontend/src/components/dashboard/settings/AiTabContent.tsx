@@ -2,7 +2,9 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import { Bot, FileText, MessageSquare } from "lucide-react";
+
 
 export interface AppSettings {
   summaryLength: "Short" | "Medium" | "Long";
@@ -72,13 +74,14 @@ export function AiTabContent({ settings, setSettings }: AiTabContentProps) {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               type="button"
-              onClick={() =>
+              onClick={() => {
                 setSettings({
                   ...settings,
                   customPrompt:
                     "Focus heavily on technical decisions, code deliverables, architectural risks, and deadline dates.",
-                })
-              }
+                });
+                toast.info("Applied Developer Technical preset rule");
+              }}
               className="text-xs px-4 py-2 bg-zinc-100/80 hover:bg-indigo-50 hover:text-indigo-600 dark:bg-zinc-800/80 dark:hover:bg-indigo-950/60 dark:hover:text-indigo-300 text-zinc-700 dark:text-zinc-300 rounded-xl font-semibold transition-all cursor-pointer shadow-2xs"
             >
               💻 Developer Technical Focus
@@ -87,13 +90,14 @@ export function AiTabContent({ settings, setSettings }: AiTabContentProps) {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               type="button"
-              onClick={() =>
+              onClick={() => {
                 setSettings({
                   ...settings,
                   customPrompt:
                     "Highlight high-level business strategy, revenue impact, key risks, and executive leadership action items.",
-                })
-              }
+                });
+                toast.info("Applied Executive Strategy preset rule");
+              }}
               className="text-xs px-4 py-2 bg-zinc-100/80 hover:bg-indigo-50 hover:text-indigo-600 dark:bg-zinc-800/80 dark:hover:bg-indigo-950/60 dark:hover:text-indigo-300 text-zinc-700 dark:text-zinc-300 rounded-xl font-semibold transition-all cursor-pointer shadow-2xs"
             >
               👔 Executive Strategy Focus
@@ -102,17 +106,19 @@ export function AiTabContent({ settings, setSettings }: AiTabContentProps) {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               type="button"
-              onClick={() =>
+              onClick={() => {
                 setSettings({
                   ...settings,
                   customPrompt:
                     "Focus on client pain points, timeline expectations, budget parameters, and next sales steps.",
-                })
-              }
+                });
+                toast.info("Applied Sales Discovery preset rule");
+              }}
               className="text-xs px-4 py-2 bg-zinc-100/80 hover:bg-indigo-50 hover:text-indigo-600 dark:bg-zinc-800/80 dark:hover:bg-indigo-950/60 dark:hover:text-indigo-300 text-zinc-700 dark:text-zinc-300 rounded-xl font-semibold transition-all cursor-pointer shadow-2xs"
             >
               📈 Sales Discovery Focus
             </motion.button>
+
           </div>
         </div>
       </div>

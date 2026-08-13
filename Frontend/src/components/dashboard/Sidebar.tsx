@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 import {
   Calendar,
   LayoutDashboard,
@@ -60,9 +61,11 @@ export function Sidebar() {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       setIsLoggingOut(false);
+      toast.info("Logged out successfully");
       router.push("/login");
     }
   };
+
 
   const userName = user?.name || "Nitish Prajapati";
   const userEmail = user?.email || "nitish@zignuts.com";

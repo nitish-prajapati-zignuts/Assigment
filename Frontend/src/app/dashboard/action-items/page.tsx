@@ -1,9 +1,13 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { toast } from "sonner";
 import api from "@/lib/axios";
 import { ActionItem, Meeting } from "@/types/meeting";
+import { exportActionItemsToCSV, exportActionItemsToMarkdown } from "@/lib/exportUtils";
+import { triggerTaskCompletionConfetti } from "@/lib/confetti";
 import { CreateActionItemModal } from "@/components/dashboard/CreateActionItemModal";
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ActionItemWithContext,
@@ -12,8 +16,10 @@ import {
   ActionItemsHeader,
   ActionItemsMetricsCards,
   ActionItemsFilters,
+  ActionTrackerViewMode,
   ActionItemsTable,
   ActionItemsCards,
+  ActionItemsKanban,
   ActionItemsPagination,
   DeleteActionItemModal,
 } from "@/components/dashboard/action-items";
@@ -25,6 +31,8 @@ export default function ActionTrackerPage() {
   const [selectedPriority, setSelectedPriority] = useState<string>("All");
   const [selectedOwner, setSelectedOwner] = useState<string>("All");
   const [showOverdueOnly, setShowOverdueOnly] = useState(false);
+  const [viewMode, setViewMode] = useState<ActionTrackerViewMode>("table");
+
 
   // Pagination constant
   const ITEMS_PER_PAGE = 10;
@@ -97,10 +105,15 @@ export default function ActionTrackerPage() {
       setUpdatingItemId(id);
       await api.put(`/action-items/${id}`, { status });
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["actionItems"] });
       queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] });
       queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
+      toast.success(`Task status updated to "${variables.status}"`);
+    },
+    onError: (err) => {
+      toast.error("Failed to update task status");
+      console.error("Status update error:", err);
     },
     onSettled: () => {
       setUpdatingItemId(null);
@@ -116,10 +129,17 @@ export default function ActionTrackerPage() {
         await api.post("/action-items", itemData);
       }
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["actionItems"] });
       queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] });
       queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
+      toast.success(
+        variables.id ? "Action item updated successfully" : "Action item created successfully"
+      );
+    },
+    onError: (err) => {
+      toast.error("Failed to save action item");
+      console.error("Save action item error:", err);
     },
     onSettled: () => {
       setUpdatingItemId(null);
@@ -135,6 +155,11 @@ export default function ActionTrackerPage() {
       queryClient.invalidateQueries({ queryKey: ["actionItems"] });
       queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] });
       queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
+      toast.success("Action item deleted");
+    },
+    onError: (err) => {
+      toast.error("Failed to delete action item");
+      console.error("Delete action item error:", err);
     },
     onSettled: () => {
       setUpdatingItemId(null);
@@ -235,11 +260,16 @@ export default function ActionTrackerPage() {
     newStatus: ActionItem["status"]
   ) => {
     try {
+      const currentItem = actionItems.find((i) => i.id === id);
       await updateStatusMutation.mutateAsync({ id, status: newStatus });
+      if (newStatus === "Completed") {
+        triggerTaskCompletionConfetti();
+      }
     } catch (err) {
       console.error("Failed to update status:", err);
     }
   };
+
 
   // Create / Edit Handler
   const handleSaveItem = async (
@@ -272,6 +302,7 @@ export default function ActionTrackerPage() {
     }
   };
 
+
   const isFilterActive =
     Boolean(searchQuery) ||
     selectedStatus !== "All" ||
@@ -288,7 +319,24 @@ export default function ActionTrackerPage() {
           setEditingItem(null);
           setIsModalOpen(true);
         }}
+        onExportCSV={() => {
+          if (displayItems.length === 0) {
+            toast.error("No action items available to export");
+            return;
+          }
+          exportActionItemsToCSV(displayItems);
+          toast.success(`Exported ${displayItems.length} action items to CSV`);
+        }}
+        onExportMarkdown={() => {
+          if (displayItems.length === 0) {
+            toast.error("No action items available to export");
+            return;
+          }
+          exportActionItemsToMarkdown(displayItems);
+          toast.success(`Exported ${displayItems.length} action items to Markdown`);
+        }}
       />
+
 
       {/* Metric Cards */}
       <ActionItemsMetricsCards
@@ -309,35 +357,55 @@ export default function ActionTrackerPage() {
         showOverdueOnly={showOverdueOnly}
         setShowOverdueOnly={setShowOverdueOnly}
         uniqueOwners={uniqueOwners}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
       />
 
-      {/* Desktop & Tablet Table View */}
-      <ActionItemsTable
-        isLoading={isLoading}
-        isFetching={isActionItemsFetching}
-        displayItems={displayItems}
-        updatingItemId={updatingItemId}
-        onStatusChange={handleStatusChange}
-        onEdit={(item) => {
-          setEditingItem(item);
-          setIsModalOpen(true);
-        }}
-        onDelete={handleOpenDeleteModal}
-      />
+      {viewMode === "kanban" ? (
+        /* Drag-and-Drop Kanban Board View */
+        <ActionItemsKanban
+          isLoading={isLoading}
+          displayItems={displayItems}
+          updatingItemId={updatingItemId}
+          onStatusChange={handleStatusChange}
+          onEdit={(item) => {
+            setEditingItem(item);
+            setIsModalOpen(true);
+          }}
+          onDelete={handleOpenDeleteModal}
+        />
+      ) : (
+        <>
+          {/* Desktop & Tablet Table View */}
+          <ActionItemsTable
+            isLoading={isLoading}
+            isFetching={isActionItemsFetching}
+            displayItems={displayItems}
+            updatingItemId={updatingItemId}
+            onStatusChange={handleStatusChange}
+            onEdit={(item) => {
+              setEditingItem(item);
+              setIsModalOpen(true);
+            }}
+            onDelete={handleOpenDeleteModal}
+          />
 
-      {/* Mobile Responsive Cards View */}
-      <ActionItemsCards
-        isLoading={isLoading}
-        isFetching={isActionItemsFetching}
-        displayItems={displayItems}
-        updatingItemId={updatingItemId}
-        onStatusChange={handleStatusChange}
-        onEdit={(item) => {
-          setEditingItem(item);
-          setIsModalOpen(true);
-        }}
-        onDelete={handleOpenDeleteModal}
-      />
+          {/* Mobile Responsive Cards View */}
+          <ActionItemsCards
+            isLoading={isLoading}
+            isFetching={isActionItemsFetching}
+            displayItems={displayItems}
+            updatingItemId={updatingItemId}
+            onStatusChange={handleStatusChange}
+            onEdit={(item) => {
+              setEditingItem(item);
+              setIsModalOpen(true);
+            }}
+            onDelete={handleOpenDeleteModal}
+          />
+        </>
+      )}
+
 
       {/* Pagination Controls / Filter Info */}
       <ActionItemsPagination

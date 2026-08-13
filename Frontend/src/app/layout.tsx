@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { NotificationProvider } from "@/components/ErrorNotification";
+import { Toaster } from "sonner";
 
 import { QueryProvider } from "@/components/providers/QueryProvider";
 
@@ -43,6 +44,7 @@ export default function RootLayout({
             <NotificationProvider>
               <QueryProvider>
                 {children}
+                <Toaster richColors closeButton position="top-right" duration={3500} />
               </QueryProvider>
             </NotificationProvider>
           </ErrorBoundary>
@@ -51,4 +53,5 @@ export default function RootLayout({
     </html>
   );
 }
+
 

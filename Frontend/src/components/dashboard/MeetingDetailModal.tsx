@@ -1,10 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import api from "@/lib/axios";
 import { Meeting, MeetingSummary } from "@/types/meeting";
+import { exportMeetingToMarkdown, exportMeetingToPDF } from "@/lib/exportUtils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+
 import {
   Dialog,
   DialogContent,
@@ -311,15 +314,40 @@ export function MeetingDetailModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[750px] w-[95vw] max-h-[90vh] overflow-y-auto p-4 sm:p-6 rounded-2xl">
         <DialogHeader className="pr-6">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <Badge variant="secondary" className="mb-1 text-xs">
+          <div className="flex items-center justify-between flex-wrap gap-2 mb-1">
+            <Badge variant="secondary" className="text-xs">
               {meeting.type}
             </Badge>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  exportMeetingToMarkdown(meeting);
+                  toast.success("Exported meeting notes as Markdown");
+                }}
+                className="h-7 text-[11px] font-semibold flex items-center gap-1.5 rounded-lg border-zinc-200 dark:border-zinc-800"
+              >
+                Markdown (.md)
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  exportMeetingToPDF(meeting);
+                  toast.info("Preparing PDF print view...");
+                }}
+                className="h-7 text-[11px] font-semibold flex items-center gap-1.5 rounded-lg border-zinc-200 dark:border-zinc-800 text-indigo-600 dark:text-indigo-400"
+              >
+                PDF (.pdf)
+              </Button>
+            </div>
           </div>
           <DialogTitle className="text-lg sm:text-xl font-bold leading-tight">
             {meeting.title}
           </DialogTitle>
         </DialogHeader>
+
 
         <div className="space-y-4 sm:space-y-5 py-2">
           {/* Metadata Bar */}

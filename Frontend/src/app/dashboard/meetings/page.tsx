@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { toast } from "sonner";
 import { Meeting } from "@/types/meeting";
+import { exportMeetingsToCSV } from "@/lib/exportUtils";
 import { MeetingModal } from "@/components/dashboard/MeetingModal";
+
 import { MeetingDetailModal } from "@/components/dashboard/MeetingDetailModal";
 import api from "@/lib/axios";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -71,6 +74,11 @@ export default function MeetingsPage() {
 
           if (status === "completed" || status === "failed") {
             shouldRefresh = true;
+            if (status === "completed") {
+              toast.success("AI Summary & Action Items processing completed!");
+            } else {
+              toast.error("AI Summary background job failed.");
+            }
           } else {
             remainingJobIds.push(jobId);
           }
@@ -107,6 +115,11 @@ export default function MeetingsPage() {
     onSuccess: (data, variables) => {
       if (data?.jobId) {
         setActiveJobIds((prev) => [...prev, data.jobId!]);
+        toast.info("Meeting saved! Generating AI Summary in background...");
+      } else {
+        toast.success(
+          variables.id ? "Meeting updated successfully" : "Meeting created successfully"
+        );
       }
       queryClient.invalidateQueries({ queryKey: ["meetings"] });
       queryClient.invalidateQueries({ queryKey: ["meetingsList"] });
@@ -117,7 +130,7 @@ export default function MeetingsPage() {
     },
     onError: (error) => {
       console.error("Failed to save meeting to database:", error);
-      alert("Failed to save meeting. Please check network/server logs.");
+      toast.error("Failed to save meeting. Please check server connection.");
     },
   });
 
@@ -137,10 +150,16 @@ export default function MeetingsPage() {
       queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
       queryClient.invalidateQueries({ queryKey: ["actionItems"] });
       queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] });
+      toast.success("Meeting deleted successfully");
+    },
+    onError: (error) => {
+      console.error("Failed to delete meeting:", error);
+      toast.error("Failed to delete meeting");
     },
   });
 
   const isDeleting = deleteMeetingMutation.isPending;
+
 
   // Client-side filtering (for search and type filter)
   const filteredMeetings = useMemo(() => {
@@ -190,7 +209,16 @@ export default function MeetingsPage() {
           setEditingMeeting(null);
           setIsFormModalOpen(true);
         }}
+        onExportCSV={() => {
+          if (displayMeetings.length === 0) {
+            toast.error("No meetings available to export");
+            return;
+          }
+          exportMeetingsToCSV(displayMeetings);
+          toast.success(`Exported ${displayMeetings.length} meetings to CSV`);
+        }}
       />
+
 
       {/* Controls: Search and Filter */}
       <MeetingsFilters

@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import api from "@/lib/axios";
+
 
 import { SettingsHeader } from "@/components/dashboard/settings/SettingsHeader";
 import { SettingsTabs, SettingsTabType } from "@/components/dashboard/settings/SettingsTabs";
@@ -72,10 +74,12 @@ export default function SettingsPage() {
       const response = await api.put("/settings", settings);
       if (response.data) {
         setSavedSuccess(true);
+        toast.success("Settings saved successfully!");
         setTimeout(() => setSavedSuccess(false), 3000);
       }
     } catch (e) {
       console.error("Failed to save settings to API:", e);
+      toast.error("Failed to save settings");
     } finally {
       setIsSaving(false);
     }
@@ -87,13 +91,16 @@ export default function SettingsPage() {
       setIsSaving(true);
       await api.put("/settings", DEFAULT_SETTINGS);
       setSavedSuccess(true);
+      toast.success("Settings reset to defaults");
       setTimeout(() => setSavedSuccess(false), 3000);
     } catch (e) {
       console.error("Failed to reset settings:", e);
+      toast.error("Failed to reset settings");
     } finally {
       setIsSaving(false);
     }
   };
+
 
   if (isLoading) {
     return (

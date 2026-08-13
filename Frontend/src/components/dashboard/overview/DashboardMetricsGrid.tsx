@@ -2,7 +2,8 @@
 
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, CheckSquare, Clock, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
+import { Calendar, CheckSquare, Clock, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { DashboardMetrics } from "./types";
 
 interface DashboardMetricsGridProps {
@@ -25,7 +26,6 @@ const cardVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } },
 };
 
-
 export function DashboardMetricsGrid({ metrics, isLoading }: DashboardMetricsGridProps) {
   return (
     <motion.div
@@ -47,7 +47,7 @@ export function DashboardMetricsGrid({ metrics, isLoading }: DashboardMetricsGri
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <Loader2 className="h-7 w-7 animate-spin text-zinc-400 my-1" />
+              <Skeleton className="h-8 w-20 rounded-lg my-1" />
             ) : (
               <div className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
                 {metrics.totalMeetings}
@@ -58,6 +58,7 @@ export function DashboardMetricsGrid({ metrics, isLoading }: DashboardMetricsGri
             </p>
           </CardContent>
         </Card>
+
       </motion.div>
 
       {/* 2. Total Action Items */}
@@ -73,7 +74,7 @@ export function DashboardMetricsGrid({ metrics, isLoading }: DashboardMetricsGri
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <Loader2 className="h-7 w-7 animate-spin text-zinc-400 my-1" />
+              <Skeleton className="h-8 w-20 rounded-lg my-1" />
             ) : (
               <div className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
                 {metrics.totalActionItems}
@@ -99,7 +100,7 @@ export function DashboardMetricsGrid({ metrics, isLoading }: DashboardMetricsGri
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <Loader2 className="h-7 w-7 animate-spin text-zinc-400 my-1" />
+              <Skeleton className="h-8 w-20 rounded-lg my-1" />
             ) : (
               <div className="text-3xl font-extrabold tracking-tight text-amber-600 dark:text-amber-400">
                 {metrics.openActionItems}
@@ -125,7 +126,7 @@ export function DashboardMetricsGrid({ metrics, isLoading }: DashboardMetricsGri
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <Loader2 className="h-7 w-7 animate-spin text-zinc-400 my-1" />
+              <Skeleton className="h-8 w-20 rounded-lg my-1" />
             ) : (
               <div className="text-3xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
                 {metrics.completedActionItems}
@@ -157,7 +158,7 @@ export function DashboardMetricsGrid({ metrics, isLoading }: DashboardMetricsGri
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <Loader2 className="h-7 w-7 animate-spin text-zinc-400 my-1" />
+              <Skeleton className="h-8 w-20 rounded-lg my-1" />
             ) : (
               <div className="text-3xl font-extrabold tracking-tight text-red-600 dark:text-red-400">
                 {metrics.overdueActionItems}
