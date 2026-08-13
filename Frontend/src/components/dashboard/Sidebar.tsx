@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Calendar,
   LayoutDashboard,
@@ -13,6 +14,7 @@ import {
   Menu,
   X,
   Settings,
+  Sparkles,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ModeToggle } from "@/components/mode-toggle";
@@ -76,28 +78,37 @@ export function Sidebar() {
     <div className="flex h-full flex-col justify-between p-6">
       <div>
         <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 text-white dark:bg-indigo-500 dark:text-white shadow-sm">
+          <Link href="/dashboard" className="flex items-center gap-3 group">
+            <motion.div
+              whileHover={{ scale: 1.05, rotate: 3 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 text-white shadow-md shadow-indigo-500/20"
+            >
               <Video className="h-5 w-5" />
-            </div>
+            </motion.div>
             <div>
-              <h2 className="font-bold text-lg leading-none text-zinc-900 dark:text-zinc-50">MeetNotes</h2>
-              <span className="text-xs text-zinc-500">AI Assistant</span>
+              <div className="flex items-center gap-1.5">
+                <h2 className="font-bold text-lg leading-none tracking-tight text-zinc-900 dark:text-zinc-50 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                  MeetNotes
+                </h2>
+                <Sparkles className="h-3.5 w-3.5 text-indigo-500 animate-pulse" />
+              </div>
+              <span className="text-[11px] font-medium text-zinc-500">AI Assistant</span>
             </div>
-          </div>
+          </Link>
           <div className="flex items-center gap-2">
             <ModeToggle />
             {/* Mobile close button */}
             <button
               onClick={() => setIsMobileOpen(false)}
-              className="lg:hidden p-1 rounded-md text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              className="lg:hidden p-1.5 rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
         </div>
 
-        <nav className="space-y-1">
+        <nav className="space-y-1.5 relative">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive =
@@ -108,30 +119,43 @@ export function Sidebar() {
               <Link
                 key={item.label}
                 href={item.href}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-50"
-                    : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
-                }`}
+                className="relative block"
               >
-                <Icon className="h-4 w-4" />
-                {item.label}
+                <motion.div
+                  whileHover={{ x: 3 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors ${
+                    isActive
+                      ? "text-zinc-900 dark:text-zinc-50 font-semibold"
+                      : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                  }`}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeSidebarPill"
+                      className="absolute inset-0 rounded-xl bg-zinc-100 dark:bg-zinc-800/90 border border-zinc-200/80 dark:border-zinc-700/50 shadow-sm"
+                      transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                    />
+                  )}
+                  <Icon className={`relative z-10 h-4.5 w-4.5 ${isActive ? "text-indigo-600 dark:text-indigo-400" : "text-zinc-500"}`} />
+                  <span className="relative z-10">{item.label}</span>
+                </motion.div>
               </Link>
             );
           })}
         </nav>
       </div>
 
-      <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+      <div className="pt-4 border-t border-zinc-200/80 dark:border-zinc-800/80 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Avatar className="h-8 w-8">
+          <Avatar className="h-9 w-9 ring-2 ring-indigo-500/20">
             <AvatarImage src="" />
-            <AvatarFallback className="bg-zinc-200 text-xs dark:bg-zinc-800 font-semibold text-zinc-900 dark:text-zinc-100">
+            <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-xs font-bold text-white">
               {userInitials}
             </AvatarFallback>
           </Avatar>
           <div className="text-xs overflow-hidden">
-            <p className="font-medium text-zinc-900 dark:text-zinc-100 truncate max-w-[110px]">
+            <p className="font-semibold text-zinc-900 dark:text-zinc-100 truncate max-w-[110px]">
               {userName}
             </p>
             <p className="text-zinc-500 truncate max-w-[110px]" title={userEmail}>
@@ -139,26 +163,28 @@ export function Sidebar() {
             </p>
           </div>
         </div>
-        <button
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
           onClick={handleLogout}
           disabled={isLoggingOut}
-          className="text-zinc-500 hover:text-red-600 dark:hover:text-red-400 p-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors disabled:opacity-50"
+          className="text-zinc-500 hover:text-red-600 dark:hover:text-red-400 p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors disabled:opacity-50"
           title="Logout"
         >
           {isLoggingOut ? (
-            <Loader2 className="h-4 w-4 animate-spin text-zinc-500" />
+            <Loader2 className="h-4.5 w-4.5 animate-spin text-zinc-500" />
           ) : (
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-4.5 w-4.5" />
           )}
-        </button>
+        </motion.button>
       </div>
     </div>
   );
 
   return (
     <>
-      {/* Mobile Header Bar with Hamburger Button */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-4 py-3 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800">
+      {/* Mobile Header Bar */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-4 py-3 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsMobileOpen(true)}
@@ -173,26 +199,32 @@ export function Sidebar() {
       </div>
 
       {/* Mobile Drawer Overlay */}
-      {isMobileOpen && (
-        <div
-          className="lg:hidden fixed inset-0 z-40 bg-zinc-900/50 backdrop-blur-sm transition-opacity"
-          onClick={() => setIsMobileOpen(false)}
-        />
-      )}
+      <AnimatePresence>
+        {isMobileOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="lg:hidden fixed inset-0 z-40 bg-zinc-950/60 backdrop-blur-xs"
+            onClick={() => setIsMobileOpen(false)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Mobile Drawer Sidebar */}
       <aside
-        className={`lg:hidden fixed top-0 bottom-0 left-0 z-50 w-64 bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 transform transition-transform duration-300 ease-in-out ${
+        className={`lg:hidden fixed top-0 bottom-0 left-0 z-50 w-64 bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 transform transition-transform duration-300 ease-out ${
           isMobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {sidebarContent}
       </aside>
 
-      {/* Desktop Sidebar (Always Open / Fixed width on lg screens) */}
-      <aside className="hidden lg:flex w-64 border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950 flex-col shrink-0 min-h-screen">
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex w-64 border-r border-zinc-200/80 bg-white dark:border-zinc-800/80 dark:bg-zinc-950 flex-col shrink-0 min-h-screen">
         {sidebarContent}
       </aside>
     </>
   );
 }
+

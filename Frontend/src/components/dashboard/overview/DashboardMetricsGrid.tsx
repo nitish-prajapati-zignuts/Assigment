@@ -1,3 +1,6 @@
+"use client";
+
+import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, CheckSquare, Clock, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
 import { DashboardMetrics } from "./types";
@@ -7,134 +10,166 @@ interface DashboardMetricsGridProps {
   isLoading: boolean;
 }
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } },
+};
+
+
 export function DashboardMetricsGrid({ metrics, isLoading }: DashboardMetricsGridProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
+    >
       {/* 1. Total Meetings */}
-      <Card className="rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm transition-all duration-200 hover:shadow-md hover:border-zinc-300 dark:hover:border-zinc-700">
-        <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-          <CardTitle className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-            Total Meetings
-          </CardTitle>
-          <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800/80">
-            <Calendar className="h-5 w-5 text-zinc-600 dark:text-zinc-300" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <Loader2 className="h-7 w-7 animate-spin text-zinc-400 my-1" />
-          ) : (
-            <div className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-              {metrics.totalMeetings}
+      <motion.div variants={cardVariants} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
+        <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md shadow-xs hover:shadow-md hover:border-indigo-500/30 transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+              Total Meetings
+            </CardTitle>
+            <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+              <Calendar className="h-5 w-5" />
             </div>
-          )}
-          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1 font-medium">
-            Scheduled & recorded
-          </p>
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <Loader2 className="h-7 w-7 animate-spin text-zinc-400 my-1" />
+            ) : (
+              <div className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
+                {metrics.totalMeetings}
+              </div>
+            )}
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1.5 font-medium">
+              Scheduled & recorded
+            </p>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* 2. Total Action Items */}
-      <Card className="rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm transition-all duration-200 hover:shadow-md hover:border-zinc-300 dark:hover:border-zinc-700">
-        <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-          <CardTitle className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-            Total Action Items
-          </CardTitle>
-          <div className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800/80">
-            <CheckSquare className="h-5 w-5 text-zinc-600 dark:text-zinc-300" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <Loader2 className="h-7 w-7 animate-spin text-zinc-400 my-1" />
-          ) : (
-            <div className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-              {metrics.totalActionItems}
+      <motion.div variants={cardVariants} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
+        <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md shadow-xs hover:shadow-md hover:border-purple-500/30 transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+              Total Action Items
+            </CardTitle>
+            <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
+              <CheckSquare className="h-5 w-5" />
             </div>
-          )}
-          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1 font-medium">
-            Across all meetings
-          </p>
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <Loader2 className="h-7 w-7 animate-spin text-zinc-400 my-1" />
+            ) : (
+              <div className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
+                {metrics.totalActionItems}
+              </div>
+            )}
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1.5 font-medium">
+              Across all meetings
+            </p>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* 3. Open Action Items */}
-      <Card className="rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm transition-all duration-200 hover:shadow-md hover:border-zinc-300 dark:hover:border-zinc-700">
-        <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-          <CardTitle className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-            Open Action Items
-          </CardTitle>
-          <div className="p-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
-            <Clock className="h-5 w-5" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <Loader2 className="h-7 w-7 animate-spin text-zinc-400 my-1" />
-          ) : (
-            <div className="text-3xl font-bold tracking-tight text-amber-600 dark:text-amber-400">
-              {metrics.openActionItems}
+      <motion.div variants={cardVariants} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
+        <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md shadow-xs hover:shadow-md hover:border-amber-500/30 transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+              Open Action Items
+            </CardTitle>
+            <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+              <Clock className="h-5 w-5" />
             </div>
-          )}
-          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1 font-medium">
-            Pending resolution
-          </p>
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <Loader2 className="h-7 w-7 animate-spin text-zinc-400 my-1" />
+            ) : (
+              <div className="text-3xl font-extrabold tracking-tight text-amber-600 dark:text-amber-400">
+                {metrics.openActionItems}
+              </div>
+            )}
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1.5 font-medium">
+              Pending resolution
+            </p>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* 4. Completed Action Items */}
-      <Card className="rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm transition-all duration-200 hover:shadow-md hover:border-zinc-300 dark:hover:border-zinc-700">
-        <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-          <CardTitle className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-            Completed Items
-          </CardTitle>
-          <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-            <CheckCircle2 className="h-5 w-5" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <Loader2 className="h-7 w-7 animate-spin text-zinc-400 my-1" />
-          ) : (
-            <div className="text-3xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
-              {metrics.completedActionItems}
+      <motion.div variants={cardVariants} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
+        <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md shadow-xs hover:shadow-md hover:border-emerald-500/30 transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+              Completed Items
+            </CardTitle>
+            <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+              <CheckCircle2 className="h-5 w-5" />
             </div>
-          )}
-          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1 font-medium">
-            Resolved tasks
-          </p>
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <Loader2 className="h-7 w-7 animate-spin text-zinc-400 my-1" />
+            ) : (
+              <div className="text-3xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
+                {metrics.completedActionItems}
+              </div>
+            )}
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1.5 font-medium">
+              Resolved tasks
+            </p>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* 5. Overdue Action Items */}
-      <Card
-        className={`rounded-xl border transition-all duration-200 hover:shadow-md ${
-          metrics.overdueActionItems > 0
-            ? "border-red-200 dark:border-red-900/50 bg-red-50/30 dark:bg-red-950/10"
-            : "border-zinc-200/80 dark:border-zinc-800/80 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm hover:border-zinc-300 dark:hover:border-zinc-700"
-        }`}
-      >
-        <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-          <CardTitle className="text-xs font-semibold uppercase tracking-wider text-red-600 dark:text-red-400">
-            Overdue Items
-          </CardTitle>
-          <div className="p-2 rounded-lg bg-red-500/10 text-red-500">
-            <AlertTriangle className="h-5 w-5 animate-pulse" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <Loader2 className="h-7 w-7 animate-spin text-zinc-400 my-1" />
-          ) : (
-            <div className="text-3xl font-bold tracking-tight text-red-600 dark:text-red-400">
-              {metrics.overdueActionItems}
+      <motion.div variants={cardVariants} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
+        <Card
+          className={`rounded-2xl border backdrop-blur-md transition-all duration-300 shadow-xs hover:shadow-md ${
+            metrics.overdueActionItems > 0
+              ? "border-red-200 dark:border-red-900/50 bg-red-50/40 dark:bg-red-950/20"
+              : "border-zinc-200/80 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-900/70 hover:border-zinc-300 dark:hover:border-zinc-700"
+          }`}
+        >
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400">
+              Overdue Items
+            </CardTitle>
+            <div className="p-2.5 rounded-xl bg-red-500/10 text-red-500">
+              <AlertTriangle className="h-5 w-5 animate-pulse" />
             </div>
-          )}
-          <p className="text-[11px] text-red-500/90 font-medium mt-1">
-            Requires immediate action
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <Loader2 className="h-7 w-7 animate-spin text-zinc-400 my-1" />
+            ) : (
+              <div className="text-3xl font-extrabold tracking-tight text-red-600 dark:text-red-400">
+                {metrics.overdueActionItems}
+              </div>
+            )}
+            <p className="text-[11px] text-red-500/90 font-semibold mt-1.5">
+              Requires immediate action
+            </p>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </motion.div>
   );
 }
+

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import api from "@/lib/axios";
 import { Meeting } from "@/types/meeting";
 import { MeetingDetailModal } from "@/components/dashboard/MeetingDetailModal";
@@ -54,26 +55,39 @@ export default function DashboardPage() {
 
         {/* TAB 1: Overview & Metrics */}
         <TabsContent value="overview" className="space-y-8 outline-none">
-          {/* Required Statistics Grid */}
-          <DashboardMetricsGrid metrics={metrics} isLoading={isLoading} />
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="space-y-8"
+          >
+            {/* Required Statistics Grid */}
+            <DashboardMetricsGrid metrics={metrics} isLoading={isLoading} />
 
-          {/* Secondary Meaningful Indicators */}
-          <DashboardIndicatorsGrid metrics={metrics} />
+            {/* Secondary Meaningful Indicators */}
+            <DashboardIndicatorsGrid metrics={metrics} />
 
-          {/* Recently Created Meetings Section */}
-          <RecentMeetingsSection
-            isLoading={isLoading}
-            recentMeetings={recentMeetings}
-            onViewDetails={(meeting) => {
-              setViewingMeeting(meeting);
-              setIsDetailModalOpen(true);
-            }}
-          />
+            {/* Recently Created Meetings Section */}
+            <RecentMeetingsSection
+              isLoading={isLoading}
+              recentMeetings={recentMeetings}
+              onViewDetails={(meeting) => {
+                setViewingMeeting(meeting);
+                setIsDetailModalOpen(true);
+              }}
+            />
+          </motion.div>
         </TabsContent>
 
         {/* TAB 2: Visual Analytics & Charts */}
         <TabsContent value="analytics" className="outline-none">
-          <AnalyticsCharts data={chartsData} />
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+          >
+            <AnalyticsCharts data={chartsData} />
+          </motion.div>
         </TabsContent>
       </Tabs>
 
