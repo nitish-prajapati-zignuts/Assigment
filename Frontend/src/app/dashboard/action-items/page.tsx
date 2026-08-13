@@ -6,6 +6,7 @@ import api from "@/lib/axios";
 import { ActionItem, Meeting } from "@/types/meeting";
 import { exportActionItemsToCSV, exportActionItemsToMarkdown } from "@/lib/exportUtils";
 import { triggerTaskCompletionConfetti } from "@/lib/confetti";
+import { ActionItemsLeaderboard } from "@/components/dashboard/action-items/ActionItemsLeaderboard";
 import { CreateActionItemModal } from "@/components/dashboard/CreateActionItemModal";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -109,6 +110,8 @@ export default function ActionTrackerPage() {
       queryClient.invalidateQueries({ queryKey: ["actionItems"] });
       queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] });
       queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
+      queryClient.invalidateQueries({ queryKey: ["actionItemsLeaderboard"] });
+
       toast.success(`Task status updated to "${variables.status}"`);
     },
     onError: (err) => {
@@ -133,6 +136,8 @@ export default function ActionTrackerPage() {
       queryClient.invalidateQueries({ queryKey: ["actionItems"] });
       queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] });
       queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
+      queryClient.invalidateQueries({ queryKey: ["actionItemsLeaderboard"] });
+
       toast.success(
         variables.id ? "Action item updated successfully" : "Action item created successfully"
       );
@@ -155,6 +160,8 @@ export default function ActionTrackerPage() {
       queryClient.invalidateQueries({ queryKey: ["actionItems"] });
       queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] });
       queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
+      queryClient.invalidateQueries({ queryKey: ["actionItemsLeaderboard"] });
+
       toast.success("Action item deleted");
     },
     onError: (err) => {
@@ -370,6 +377,11 @@ export default function ActionTrackerPage() {
         metrics={metrics}
         isLoading={isMetricsLoading || isMetricsFetching}
       />
+
+      {/* Team Velocity Leaderboard */}
+      <ActionItemsLeaderboard />
+
+
 
       {/* Control Bar: Search & Multi-Filters */}
       <ActionItemsFilters

@@ -196,6 +196,69 @@ export const getActionItemById = asyncHandler(async (
 });
 
 /**
+ * GET /api/action-items/leaderboard
+ * Aggregates task execution metrics per owner for real-time Team Leaderboard.
+ */
+export const getActionItemsLeaderboard = asyncHandler(async (
+  req: AuthenticatedRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const allItems = await db.select().from(actionItems);
+
+    const map = new Map<string, { total: number; completed: number; inProgress: number; blocked: number }>();
+
+    allItems.forEach((item) => {
+      const ownerName = item.owner || "Unassigned";
+      if (!map.has(ownerName)) {
+        map.set(ownerName, { total: 0, completed: 0, inProgress: 0, blocked: 0 });
+      }
+      const stats = map.get(ownerName)!;
+      stats.total += 1;
+      if (item.status === "Completed") stats.completed += 1;
+      else if (item.status === "In Progress") stats.inProgress += 1;
+      else if (item.status === "Blocked") stats.blocked += 1;
+    });
+
+    const leaderboard = Array.from(map.entries()).map(([owner, stats]) => {
+      const completionRate = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+      let badgeTitle = "Task Contributor";
+      let badgeColor = "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 border-zinc-200";
+
+      if (completionRate >= 75 && stats.completed > 0) {
+        badgeTitle = "Execution Champion 🏆";
+        badgeColor = "bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border-amber-300";
+      } else if (completionRate >= 40 || stats.completed >= 2) {
+        badgeTitle = "Sprint Star ⚡";
+        badgeColor = "bg-indigo-100 text-indigo-800 dark:bg-indigo-950/80 dark:text-indigo-300 border-indigo-300";
+      } else if (stats.inProgress > 0) {
+        badgeTitle = "Task Ninja 🥷";
+        badgeColor = "bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300 border-blue-300";
+      }
+
+      return {
+        owner,
+        totalTasks: stats.total,
+        completedTasks: stats.completed,
+        inProgressTasks: stats.inProgress,
+        blockedTasks: stats.blocked,
+        completionRate,
+        badgeTitle,
+        badgeColor,
+      };
+    });
+
+    leaderboard.sort((a, b) => b.completionRate - a.completionRate || b.completedTasks - a.completedTasks);
+
+    res.json(leaderboard);
+  } catch (error) {
+    logger.error("Error fetching leaderboard stats", error as Error);
+    throw error instanceof (Error as any) ? error : new InternalServerError("Failed to fetch leaderboard stats");
+  }
+});
+
+
+/**
  * POST /api/action-items
  * Manually creates a new action item with automatic user ID matching.
  */

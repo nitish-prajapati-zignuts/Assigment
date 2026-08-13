@@ -3,6 +3,7 @@ import {
   getActionItems,
   getActionItemsByMeeting,
   getActionItemById,
+  getActionItemsLeaderboard,
   createActionItem,
   updateActionItem,
   deleteActionItem,
@@ -23,6 +24,10 @@ router.use(protect);
 
 // GET /api/action-items - View all action items with filtering and pagination
 router.get("/", validateQuery(actionItemQuerySchema), getActionItems);
+
+// GET /api/action-items/leaderboard - Real-time leaderboard aggregation
+router.get("/leaderboard", getActionItemsLeaderboard);
+
 
 // GET /api/action-items/meeting/:meetingId - View action items for a specific meeting
 router.get("/meeting/:meetingId", validateParams(idSchema), getActionItemsByMeeting);
