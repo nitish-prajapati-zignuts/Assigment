@@ -83,6 +83,10 @@ export const getMeetings = asyncHandler(async (req: AuthenticatedRequest, res: R
       .select({ ...getTableColumns(meetings), hasChunks: sql<boolean>`COUNT(${meetingChunks.id}) > 0` })
       .from(meetings)
       .leftJoin(meetingChunks, eq(meetingChunks.meetingId, meetings.id))
+      .where(and(
+        eq(meetings.isArchived, false),
+        eq(meetings.isDeleted, false)
+      ))
       .groupBy(meetings.id)
       .orderBy(desc(meetings.createdAt));
     appendDebugLog(JSON.stringify(allMeetings));
@@ -406,7 +410,7 @@ export const deleteMeeting = asyncHandler(async (req: AuthenticatedRequest, res:
   const targetId = String(req.params.id);
 
   try {
-    const deleted = await db.delete(meetings).where(eq(meetings.id, targetId)).returning();
+    const deleted = await db.update(meetings).set({ isDeleted: true, isDeletedAt: new Date() }).where(eq(meetings.id, targetId)).returning();
 
     if (deleted.length === 0) {
       throw new NotFoundError("Meeting");
@@ -574,3 +578,79 @@ export const getPublicMeetingByToken = asyncHandler(async (req: Request, res: Re
     throw error instanceof (Error as any) ? error : new InternalServerError("Failed to load shared meeting");
   }
 });
+
+export const archiveMeeting = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  const targetId = String(req.params.id)
+  try {
+    if (!targetId) {
+      throw new ValidationError("Meeting Details is Required.")
+    }
+
+    const getMeetingDetails = await db.select().from(meetings).where(eq(meetings.id, targetId))
+    if (!getMeetingDetails) {
+      throw new ValidationError("Meeting Details is Required.")
+    }
+
+    const setMeetingArchived = await db
+      .update(meetings)
+      .set({
+        isArchived: true,
+        isArchivedAt: new Date(),
+      })
+      .where(eq(meetings.id, targetId)).returning();
+
+    // Cascade archive to action items
+    await db
+      .update(actionItems)
+      .set({
+        isArchived: true,
+        isArchivedAt: new Date(),
+      })
+      .where(eq(actionItems.meetingId, targetId));
+
+    res.json({
+      message: "Meeting Archived Successfully"
+    })
+
+  } catch (error) {
+    throw new ValidationError("Meeting Cannot Be Archived")
+  }
+})
+
+export const unArchiveMeeting = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  const targetId = String(req.params.id)
+  try {
+    if (!targetId) {
+      throw new ValidationError("Meeting Details is Required.")
+    }
+
+    const getMeetingDetails = await db.select().from(meetings).where(eq(meetings.id, targetId))
+    if (!getMeetingDetails) {
+      throw new ValidationError("Meeting Details is Required.")
+    }
+
+    const setMeetingArchived = await db
+      .update(meetings)
+      .set({
+        isArchived: false,
+        isArchivedAt: new Date(),
+      })
+      .where(eq(meetings.id, targetId)).returning();
+
+    // Cascade unarchive to action items
+    await db
+      .update(actionItems)
+      .set({
+        isArchived: false,
+        isArchivedAt: new Date(),
+      })
+      .where(eq(actionItems.meetingId, targetId));
+
+    res.json({
+      message: "Meeting Archived Successfully"
+    })
+
+  } catch (error) {
+    throw new ValidationError("Meeting Cannot Be Archived")
+  }
+})

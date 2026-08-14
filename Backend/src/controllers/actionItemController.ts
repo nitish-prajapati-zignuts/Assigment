@@ -39,13 +39,13 @@ export const getActionItems = asyncHandler(async (req: AuthenticatedRequest, res
     // Fetch all action items (in production, filter at DB level using indexes)
     const allItems = await db.select().from(actionItems);
 
-    // Filter items: Belongs to accessible meeting OR assigned to user
+    // Filter items: Belongs to accessible meeting OR assigned to user, and not archived
     let filtered = allItems.filter((item) => {
       const isMeetingParticipant = userMeetingIds.has(item.meetingId);
       const itemOwnerLow = item.owner?.toLowerCase() || "";
       const isUserAssigned = currentUserEmail && itemOwnerLow === currentUserEmail;
 
-      return isMeetingParticipant || isUserAssigned;
+      return (isMeetingParticipant || isUserAssigned) && !item.isArchived;
     });
 
     // Apply additional filters

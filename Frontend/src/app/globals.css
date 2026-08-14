@@ -153,3 +153,222 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(160, 160, 175, 0.4);
 }
+
+/* Custom Application Color Themes */
+
+/* Blue Theme */
+[data-color-theme="blue"] {
+  --color-indigo-50: oklch(0.96 0.015 230);
+  --color-indigo-100: oklch(0.93 0.03 230);
+  --color-indigo-200: oklch(0.87 0.06 230);
+  --color-indigo-300: oklch(0.79 0.11 230);
+  --color-indigo-400: oklch(0.70 0.15 230);
+  --color-indigo-500: oklch(0.60 0.18 230);
+  --color-indigo-600: oklch(0.55 0.18 230);
+  --color-indigo-700: oklch(0.48 0.16 230);
+  --color-indigo-800: oklch(0.40 0.14 230);
+  --color-indigo-900: oklch(0.32 0.12 230);
+  --color-indigo-950: oklch(0.22 0.09 230);
+
+  --color-violet-50: oklch(0.96 0.015 230);
+  --color-violet-100: oklch(0.93 0.03 230);
+  --color-violet-200: oklch(0.87 0.06 230);
+  --color-violet-300: oklch(0.79 0.11 230);
+  --color-violet-400: oklch(0.70 0.15 230);
+  --color-violet-500: oklch(0.60 0.18 230);
+  --color-violet-600: oklch(0.55 0.18 230);
+  --color-violet-700: oklch(0.48 0.16 230);
+  --color-violet-800: oklch(0.40 0.14 230);
+  --color-violet-900: oklch(0.32 0.12 230);
+  --color-violet-950: oklch(0.22 0.09 230);
+
+  --color-purple-50: oklch(0.96 0.015 230);
+  --color-purple-100: oklch(0.93 0.03 230);
+  --color-purple-200: oklch(0.87 0.06 230);
+  --color-purple-300: oklch(0.79 0.11 230);
+  --color-purple-400: oklch(0.70 0.15 230);
+  --color-purple-500: oklch(0.60 0.18 230);
+  --color-purple-600: oklch(0.55 0.18 230);
+  --color-purple-700: oklch(0.48 0.16 230);
+  --color-purple-800: oklch(0.40 0.14 230);
+  --color-purple-900: oklch(0.32 0.12 230);
+  --color-purple-950: oklch(0.22 0.09 230);
+
+  --primary: oklch(0.55 0.18 230);
+  --brand: oklch(0.55 0.18 230);
+  --ring: oklch(0.55 0.18 230);
+  --sidebar-primary: oklch(0.55 0.18 230);
+  --sidebar-ring: oklch(0.55 0.18 230);
+  --chart-1: oklch(0.55 0.18 230);
+}
+.dark [data-color-theme="blue"], [data-color-theme="blue"].dark {
+  --primary: oklch(0.68 0.16 230);
+  --brand: oklch(0.68 0.16 230);
+  --ring: oklch(0.68 0.16 230);
+  --sidebar-primary: oklch(0.68 0.16 230);
+  --sidebar-ring: oklch(0.68 0.16 230);
+  --chart-1: oklch(0.68 0.16 230);
+}
+
+/* Emerald Theme */
+[data-color-theme="emerald"] {
+  --color-indigo-50: oklch(0.96 0.015 150);
+  --color-indigo-100: oklch(0.93 0.03 150);
+  --color-indigo-200: oklch(0.87 0.06 150);
+  --color-indigo-300: oklch(0.79 0.11 150);
+  --color-indigo-400: oklch(0.70 0.15 150);
+  --color-indigo-500: oklch(0.60 0.18 150);
+  --color-indigo-600: oklch(0.55 0.18 150);
+  --color-indigo-700: oklch(0.48 0.16 150);
+  --color-indigo-800: oklch(0.40 0.14 150);
+  --color-indigo-900: oklch(0.32 0.12 150);
+  --color-indigo-950: oklch(0.22 0.09 150);
+
+  --color-violet-50: oklch(0.96 0.015 150);
+  --color-violet-100: oklch(0.93 0.03 150);
+  --color-violet-200: oklch(0.87 0.06 150);
+  --color-violet-300: oklch(0.79 0.11 150);
+  --color-violet-400: oklch(0.70 0.15 150);
+  --color-violet-500: oklch(0.60 0.18 150);
+  --color-violet-600: oklch(0.55 0.18 150);
+  --color-violet-700: oklch(0.48 0.16 150);
+  --color-violet-800: oklch(0.40 0.14 150);
+  --color-violet-900: oklch(0.32 0.12 150);
+  --color-violet-950: oklch(0.22 0.09 150);
+
+  --color-purple-50: oklch(0.96 0.015 150);
+  --color-purple-100: oklch(0.93 0.03 150);
+  --color-purple-200: oklch(0.87 0.06 150);
+  --color-purple-300: oklch(0.79 0.11 150);
+  --color-purple-400: oklch(0.70 0.15 150);
+  --color-purple-500: oklch(0.60 0.18 150);
+  --color-purple-600: oklch(0.55 0.18 150);
+  --color-purple-700: oklch(0.48 0.16 150);
+  --color-purple-800: oklch(0.40 0.14 150);
+  --color-purple-900: oklch(0.32 0.12 150);
+  --color-purple-950: oklch(0.22 0.09 150);
+
+  --primary: oklch(0.55 0.15 150);
+  --brand: oklch(0.55 0.15 150);
+  --ring: oklch(0.55 0.15 150);
+  --sidebar-primary: oklch(0.55 0.15 150);
+  --sidebar-ring: oklch(0.55 0.15 150);
+  --chart-1: oklch(0.55 0.15 150);
+}
+.dark [data-color-theme="emerald"], [data-color-theme="emerald"].dark {
+  --primary: oklch(0.68 0.14 150);
+  --brand: oklch(0.68 0.14 150);
+  --ring: oklch(0.68 0.14 150);
+  --sidebar-primary: oklch(0.68 0.14 150);
+  --sidebar-ring: oklch(0.68 0.14 150);
+  --chart-1: oklch(0.68 0.14 150);
+}
+
+/* Rose Theme */
+[data-color-theme="rose"] {
+  --color-indigo-50: oklch(0.96 0.015 20);
+  --color-indigo-100: oklch(0.93 0.03 20);
+  --color-indigo-200: oklch(0.87 0.06 20);
+  --color-indigo-300: oklch(0.79 0.11 20);
+  --color-indigo-400: oklch(0.70 0.15 20);
+  --color-indigo-500: oklch(0.60 0.18 20);
+  --color-indigo-600: oklch(0.55 0.18 20);
+  --color-indigo-700: oklch(0.48 0.16 20);
+  --color-indigo-800: oklch(0.40 0.14 20);
+  --color-indigo-900: oklch(0.32 0.12 20);
+  --color-indigo-950: oklch(0.22 0.09 20);
+
+  --color-violet-50: oklch(0.96 0.015 20);
+  --color-violet-100: oklch(0.93 0.03 20);
+  --color-violet-200: oklch(0.87 0.06 20);
+  --color-violet-300: oklch(0.79 0.11 20);
+  --color-violet-400: oklch(0.70 0.15 20);
+  --color-violet-500: oklch(0.60 0.18 20);
+  --color-violet-600: oklch(0.55 0.18 20);
+  --color-violet-700: oklch(0.48 0.16 20);
+  --color-violet-800: oklch(0.40 0.14 20);
+  --color-violet-900: oklch(0.32 0.12 20);
+  --color-violet-950: oklch(0.22 0.09 20);
+
+  --color-purple-50: oklch(0.96 0.015 20);
+  --color-purple-100: oklch(0.93 0.03 20);
+  --color-purple-200: oklch(0.87 0.06 20);
+  --color-purple-300: oklch(0.79 0.11 20);
+  --color-purple-400: oklch(0.70 0.15 20);
+  --color-purple-500: oklch(0.60 0.18 20);
+  --color-purple-600: oklch(0.55 0.18 20);
+  --color-purple-700: oklch(0.48 0.16 20);
+  --color-purple-800: oklch(0.40 0.14 20);
+  --color-purple-900: oklch(0.32 0.12 20);
+  --color-purple-950: oklch(0.22 0.09 20);
+
+  --primary: oklch(0.55 0.18 20);
+  --brand: oklch(0.55 0.18 20);
+  --ring: oklch(0.55 0.18 20);
+  --sidebar-primary: oklch(0.55 0.18 20);
+  --sidebar-ring: oklch(0.55 0.18 20);
+  --chart-1: oklch(0.55 0.18 20);
+}
+.dark [data-color-theme="rose"], [data-color-theme="rose"].dark {
+  --primary: oklch(0.68 0.16 20);
+  --brand: oklch(0.68 0.16 20);
+  --ring: oklch(0.68 0.16 20);
+  --sidebar-primary: oklch(0.68 0.16 20);
+  --sidebar-ring: oklch(0.68 0.16 20);
+  --chart-1: oklch(0.68 0.16 20);
+}
+
+/* Amber Theme */
+[data-color-theme="amber"] {
+  --color-indigo-50: oklch(0.96 0.015 70);
+  --color-indigo-100: oklch(0.93 0.03 70);
+  --color-indigo-200: oklch(0.87 0.06 70);
+  --color-indigo-300: oklch(0.79 0.11 70);
+  --color-indigo-400: oklch(0.70 0.15 70);
+  --color-indigo-500: oklch(0.60 0.15 70);
+  --color-indigo-600: oklch(0.60 0.15 70);
+  --color-indigo-700: oklch(0.48 0.16 70);
+  --color-indigo-800: oklch(0.40 0.14 70);
+  --color-indigo-900: oklch(0.32 0.12 70);
+  --color-indigo-950: oklch(0.22 0.09 70);
+
+  --color-violet-50: oklch(0.96 0.015 70);
+  --color-violet-100: oklch(0.93 0.03 70);
+  --color-violet-200: oklch(0.87 0.06 70);
+  --color-violet-300: oklch(0.79 0.11 70);
+  --color-violet-400: oklch(0.70 0.15 70);
+  --color-violet-500: oklch(0.60 0.15 70);
+  --color-violet-600: oklch(0.60 0.15 70);
+  --color-violet-700: oklch(0.48 0.16 70);
+  --color-violet-800: oklch(0.40 0.14 70);
+  --color-violet-900: oklch(0.32 0.12 70);
+  --color-violet-950: oklch(0.22 0.09 70);
+
+  --color-purple-50: oklch(0.96 0.015 70);
+  --color-purple-100: oklch(0.93 0.03 70);
+  --color-purple-200: oklch(0.87 0.06 70);
+  --color-purple-300: oklch(0.79 0.11 70);
+  --color-purple-400: oklch(0.70 0.15 70);
+  --color-purple-500: oklch(0.60 0.15 70);
+  --color-purple-600: oklch(0.60 0.15 70);
+  --color-purple-700: oklch(0.48 0.16 70);
+  --color-purple-800: oklch(0.40 0.14 70);
+  --color-purple-900: oklch(0.32 0.12 70);
+  --color-purple-950: oklch(0.22 0.09 70);
+
+  --primary: oklch(0.60 0.15 70);
+  --brand: oklch(0.60 0.15 70);
+  --ring: oklch(0.60 0.15 70);
+  --sidebar-primary: oklch(0.60 0.15 70);
+  --sidebar-ring: oklch(0.60 0.15 70);
+  --chart-1: oklch(0.60 0.15 70);
+}
+.dark [data-color-theme="amber"], [data-color-theme="amber"].dark {
+  --primary: oklch(0.72 0.14 70);
+  --brand: oklch(0.72 0.14 70);
+  --ring: oklch(0.72 0.14 70);
+  --sidebar-primary: oklch(0.72 0.14 70);
+  --sidebar-ring: oklch(0.72 0.14 70);
+  --chart-1: oklch(0.72 0.14 70);
+}
+

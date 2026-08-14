@@ -21,8 +21,10 @@ export const getDashboardStats = asyncHandler(async (req: AuthenticatedRequest, 
     // 1. Fetch user's accessible meetings
     const allMeetings = await db.select().from(meetings);
     const userMeetings = allMeetings.filter(
-      (m: { participants: any[] }) =>
-        Array.isArray(m.participants) && m.participants.some((p: string) => p.toLowerCase() === currentUserEmail)
+      (m: any) =>
+        Array.isArray(m.participants) &&
+        m.participants.some((p: string) => p.toLowerCase() === currentUserEmail) &&
+        !m.isArchived
     );
 
     const userMeetingIds = new Set(userMeetings.map((m: { id: string }) => m.id));
@@ -32,7 +34,7 @@ export const getDashboardStats = asyncHandler(async (req: AuthenticatedRequest, 
     const userActionItems = allItems.filter((item) => {
       const isMeetingParticipant = userMeetingIds.has(item.meetingId);
       const isUserAssigned = item.owner?.toLowerCase() === currentUserEmail;
-      return isMeetingParticipant || isUserAssigned;
+      return (isMeetingParticipant || isUserAssigned) && !item.isArchived;
     });
 
     // 3. Compute Metrics

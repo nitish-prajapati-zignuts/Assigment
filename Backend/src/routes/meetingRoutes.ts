@@ -9,6 +9,8 @@ import {
   toggleMeetingPublish,
   getPublicMeetingByToken,
   chatMeeting,
+  archiveMeeting,
+  unArchiveMeeting,
 } from "../controllers/meetingController";
 import { protect } from "../middleware/authMiddleware";
 import { validateBody, validateQuery, validateParams } from "../middleware/validation";
@@ -50,7 +52,13 @@ router.post("/:id/summarize", validateParams(idSchema), summarizeMeeting);
 // POST /api/meetings/:id/chat - RAG chat engine
 router.post("/:id/chat", validateParams(idSchema), validateBody(chatValidationSchema), chatMeeting);
 
-// DELETE /api/meetings/:id - Delete a meeting
-router.delete("/:id", validateParams(idSchema), deleteMeeting);
+// POST /api/meetings/:id - Delete a meeting
+router.post("/:id", validateParams(idSchema), deleteMeeting);
+
+// POST /api/meetings/:id/archive - Archive a meeting
+router.post("/:id/archive", validateParams(idSchema), archiveMeeting)
+
+// POST /api/meetings/:id/unArchive - UnArchive a meeting
+router.post("/:id/unArchive", validateParams(idSchema), unArchiveMeeting)
 
 export default router;

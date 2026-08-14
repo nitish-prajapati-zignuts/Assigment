@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User, Calendar, Edit, Trash2, Loader2 } from "lucide-react";
+import { EmptyActionItemsIllustration } from "@/components/ui/illustrations";
 
 interface ActionItemsCardsProps {
   isLoading: boolean;
@@ -36,9 +37,12 @@ export function ActionItemsCards({
           <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Loading fresh action items...</span>
         </div>
       ) : displayItems.length === 0 ? (
-        <div className="p-6 text-center bg-white/80 dark:bg-zinc-900/80 rounded-2xl border border-zinc-200 dark:border-zinc-800 text-zinc-500">
-          <p className="text-sm font-semibold">No action items found matching your filters.</p>
-          <p className="text-xs text-zinc-400 mt-1">Try clearing search parameters or overdue filter.</p>
+        <div className="p-8 text-center bg-white/80 dark:bg-zinc-900/80 rounded-2xl border border-zinc-200/85 dark:border-zinc-800/80 text-zinc-500 flex flex-col items-center justify-center space-y-3">
+          <EmptyActionItemsIllustration className="w-20 h-20 text-zinc-400" />
+          <div>
+            <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">No action items found matching your filters.</p>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">Try clearing search parameters or overdue filter.</p>
+          </div>
         </div>
       ) : (
         displayItems.map((item, idx) => (

@@ -16,6 +16,7 @@ import {
   MeetingsCards,
   MeetingsPagination,
   DeleteMeetingModal,
+  ArchiveMeetingModal,
   MeetingComparisonModal,
 } from "@/components/dashboard/meetings";
 
@@ -35,6 +36,8 @@ export default function MeetingsPage() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [meetingToDelete, setMeetingToDelete] = useState<Meeting | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [meetingToArchive, setMeetingToArchive] = useState<Meeting | null>(null);
+  const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
   const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
 
   // TanStack Query for Meetings with Caching
@@ -139,10 +142,28 @@ export default function MeetingsPage() {
     setIsFormModalOpen(false);
   };
 
+  const ArchiveMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await api.post(`/meetings/${id}/archive`)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["meetings"] });
+      queryClient.invalidateQueries({ queryKey: ["meetingsList"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
+      queryClient.invalidateQueries({ queryKey: ["actionItems"] });
+      queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] });
+      toast.success("Meeting Archived successfully");
+    },
+    onError: (error) => {
+      console.error("Failed to archive meeting:", error)
+      toast.error("Failed to Archive Meeting")
+    }
+  })
+
   // TanStack Mutation for Delete Meeting
   const deleteMeetingMutation = useMutation({
     mutationFn: async (id: string) => {
-      await api.delete(`/meetings/${id}`);
+      await api.post(`/meetings/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["meetings"] });
@@ -159,6 +180,7 @@ export default function MeetingsPage() {
   });
 
   const isDeleting = deleteMeetingMutation.isPending;
+  const isArchiving = ArchiveMutation.isPending
 
   // Client-side filtering (for search and type filter)
   const filteredMeetings = useMemo(() => {
@@ -195,6 +217,24 @@ export default function MeetingsPage() {
   };
 
   const isFilterActive = Boolean(searchQuery) || selectedType !== "All";
+
+  // Open archive confirmation modal
+  const handleOpenArchiveModal = (meeting: Meeting) => {
+    setMeetingToArchive(meeting);
+    setIsArchiveModalOpen(true);
+  };
+
+  // Confirm archive action
+  const handleConfirmArchive = async () => {
+    if (!meetingToArchive) return;
+    try {
+      await ArchiveMutation.mutateAsync(meetingToArchive.id);
+      setIsArchiveModalOpen(false);
+      setMeetingToArchive(null);
+    } catch (error) {
+      console.error("Failed to archive meeting:", error);
+    }
+  };
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -236,6 +276,7 @@ export default function MeetingsPage() {
           setIsFormModalOpen(true);
         }}
         onDelete={handleOpenDeleteModal}
+        onArchive={handleOpenArchiveModal}
       />
 
       {/* Mobile Responsive Cards View */}
@@ -251,6 +292,7 @@ export default function MeetingsPage() {
           setIsFormModalOpen(true);
         }}
         onDelete={handleOpenDeleteModal}
+        onArchive={handleOpenArchiveModal}
       />
 
       {/* Pagination Controls */}
@@ -302,6 +344,18 @@ export default function MeetingsPage() {
         meetingToDelete={meetingToDelete}
         onConfirmDelete={handleConfirmDelete}
         isDeleting={isDeleting}
+      />
+
+      {/* Archive Confirmation Modal */}
+      <ArchiveMeetingModal
+        isOpen={isArchiveModalOpen}
+        onClose={() => {
+          setIsArchiveModalOpen(false);
+          setMeetingToArchive(null);
+        }}
+        meetingToArchive={meetingToArchive}
+        onConfirmArchive={handleConfirmArchive}
+        isArchiving={isArchiving}
       />
 
       {/* Meeting Comparison Modal */}

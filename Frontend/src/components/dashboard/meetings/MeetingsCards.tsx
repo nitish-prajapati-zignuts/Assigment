@@ -4,7 +4,8 @@ import { motion } from "framer-motion";
 import { Meeting } from "@/types/meeting";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Eye, Edit, Trash2, Loader2 } from "lucide-react";
+import { Calendar, Eye, Edit, Trash2, Loader2, Archive } from "lucide-react";
+import { EmptyMeetingsIllustration } from "@/components/ui/illustrations";
 
 interface MeetingsCardsProps {
   isLoading: boolean;
@@ -12,9 +13,10 @@ interface MeetingsCardsProps {
   onViewDetails: (meeting: Meeting) => void;
   onEdit: (meeting: Meeting) => void;
   onDelete: (meeting: Meeting) => void;
+  onArchive: (meeting: Meeting) => void;
 }
 
-export function MeetingsCards({ isLoading, displayMeetings, onViewDetails, onEdit, onDelete }: MeetingsCardsProps) {
+export function MeetingsCards({ isLoading, displayMeetings, onViewDetails, onEdit, onDelete, onArchive }: MeetingsCardsProps) {
   return (
     <div className="md:hidden space-y-3">
       {isLoading ? (
@@ -23,9 +25,12 @@ export function MeetingsCards({ isLoading, displayMeetings, onViewDetails, onEdi
           <span className="text-xs font-medium">Loading meetings...</span>
         </div>
       ) : displayMeetings.length === 0 ? (
-        <div className="p-6 text-center bg-white/80 dark:bg-zinc-900/80 rounded-2xl border border-zinc-200 dark:border-zinc-800 text-zinc-500">
-          <p className="text-sm font-semibold">No meetings found matching your search.</p>
-          <p className="text-xs text-zinc-400 mt-1">Try adjusting your filters or search keywords.</p>
+        <div className="p-8 text-center bg-white/80 dark:bg-zinc-900/80 rounded-2xl border border-zinc-200/85 dark:border-zinc-800/80 text-zinc-500 flex flex-col items-center justify-center space-y-3">
+          <EmptyMeetingsIllustration className="w-20 h-20 text-zinc-400" />
+          <div>
+            <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">No meetings found matching your search.</p>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">Try adjusting your filters or search keywords.</p>
+          </div>
         </div>
       ) : (
         displayMeetings.map((meeting, idx) => (
@@ -59,6 +64,14 @@ export function MeetingsCards({ isLoading, displayMeetings, onViewDetails, onEdi
                   className="h-7 w-7 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 rounded-lg"
                 >
                   <Edit className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onArchive(meeting)}
+                  className="h-7 w-7 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 rounded-lg"
+                >
+                  <Archive className="h-4 w-4" />
                 </Button>
                 <Button
                   variant="ghost"

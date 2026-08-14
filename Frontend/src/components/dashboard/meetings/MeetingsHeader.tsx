@@ -12,7 +12,7 @@ interface MeetingsHeaderProps {
 
 export function MeetingsHeader({ onCreateClick, onExportCSV, onCompareClick }: MeetingsHeaderProps) {
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-zinc-200/80 dark:border-zinc-800/80 pb-5">
+    <div className="flex flex-col gap-4  sm:flex-row sm:items-center sm:justify-between border-b border-zinc-200/80 dark:border-zinc-800/80 pb-5">
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
           Meeting Management

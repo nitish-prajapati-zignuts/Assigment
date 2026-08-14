@@ -1,4 +1,5 @@
 import { pgTable, text, timestamp, varchar, jsonb, index, uniqueIndex, boolean, integer } from "drizzle-orm/pg-core";
+import { customType } from "drizzle-orm/pg-core";
 
 export type SummaryLength = "Short" | "Medium" | "Long";
 export type SummaryTemplate = "Standard" | "Executive" | "Developer" | "Technical" | "Sales";
@@ -91,6 +92,7 @@ export const users = pgTable(
     password: text("password").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+    isDeleted: boolean().default(false)
   },
   (table) => [uniqueIndex("users_email_idx").on(table.email), index("users_created_at_idx").on(table.createdAt)]
 );
@@ -114,6 +116,10 @@ export const meetings = pgTable(
     isMeetingPublished: boolean("is_meeting_published").notNull().default(false),
     sharePassword: text("share_password"),
     shareExpiresAt: timestamp("share_expires_at", { withTimezone: true }),
+    isDeleted: boolean("is_deleted").notNull().default(false),
+    isDeletedAt: timestamp("is_deleted_at", { withTimezone: true }),
+    isArchived: boolean("is_archived").notNull().default(false),
+    isArchivedAt: timestamp("is_archived_at", { withTimezone: true }),
   },
   (table) => [
     index("meetings_date_idx").on(table.date),
@@ -145,6 +151,8 @@ export const actionItems = pgTable(
     status: text("status").default("Pending"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+    isArchived: boolean("is_archived").notNull().default(false),
+    isArchivedAt: timestamp("is_archived_at", { withTimezone: true }),
   },
   (table) => [
     index("action_items_meeting_id_idx").on(table.meetingId),
@@ -242,7 +250,6 @@ export const notifications = pgTable(
 export type NotificationRecord = typeof notifications.$inferSelect;
 export type NewNotificationRecord = typeof notifications.$inferInsert;
 
-import { customType } from "drizzle-orm/pg-core";
 
 const vector = customType<{ data: number[] }>({
   dataType() {

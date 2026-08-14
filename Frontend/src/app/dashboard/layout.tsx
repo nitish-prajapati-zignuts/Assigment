@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { CommandPalette } from "@/components/dashboard/CommandPalette";
 import { ShortcutsDialog } from "@/components/dashboard/ShortcutsDialog";
+import { Search, Command } from "lucide-react";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -105,7 +106,29 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pt-16 md:pt-16 lg:pt-8">{children}</main>
+      <div className="flex-1 flex flex-col min-h-screen">
+        {/* Desktop Header bar at the top of every dashboard page */}
+        <header className="hidden lg:flex items-center justify-center px-8 py-4 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md sticky top-0 z-20">
+          <div className="w-full flex items-center justify-center">
+            <button
+              onClick={() => setIsCommandPaletteOpen(true)}
+              className="flex w-1/2 items-center justify-between rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/80 dark:bg-zinc-900/80 px-4 py-2 shadow-2xs hover:bg-zinc-100 dark:hover:bg-zinc-800 text-xs font-semibold text-zinc-600 dark:text-zinc-300 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <Search className="h-4 w-4 text-indigo-500" />
+                <span>Search app...</span>
+              </div>
+              <kbd className="flex items-center gap-0.5 px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded font-mono text-[10px]">
+                <Command className="h-3 w-3" /> K
+              </kbd>
+            </button>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pt-16 lg:pt-4">
+          {children}
+        </main>
+      </div>
       <CommandPalette isOpen={isCommandPaletteOpen} onClose={() => setIsCommandPaletteOpen(false)} />
       <ShortcutsDialog isOpen={isShortcutsOpen} onClose={() => setIsShortcutsOpen(false)} />
     </div>

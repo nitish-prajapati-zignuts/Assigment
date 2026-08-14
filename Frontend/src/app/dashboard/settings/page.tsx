@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sparkles, Bell, Shield, Palette, LockKeyholeIcon, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/axios";
 
@@ -11,6 +11,7 @@ import { AiTabContent, AppSettings } from "@/components/dashboard/settings/AiTab
 import { NotificationsTabContent } from "@/components/dashboard/settings/NotificationsTabContent";
 import { SecurityTabContent, UserSession } from "@/components/dashboard/settings/SecurityTabContent";
 import { ChangePassword } from "@/components/dashboard/settings/ChangePasswordTab";
+import { AppearanceTabContent } from "@/components/dashboard/settings/AppearanceTabContent";
 
 const DEFAULT_SETTINGS: AppSettings = {
   summaryLength: "Medium",
@@ -121,15 +122,98 @@ export default function SettingsPage() {
           savedSuccess={savedSuccess}
         />
 
-        {/* Navigation Tabs (Without horizontal border-b line) */}
-        <SettingsTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+        {/* Desktop Navigation Tabs (Hidden on Mobile) */}
+        <div className="hidden md:block">
+          <SettingsTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+        </div>
 
-        {/* Tab Content Components */}
-        {activeTab === "ai" && <AiTabContent settings={settings} setSettings={setSettings} />}
-        {activeTab === "notifications" && <NotificationsTabContent settings={settings} setSettings={setSettings} />}
-        {activeTab === "security" && <SecurityTabContent sessions={sessions} />}
-        {activeTab === "Change Password" && <ChangePassword />}
+        {/* Desktop Tab Content (Hidden on Mobile) */}
+        <div className="hidden md:block">
+          {activeTab === "ai" && <AiTabContent settings={settings} setSettings={setSettings} />}
+          {activeTab === "notifications" && <NotificationsTabContent settings={settings} setSettings={setSettings} />}
+          {activeTab === "security" && <SecurityTabContent sessions={sessions} />}
+          {activeTab === "appearance" && <AppearanceTabContent />}
+          {activeTab === "Change Password" && <ChangePassword />}
+        </div>
+
+        {/* Mobile Accordion / Collapsible Tabs (Hidden on Desktop) */}
+        <div className="block md:hidden space-y-1">
+          <MobileCollapsibleTab
+            label="AI Prompts & Rules"
+            icon={Sparkles}
+            isOpen={activeTab === "ai"}
+            onClick={() => setActiveTab(activeTab === "ai" ? "" as any : "ai")}
+          >
+            <AiTabContent settings={settings} setSettings={setSettings} />
+          </MobileCollapsibleTab>
+
+          <MobileCollapsibleTab
+            label="Alerts & Webhooks"
+            icon={Bell}
+            isOpen={activeTab === "notifications"}
+            onClick={() => setActiveTab(activeTab === "notifications" ? "" as any : "notifications")}
+          >
+            <NotificationsTabContent settings={settings} setSettings={setSettings} />
+          </MobileCollapsibleTab>
+
+          <MobileCollapsibleTab
+            label="Account & Security"
+            icon={Shield}
+            isOpen={activeTab === "security"}
+            onClick={() => setActiveTab(activeTab === "security" ? "" as any : "security")}
+          >
+            <SecurityTabContent sessions={sessions} />
+          </MobileCollapsibleTab>
+
+          <MobileCollapsibleTab
+            label="Appearance"
+            icon={Palette}
+            isOpen={activeTab === "appearance"}
+            onClick={() => setActiveTab(activeTab === "appearance" ? "" as any : "appearance")}
+          >
+            <AppearanceTabContent />
+          </MobileCollapsibleTab>
+
+          <MobileCollapsibleTab
+            label="Change Password"
+            icon={LockKeyholeIcon}
+            isOpen={activeTab === "Change Password"}
+            onClick={() => setActiveTab(activeTab === "Change Password" ? "" as any : "Change Password")}
+          >
+            <ChangePassword />
+          </MobileCollapsibleTab>
+        </div>
       </div>
+    </div>
+  );
+}
+
+interface MobileCollapsibleTabProps {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  isOpen: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}
+
+function MobileCollapsibleTab({ label, icon: Icon, isOpen, onClick, children }: MobileCollapsibleTabProps) {
+  return (
+    <div className="border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl overflow-hidden bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md">
+      <button
+        onClick={onClick}
+        className="w-full flex items-center justify-between p-4 text-left font-bold text-sm text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <Icon className="w-4.5 h-4.5 text-indigo-500" />
+          <span>{label}</span>
+        </div>
+        {isOpen ? <ChevronUp className="w-4.5 h-4.5 text-zinc-500" /> : <ChevronDown className="w-4.5 h-4.5 text-zinc-500" />}
+      </button>
+      {isOpen && (
+        <div className="p-1 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/20 dark:bg-zinc-900/20">
+          {children}
+        </div>
+      )}
     </div>
   );
 }

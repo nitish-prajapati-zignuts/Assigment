@@ -2,9 +2,9 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Bell, Shield, LockKeyholeIcon } from "lucide-react";
+import { Sparkles, Bell, Shield, LockKeyholeIcon, Palette } from "lucide-react";
 
-export type SettingsTabType = "ai" | "notifications" | "security" | "Change Password";
+export type SettingsTabType = "ai" | "notifications" | "security" | "appearance" | "Change Password";
 
 interface SettingsTabsProps {
   activeTab: SettingsTabType;
@@ -15,13 +15,14 @@ const tabs: { id: SettingsTabType; label: string; icon: React.ComponentType<{ cl
   { id: "ai", label: "AI Prompts & Rules", icon: Sparkles },
   { id: "notifications", label: "Alerts & Webhooks", icon: Bell },
   { id: "security", label: "Account & Security", icon: Shield },
+  { id: "appearance", label: "Appearance", icon: Palette },
   { id: "Change Password", label: "Change Password", icon: LockKeyholeIcon },
 ];
 
 export function SettingsTabs({ activeTab, setActiveTab }: SettingsTabsProps) {
   return (
-    <div className="flex justify-center">
-      <div className="inline-flex p-1.5 rounded-2xl bg-zinc-100/90 dark:bg-zinc-800/90 backdrop-blur-md gap-1 relative">
+    <div className="w-full overflow-x-auto scrollbar-none pb-1 flex justify-start md:justify-center">
+      <div className="inline-flex min-w-max p-1.5 rounded-2xl bg-zinc-100/90 dark:bg-zinc-800/90 backdrop-blur-md gap-1 relative">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -30,7 +31,7 @@ export function SettingsTabs({ activeTab, setActiveTab }: SettingsTabsProps) {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`relative flex items-center gap-2 px-5 py-2.5 text-xs font-semibold rounded-xl transition-colors cursor-pointer z-10 ${
+              className={`relative flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl transition-colors cursor-pointer z-10 ${
                 isActive
                   ? "text-indigo-600 dark:text-indigo-400"
                   : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
@@ -43,7 +44,7 @@ export function SettingsTabs({ activeTab, setActiveTab }: SettingsTabsProps) {
                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
                 />
               )}
-              <Icon className="w-4 h-4 relative z-10" />
+              <Icon className="w-3.5 h-3.5 relative z-10" />
               <span className="relative z-10">{tab.label}</span>
             </button>
           );

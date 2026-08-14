@@ -3,7 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Calendar, Eye, Edit, Trash2, Share2, Loader2 } from "lucide-react";
+import { Calendar, Eye, Edit, Trash2, Share2, Loader2, Archive } from "lucide-react";
+import { EmptyMeetingsIllustration } from "@/components/ui/illustrations";
 
 interface MeetingsTableProps {
   isLoading: boolean;
@@ -11,9 +12,10 @@ interface MeetingsTableProps {
   onViewDetails: (meeting: Meeting) => void;
   onEdit: (meeting: Meeting) => void;
   onDelete: (meeting: Meeting) => void;
+  onArchive: (meeting: Meeting) => void
 }
 
-export function MeetingsTable({ isLoading, displayMeetings, onViewDetails, onEdit, onDelete }: MeetingsTableProps) {
+export function MeetingsTable({ isLoading, displayMeetings, onViewDetails, onEdit, onDelete, onArchive }: MeetingsTableProps) {
   return (
     <div className="hidden md:block bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 overflow-hidden shadow-sm">
       <Table>
@@ -59,9 +61,14 @@ export function MeetingsTable({ isLoading, displayMeetings, onViewDetails, onEdi
             ))
           ) : displayMeetings.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} className="text-center py-12 text-zinc-500 dark:text-zinc-400">
-                <p className="text-sm font-medium">No meetings found matching your search.</p>
-                <p className="text-xs text-zinc-400 mt-1">Try adjusting your filters or search keywords.</p>
+              <TableCell colSpan={5} className="text-center py-16 text-zinc-500 dark:text-zinc-400">
+                <div className="flex flex-col items-center justify-center space-y-3">
+                  <EmptyMeetingsIllustration className="w-24 h-24 text-zinc-400" />
+                  <div>
+                    <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">No meetings found matching your search.</p>
+                    <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">Try adjusting your filters or search keywords.</p>
+                  </div>
+                </div>
               </TableCell>
             </TableRow>
           ) : (
@@ -126,11 +133,10 @@ export function MeetingsTable({ isLoading, displayMeetings, onViewDetails, onEdi
                       variant="ghost"
                       size="icon"
                       onClick={() => onViewDetails(meeting)}
-                      className={`h-8 w-8 rounded-md ${
-                        meeting.isMeetingPublished
-                          ? "text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
-                          : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                      }`}
+                      className={`h-8 w-8 rounded-md ${meeting.isMeetingPublished
+                        ? "text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                        : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                        }`}
                       title={meeting.isMeetingPublished ? "Shareable Link Active" : "Share Meeting"}
                     >
                       <Share2 className="h-5 w-5" />
@@ -152,6 +158,15 @@ export function MeetingsTable({ isLoading, displayMeetings, onViewDetails, onEdi
                       title="Edit Meeting"
                     >
                       <Edit className="h-5 w-5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onArchive(meeting)}
+                      className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-md"
+                      title="Edit Meeting"
+                    >
+                      <Archive className="h-5 w-5" />
                     </Button>
                     <Button
                       variant="ghost"

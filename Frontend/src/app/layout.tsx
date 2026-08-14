@@ -31,6 +31,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const theme = localStorage.getItem('color-theme') || 'violet';
+                document.documentElement.setAttribute('data-color-theme', theme);
+              } catch (_) {}
+            `
+          }}
+        />
+      </head>
       <body className={`${plusJakartaSans.variable} ${geistMono.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <ErrorBoundary>

@@ -702,7 +702,7 @@ export async function queryMeetingRAG(
         });
 
         // Similarity search query using cosine distance (<=> operator in pgvector)
-        const similarityThreshold = 0.5;
+        const similarityThreshold = 0.75;
         const matchingChunks = await db
           .select({
             content: meetingChunks.content,

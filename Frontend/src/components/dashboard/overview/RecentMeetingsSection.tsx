@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Calendar, Eye, ArrowRight } from "lucide-react";
+import { EmptyMeetingsIllustration } from "@/components/ui/illustrations";
 
 interface RecentMeetingsSectionProps {
   isLoading: boolean;
@@ -89,9 +90,14 @@ export function RecentMeetingsSection({ isLoading, recentMeetings, onViewDetails
                   ))
                 ) : recentMeetings.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-12 text-zinc-500 dark:text-zinc-400">
-                      <p className="text-sm font-semibold">No meetings recorded yet.</p>
-                      <p className="text-xs text-zinc-400 mt-1">Click &quot;Manage Meetings&quot; to get started.</p>
+                    <TableCell colSpan={5} className="text-center py-16 text-zinc-500 dark:text-zinc-400">
+                      <div className="flex flex-col items-center justify-center space-y-3">
+                        <EmptyMeetingsIllustration className="w-24 h-24 text-zinc-400" />
+                        <div>
+                          <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">No meetings recorded yet.</p>
+                          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">Click &quot;Manage Meetings&quot; to get started.</p>
+                        </div>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -179,9 +185,12 @@ export function RecentMeetingsSection({ isLoading, recentMeetings, onViewDetails
                 </div>
               ))
             ) : recentMeetings.length === 0 ? (
-              <div className="p-6 text-center bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800 text-zinc-500">
-                <p className="text-sm font-semibold">No meetings recorded yet.</p>
-                <p className="text-xs text-zinc-400 mt-1">Click &quot;Manage Meetings&quot; to get started.</p>
+              <div className="p-8 text-center bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 text-zinc-500 flex flex-col items-center justify-center space-y-3">
+                <EmptyMeetingsIllustration className="w-20 h-20 text-zinc-400" />
+                <div>
+                  <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">No meetings recorded yet.</p>
+                  <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">Click &quot;Manage Meetings&quot; to get started.</p>
+                </div>
               </div>
             ) : (
               recentMeetings.map((meeting, index) => (

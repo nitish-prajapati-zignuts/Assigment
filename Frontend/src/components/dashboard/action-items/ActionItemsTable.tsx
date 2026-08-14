@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { exportActionItemsToCSV } from "@/lib/exportUtils";
 import { triggerTaskCompletionConfetti } from "@/lib/confetti";
+import { EmptyActionItemsIllustration } from "@/components/ui/illustrations";
 import { toast } from "sonner";
 
 interface ActionItemsTableProps {
@@ -253,8 +254,14 @@ export function ActionItemsTable({
               ))
             ) : displayItems.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="h-32 text-center text-xs text-zinc-500">
-                  No action items match the active filters.
+                <TableCell colSpan={8} className="py-16 text-center text-zinc-500 dark:text-zinc-400">
+                  <div className="flex flex-col items-center justify-center space-y-3">
+                    <EmptyActionItemsIllustration className="w-24 h-24 text-zinc-400" />
+                    <div>
+                      <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">No action items match the active filters.</p>
+                      <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">Try clearing search parameters or adjusting active filters.</p>
+                    </div>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (
