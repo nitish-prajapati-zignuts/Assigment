@@ -142,6 +142,131 @@ export const chatValidationSchema = z.object({
     .optional(),
 });
 
+export const createCloneSchema = z.object({
+  title: z
+    .string()
+    .min(3, "Title must be at least 3 characters")
+    .max(200, "Title must not exceed 200 characters")
+    .trim(),
+  date: z.string().min(1, "Date is required"),
+  participants: z
+    .array(z.string().email("Each participant must have a valid email"))
+    .min(1, "At least one participant is required"),
+  transcript: z
+    .string()
+    .min(10, "Transcript must be at least 10 characters")
+    .max(50000, "Transcript must not exceed 50,000 characters")
+    .optional()
+    .nullable(),
+  type: z.string().optional(),
+  summaryLength: z.string().optional(),
+  language: z.string().optional(),
+  template: z.string().optional(),
+  customPrompt: z.string().optional(),
+  isMeetingPublished: z.boolean().optional(),
+})
+
+// Detailed Meeting and Summary Schemas
+export const keyDecisionSchema = z.object({
+  category: z.string(),
+  decision: z.string(),
+  context: z.string().optional(),
+});
+
+export const actionItemSchema = z.object({
+  task: z.string(),
+  owner: z.string(),
+  dueDate: z.string(),
+  priority: z.enum(["Low", "Medium", "High", "Urgent"]),
+  status: z.enum(["Open", "In Progress", "Blocked", "Completed", "Pending"]),
+});
+
+export const speakerAnalyticsSchema = z.object({
+  name: z.string(),
+  talkTimePercentage: z.number(),
+  wordCount: z.number(),
+});
+
+export const sentimentAnalysisSchema = z.object({
+  overallTone: z.enum(["Positive", "Neutral", "Concerned", "Heated"]),
+  score: z.number(),
+  breakdown: z.object({
+    positive: z.number(),
+    neutral: z.number(),
+    concerned: z.number(),
+    heated: z.number(),
+  }),
+});
+
+export const executiveSummaryDetailsSchema = z.object({
+  strategicImpact: z.string(),
+  financialOrTimelineRisks: z.array(z.string()),
+  executiveRecommendations: z.array(z.string()),
+});
+
+export const developerTaskDetailsSchema = z.object({
+  codeDeliverables: z.array(z.string()),
+  architecturalChanges: z.array(z.string()),
+  apiContractsAndDependencies: z.array(z.string()),
+  technicalBlockers: z.array(z.string()),
+});
+
+export const technicalDecisionDetailsSchema = z.object({
+  systemArchitectureChoices: z.array(z.string()),
+  techStackTradeoffs: z.array(z.string()),
+  engineeringConstraints: z.array(z.string()),
+});
+
+export const salesQualificationDetailsSchema = z.object({
+  clientPainPoints: z.array(z.string()),
+  budgetAndAuthority: z.string(),
+  timelineExpectations: z.string(),
+  nextSalesSteps: z.array(z.string()),
+});
+
+export const meetingSummarySchema = z.object({
+  purpose: z.string(),
+  discussionPoints: z.array(z.string()),
+  majorOutcomes: z.array(z.string()),
+  importantConcerns: z.array(z.string()),
+  unansweredQuestions: z.array(z.string()).optional(),
+  nextSteps: z.array(z.string()),
+  keyDecisions: z.array(keyDecisionSchema).optional(),
+  actionItems: z.array(actionItemSchema).optional(),
+  speakerAnalytics: z.array(speakerAnalyticsSchema).optional(),
+  sentimentAnalysis: sentimentAnalysisSchema.optional(),
+  templateStyle: z.enum(["Standard", "Executive", "Developer", "Technical", "Sales"]).optional(),
+  executiveDetails: executiveSummaryDetailsSchema.optional(),
+  developerDetails: developerTaskDetailsSchema.optional(),
+  technicalDetails: technicalDecisionDetailsSchema.optional(),
+  salesDetails: salesQualificationDetailsSchema.optional(),
+});
+
+export const meetingSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  date: z.string(),
+  type: z.string(),
+  participants: z.array(z.string().email()),
+  transcript: z.string(),
+  summary: meetingSummarySchema.nullable().optional(),
+  createdAt: z.string().or(z.date()).optional(),
+  updatedAt: z.string().or(z.date()).optional(),
+  isMeetingPublished: z.boolean().default(false),
+  sharePassword: z.string().nullable().optional(),
+  shareExpiresAt: z.string().or(z.date()).nullable().optional(),
+  isDeleted: z.boolean().default(false),
+  isDeletedAt: z.string().or(z.date()).nullable().optional(),
+  isArchived: z.boolean().default(false),
+  isArchivedAt: z.string().or(z.date()).nullable().optional(),
+  isPinned: z.boolean().default(false),
+  hasChunks: z.boolean().optional(),
+});
+
+export const cloneMeetingSchema = z.object({
+  meeting: meetingSchema,
+});
+
 // Type exports for TypeScript
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
@@ -152,3 +277,6 @@ export type CreateActionItemInput = z.infer<typeof createActionItemSchema>;
 export type UpdateActionItemInput = z.infer<typeof updateActionItemSchema>;
 export type ActionItemQueryInput = z.infer<typeof actionItemQuerySchema>;
 export type ChatValidationInput = z.infer<typeof chatValidationSchema>;
+export type MeetingInput = z.infer<typeof meetingSchema>;
+export type MeetingSummaryInput = z.infer<typeof meetingSummarySchema>;
+export type CloneMeetingInput = z.infer<typeof cloneMeetingSchema>;

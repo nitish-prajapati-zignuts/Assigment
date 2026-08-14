@@ -1,10 +1,10 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Meeting } from "@/types/meeting";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Eye, Edit, Trash2, Loader2, Archive } from "lucide-react";
+import { Calendar, Eye, Edit, Trash2, Loader2, Archive, Pin, PinOff } from "lucide-react";
 import { EmptyMeetingsIllustration } from "@/components/ui/illustrations";
 
 interface MeetingsCardsProps {
@@ -14,9 +14,10 @@ interface MeetingsCardsProps {
   onEdit: (meeting: Meeting) => void;
   onDelete: (meeting: Meeting) => void;
   onArchive: (meeting: Meeting) => void;
+  onTogglePin: (meeting: Meeting) => void;
 }
 
-export function MeetingsCards({ isLoading, displayMeetings, onViewDetails, onEdit, onDelete, onArchive }: MeetingsCardsProps) {
+export function MeetingsCards({ isLoading, displayMeetings, onViewDetails, onEdit, onDelete, onArchive, onTogglePin }: MeetingsCardsProps) {
   return (
     <div className="md:hidden space-y-3">
       {isLoading ? (
@@ -33,14 +34,17 @@ export function MeetingsCards({ isLoading, displayMeetings, onViewDetails, onEdi
           </div>
         </div>
       ) : (
-        displayMeetings.map((meeting, idx) => (
-          <motion.div
-            key={meeting.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: idx * 0.04 }}
-            className="p-4.5 rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md shadow-xs space-y-3"
-          >
+        <AnimatePresence mode="popLayout">
+          {displayMeetings.map((meeting, idx) => (
+            <motion.div
+              layout
+              key={meeting.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 350, damping: 35 }}
+              className="p-4.5 rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md shadow-xs space-y-3"
+            >
             <div className="flex items-start justify-between gap-2">
               <button
                 onClick={() => onViewDetails(meeting)}
@@ -49,6 +53,18 @@ export function MeetingsCards({ isLoading, displayMeetings, onViewDetails, onEdi
                 {meeting.title}
               </button>
               <div className="flex items-center gap-1 shrink-0">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onTogglePin(meeting)}
+                  className={`h-7 w-7 rounded-lg ${meeting.isPinned
+                    ? "text-indigo-650 hover:bg-indigo-50 dark:hover:bg-indigo-950/30"
+                    : "text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                    }`}
+                  title={meeting.isPinned ? "Unpin Meeting" : "Pin Meeting"}
+                >
+                  {meeting.isPinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
+                </Button>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -122,9 +138,10 @@ export function MeetingsCards({ isLoading, displayMeetings, onViewDetails, onEdi
                   </span>
                 )}
               </div>
-            </div>
-          </motion.div>
-        ))
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       )}
     </div>
   );

@@ -101,4 +101,5 @@ export interface Meeting {
   shareExpiresAt?: string | null;
   hasPassword?: boolean;
   hasChunks: boolean;
+  isPinned: boolean;
 }

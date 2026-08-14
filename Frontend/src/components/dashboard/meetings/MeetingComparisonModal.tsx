@@ -219,7 +219,7 @@ export function MeetingComparisonModal({ isOpen, onClose, meetings }: MeetingCom
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[90vw] max-w-4xl sm:max-w-4xl md:max-w-3xl max-h-[80vh] overflow-y-auto bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 p-6">
+      <DialogContent className="w-[100vw] max-w-7xl sm:max-w-5xl md:max-w-7xl max-h-[80vh] overflow-y-auto bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 p-6">
         <DialogHeader>
           <DialogTitle className="text-lg font-extrabold text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
             <GitCompareArrows className="h-5 w-5 text-indigo-500" />
@@ -231,13 +231,13 @@ export function MeetingComparisonModal({ isOpen, onClose, meetings }: MeetingCom
         </DialogHeader>
 
         {/* Meeting Selectors */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2 w-full">
+          <div className="space-y-1 max-w-full">
+            <label className="text-[12px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide">
               Meeting A (Left)
             </label>
             <Select value={leftId} onValueChange={(v) => v && setLeftId(v)}>
-              <SelectTrigger className="text-xs bg-white dark:bg-zinc-900 border-indigo-200 dark:border-indigo-800">
+              <SelectTrigger className="text-xs mt-2 w-full bg-white dark:bg-zinc-900 border-indigo-200 dark:border-indigo-800">
                 <SelectValue placeholder="Select first meeting...">
                   {leftMeeting
                     ? `${leftMeeting.title} (${new Date(leftMeeting.date).toLocaleDateString()})`
@@ -257,11 +257,11 @@ export function MeetingComparisonModal({ isOpen, onClose, meetings }: MeetingCom
           </div>
 
           <div className="space-y-1">
-            <label className="text-[11px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wide">
+            <label className="text-[12px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wide">
               Meeting B (Right)
             </label>
             <Select value={rightId} onValueChange={(v) => v && setRightId(v)}>
-              <SelectTrigger className="text-xs bg-white dark:bg-zinc-900 border-purple-200 dark:border-purple-800">
+              <SelectTrigger className="text-xs mt-2 w-full bg-white dark:bg-zinc-900 border-purple-200 dark:border-purple-800">
                 <SelectValue placeholder="Select second meeting...">
                   {rightMeeting
                     ? `${rightMeeting.title} (${new Date(rightMeeting.date).toLocaleDateString()})`

@@ -160,6 +160,51 @@ export default function MeetingsPage() {
     }
   })
 
+  const PinMutationChanges = useMutation({
+    mutationFn: async (id: string) => {
+      await api.post(`/meetings/${id}/pin`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["meetings"] });
+      queryClient.invalidateQueries({ queryKey: ["meetingsList"] });
+      toast.success("Pin status updated successfully");
+    },
+    onError: (error) => {
+      console.error("Failed to pin/unpin meeting:", error);
+      toast.error("Failed to update pin status");
+    }
+  });
+
+  const handleTogglePin = (meeting: Meeting) => {
+    PinMutationChanges.mutate(meeting.id);
+  };
+
+  const pinningMeetingId = PinMutationChanges.isPending ? (PinMutationChanges.variables ?? null) : null;
+
+  const CloneMeetingMutation = useMutation({
+    mutationFn: async (meeting: Meeting) => {
+      await api.post("/meetings/create/clone", { meeting })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["meetings"] })
+      queryClient.invalidateQueries({ queryKey: ["meetingsList"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
+      queryClient.invalidateQueries({ queryKey: ["actionItems"] });
+      queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] });
+      toast.success("Clone Created of Meeting")
+    },
+    onError: (error) => {
+      console.log("Failed to Create a Clone of Meeting", error)
+      toast.error("Could Not Clone the Meeting Successfully.");
+    }
+  })
+
+  const IsCloneMeetingLoading = CloneMeetingMutation.isPending
+
+  const handleCreatingClone = async (meeting: Meeting) => {
+    CloneMeetingMutation.mutateAsync(meeting)
+  }
+
   // TanStack Mutation for Delete Meeting
   const deleteMeetingMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -196,7 +241,13 @@ export default function MeetingsPage() {
     });
   }, [meetings, searchQuery, selectedType]);
 
-  const displayMeetings = filteredMeetings;
+  const displayMeetings = useMemo(() => {
+    return [...filteredMeetings].sort((a, b) => {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      return 0;
+    });
+  }, [filteredMeetings]);
 
   // Open delete confirmation modal
   const handleOpenDeleteModal = (meeting: Meeting) => {
@@ -277,6 +328,10 @@ export default function MeetingsPage() {
         }}
         onDelete={handleOpenDeleteModal}
         onArchive={handleOpenArchiveModal}
+        onTogglePin={handleTogglePin}
+        pinningMeetingId={pinningMeetingId}
+        handleCreatingClone={handleCreatingClone}
+        IsCloneMeetingLoading={IsCloneMeetingLoading}
       />
 
       {/* Mobile Responsive Cards View */}
@@ -293,6 +348,7 @@ export default function MeetingsPage() {
         }}
         onDelete={handleOpenDeleteModal}
         onArchive={handleOpenArchiveModal}
+        onTogglePin={handleTogglePin}
       />
 
       {/* Pagination Controls */}

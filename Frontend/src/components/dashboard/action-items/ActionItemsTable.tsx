@@ -216,7 +216,7 @@ export function ActionItemsTable({
               <TableHead className="w-[11%] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
                 Status
               </TableHead>
-              <TableHead className="text-right w-[5%] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider pr-6 py-3.5">
+              <TableHead className="text-left w-[5%] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider pr-6 py-3.5">
                 Actions
               </TableHead>
             </TableRow>

@@ -705,3 +705,99 @@ export const permanentlyDeleteMeeting = asyncHandler(async (req: AuthenticatedRe
     throw new ValidationError("Failed to permanently delete meeting");
   }
 });
+
+export const toggleMeetingPin = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  const targetId = String(req.params.id);
+  try {
+    if (!targetId) {
+      throw new ValidationError("Meeting ID is required.");
+    }
+    const getMeetingDetails = await db.select().from(meetings).where(eq(meetings.id, targetId));
+    if (getMeetingDetails.length === 0) {
+      throw new NotFoundError("Meeting");
+    }
+
+    const currentPinStatus = getMeetingDetails[0].isPinned;
+    const updated = await db
+      .update(meetings)
+      .set({
+        isPinned: !currentPinStatus,
+        updatedAt: new Date(),
+      })
+      .where(eq(meetings.id, targetId))
+      .returning();
+
+    res.json({
+      message: `Meeting ${!currentPinStatus ? "pinned" : "unpinned"} successfully`,
+      meeting: updated[0]
+    });
+  } catch (error) {
+    throw new ValidationError("Failed to toggle pin status");
+  }
+});
+
+export const createMeetingClone = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const targetId = req.body.meeting?.id ? String(req.body.meeting.id) : (req.body.id ? String(req.body.id) : undefined);
+    if (!targetId) {
+      throw new ValidationError("Meeting ID is required");
+    }
+
+    const doesMeetingExist = await db.select().from(meetings).where(eq(meetings.id, targetId));
+
+    if (!doesMeetingExist || doesMeetingExist.length === 0) {
+      throw new ValidationError("Meeting Does not Exist");
+    }
+
+    const originalMeeting = doesMeetingExist[0];
+    const newId = Date.now().toString();
+
+    const cloneMeeting = await db.insert(meetings).values({
+      ...originalMeeting,
+      id: newId,
+      title: `${originalMeeting.title} (Copy)`,
+      isDeleted: false,
+      isArchived: false,
+      isPinned: false,
+      shareExpiresAt: null,
+      sharePassword: null,
+      isArchivedAt: null,
+      isDeletedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }).returning();
+
+    if (cloneMeeting.length === 0) {
+      throw new InternalServerError("Failed to clone meeting");
+    }
+
+    // Sync action items
+    await syncActionItemsToDb(newId, originalMeeting.summary);
+
+    // Copy RAG chunks/embeddings if they exist
+    if (originalMeeting.transcript && originalMeeting.transcript.trim().length > 0) {
+      const originalChunks = await db.select().from(meetingChunks).where(eq(meetingChunks.meetingId, targetId));
+      if (originalChunks && originalChunks.length > 0) {
+        const newChunks = originalChunks.map((chunk, index) => ({
+          id: `${newId}-chunk-${Date.now()}-${index}`,
+          meetingId: newId,
+          content: chunk.content,
+          embedding: chunk.embedding,
+          createdAt: new Date(),
+        }));
+        await db.insert(meetingChunks).values(newChunks);
+      }
+    }
+
+    res.status(201).json({
+      message: "Meeting cloned successfully",
+      meeting: cloneMeeting[0]
+    });
+
+  } catch (error) {
+    logger.error("Error cloning meeting", error as Error, { meetingId: req.body.id });
+    throw error instanceof ValidationError || error instanceof InternalServerError
+      ? error
+      : new InternalServerError("Failed to clone meeting");
+  }
+});

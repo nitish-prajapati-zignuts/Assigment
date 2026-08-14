@@ -120,6 +120,7 @@ export const meetings = pgTable(
     isDeletedAt: timestamp("is_deleted_at", { withTimezone: true }),
     isArchived: boolean("is_archived").notNull().default(false),
     isArchivedAt: timestamp("is_archived_at", { withTimezone: true }),
+    isPinned: boolean("is_pinned").notNull().default(false)
   },
   (table) => [
     index("meetings_date_idx").on(table.date),

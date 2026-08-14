@@ -1,10 +1,19 @@
+import { useState, useEffect } from "react";
 import { Meeting } from "@/types/meeting";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Calendar, Eye, Edit, Trash2, Share2, Loader2, Archive } from "lucide-react";
+import { Calendar, Eye, Edit, Trash2, Share2, Loader2, Archive, MapPinned, Pin, PinOff, Copy, MoreVertical } from "lucide-react";
 import { EmptyMeetingsIllustration } from "@/components/ui/illustrations";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 interface MeetingsTableProps {
   isLoading: boolean;
@@ -12,10 +21,22 @@ interface MeetingsTableProps {
   onViewDetails: (meeting: Meeting) => void;
   onEdit: (meeting: Meeting) => void;
   onDelete: (meeting: Meeting) => void;
-  onArchive: (meeting: Meeting) => void
+  onArchive: (meeting: Meeting) => void;
+  onTogglePin: (meeting: Meeting) => void;
+  pinningMeetingId: string | null;
+  handleCreatingClone: (meeting: Meeting) => void
+  IsCloneMeetingLoading: boolean
 }
 
-export function MeetingsTable({ isLoading, displayMeetings, onViewDetails, onEdit, onDelete, onArchive }: MeetingsTableProps) {
+export function MeetingsTable({ isLoading, displayMeetings, onViewDetails, onEdit, onDelete, onArchive, onTogglePin, pinningMeetingId, handleCreatingClone, IsCloneMeetingLoading }: MeetingsTableProps) {
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!IsCloneMeetingLoading) {
+      setOpenMenuId(null);
+    }
+  }, [IsCloneMeetingLoading]);
+
   return (
     <div className="hidden md:block bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 overflow-hidden shadow-sm">
       <Table>
@@ -72,115 +93,147 @@ export function MeetingsTable({ isLoading, displayMeetings, onViewDetails, onEdi
               </TableCell>
             </TableRow>
           ) : (
-            displayMeetings.map((meeting) => (
-              <TableRow
-                key={meeting.id}
-                className="border-b border-zinc-100 dark:border-zinc-800/50 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 transition-colors"
-              >
-                <TableCell className="font-medium pl-6 py-3.5">
-                  <button
-                    onClick={() => onViewDetails(meeting)}
-                    className="hover:underline text-left font-semibold text-zinc-900 dark:text-zinc-100 transition-colors"
-                  >
-                    {meeting.title}
-                  </button>
-                </TableCell>
-                <TableCell className="py-3.5">
-                  <div className="flex items-center gap-1.5">
-                    <Badge
-                      variant="outline"
-                      className="text-xs font-normal border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 rounded-md"
+            <AnimatePresence mode="popLayout">
+              {displayMeetings.map((meeting) => (
+                <motion.tr
+                  layout
+                  key={meeting.id}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 350, damping: 35 }}
+                  className="border-b border-zinc-100 dark:border-zinc-800/50 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 transition-colors"
+                >
+                  <TableCell className="font-medium pl-6 py-3.5">
+                    <button
+                      onClick={() => onViewDetails(meeting)}
+                      className="hover:underline text-left font-semibold text-zinc-900 dark:text-zinc-100 transition-colors"
                     >
-                      {meeting.type}
-                    </Badge>
-                    {!meeting.summary && meeting.transcript && (
+                      {meeting.title}
+                    </button>
+                  </TableCell>
+                  <TableCell className="py-3.5">
+                    <div className="flex items-center gap-1.5">
                       <Badge
-                        variant="secondary"
-                        className="text-[10px] font-medium bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 animate-pulse flex items-center gap-1"
+                        variant="outline"
+                        className="text-xs font-normal border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 rounded-md"
                       >
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                        Summarizing...
+                        {meeting.type}
                       </Badge>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell className="py-3.5">
-                  <span className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400 font-medium">
-                    <Calendar className="h-4.5 w-4.5 text-zinc-400" />
-                    {meeting.date}
-                  </span>
-                </TableCell>
-                <TableCell className="py-3.5">
-                  <div className="flex flex-wrap gap-1 max-w-[220px] items-center">
-                    {meeting.participants.slice(0, 2).map((p) => (
-                      <span
-                        key={p}
-                        className="text-[11px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 py-0.5 rounded-full border border-zinc-200/60 dark:border-zinc-700/60"
+                      {!meeting.summary && meeting.transcript && (
+                        <Badge
+                          variant="secondary"
+                          className="text-[10px] font-medium bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800 animate-pulse flex items-center gap-1"
+                        >
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Summarizing...
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="py-3.5">
+                    <span className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400 font-medium">
+                      <Calendar className="h-4.5 w-4.5 text-zinc-400" />
+                      {meeting.date}
+                    </span>
+                  </TableCell>
+                  <TableCell className="py-3.5">
+                    <div className="flex flex-wrap gap-1 max-w-[220px] items-center">
+                      {meeting.participants.slice(0, 2).map((p) => (
+                        <span
+                          key={p}
+                          className="text-[11px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 py-0.5 rounded-full border border-zinc-200/60 dark:border-zinc-700/60"
+                        >
+                          {p.split("@")[0]}
+                        </span>
+                      ))}
+                      {meeting.participants.length > 2 && (
+                        <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium ml-0.5">
+                          +{meeting.participants.length - 2} more
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right pr-6 py-3.5">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onTogglePin(meeting)}
+                        disabled={pinningMeetingId === meeting.id}
+                        className={`h-8 w-8 rounded-md ${meeting.isPinned
+                          ? "text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30"
+                          : "text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                          }`}
+                        title={meeting.isPinned ? "Unpin Meeting" : "Pin Meeting"}
                       >
-                        {p.split("@")[0]}
-                      </span>
-                    ))}
-                    {meeting.participants.length > 2 && (
-                      <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium ml-0.5">
-                        +{meeting.participants.length - 2} more
-                      </span>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell className="text-right pr-6 py-3.5">
-                  <div className="flex items-center justify-end gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onViewDetails(meeting)}
-                      className={`h-8 w-8 rounded-md ${meeting.isMeetingPublished
-                        ? "text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
-                        : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                        }`}
-                      title={meeting.isMeetingPublished ? "Shareable Link Active" : "Share Meeting"}
-                    >
-                      <Share2 className="h-5 w-5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onViewDetails(meeting)}
-                      className="h-8 w-8 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md"
-                      title="View Details"
-                    >
-                      <Eye className="h-5 w-5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onEdit(meeting)}
-                      className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-md"
-                      title="Edit Meeting"
-                    >
-                      <Edit className="h-5 w-5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onArchive(meeting)}
-                      className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-md"
-                      title="Edit Meeting"
-                    >
-                      <Archive className="h-5 w-5" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onDelete(meeting)}
-                      className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-md"
-                      title="Delete Meeting"
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))
+                        {pinningMeetingId === meeting.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : meeting.isPinned ? (
+                          <PinOff className="h-5 w-5" />
+                        ) : (
+                          <Pin className="h-5 w-5" />
+                        )}
+                      </Button>
+
+                      <DropdownMenu
+                        open={openMenuId === meeting.id}
+                        onOpenChange={(open) => {
+                          if (!open && IsCloneMeetingLoading) return;
+                          setOpenMenuId(open ? meeting.id : null);
+                        }}
+                      >
+                        <DropdownMenuTrigger
+                          render={
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50 rounded-md"
+                            />
+                          }
+                        >
+                          <MoreVertical className="h-4.5 w-4.5" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-44">
+                          <DropdownMenuItem onClick={() => onViewDetails(meeting)}>
+                            <Eye className="mr-2 h-4 w-4 text-zinc-500" />
+                            <span>View Details</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => onEdit(meeting)}>
+                            <Edit className="mr-2 h-4 w-4 text-zinc-500" />
+                            <span>Edit Meeting</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => onViewDetails(meeting)}>
+                            <Share2 className="mr-2 h-4 w-4 text-zinc-500" />
+                            <span>Share Meeting</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem disabled={meeting.isPinned} onClick={() => onArchive(meeting)}>
+                            <Archive className="mr-2 h-4 w-4 text-zinc-500" />
+                            <span>Archive</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            closeOnClick={false}
+                            onClick={() => handleCreatingClone(meeting)}
+                          >
+                            <Copy className="mr-2 h-4 w-4 text-zinc-500" />
+                            <span>Clone Meeting</span>
+                            {IsCloneMeetingLoading ? <Loader2 className="ml-auto h-4 w-4 animate-spin text-zinc-500" /> : null}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => onDelete(meeting)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            <span>Delete</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </TableCell>
+                </motion.tr>
+              ))}
+            </AnimatePresence>
           )}
         </TableBody>
       </Table>

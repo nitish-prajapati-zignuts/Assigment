@@ -13,6 +13,8 @@ import {
   unArchiveMeeting,
   restoreMeeting,
   permanentlyDeleteMeeting,
+  toggleMeetingPin,
+  createMeetingClone,
 } from "../controllers/meetingController";
 import { protect } from "../middleware/authMiddleware";
 import { validateBody, validateQuery, validateParams } from "../middleware/validation";
@@ -22,6 +24,7 @@ import {
   meetingQuerySchema,
   idSchema,
   chatValidationSchema,
+  cloneMeetingSchema,
 } from "../utils/validation";
 
 const router = Router();
@@ -66,8 +69,14 @@ router.post("/:id/unArchive", validateParams(idSchema), unArchiveMeeting)
 // POST /api/meetings/:id/restore - Restore a meeting from trash
 router.post("/:id/restore", validateParams(idSchema), restoreMeeting);
 
+// POST /api/meetings/:id/pin - Pin/Unpin a meeting
+router.post("/:id/pin", validateParams(idSchema), toggleMeetingPin);
+
 // DELETE /api/meetings/:id/permanent - Permanently delete a meeting from database
 router.delete("/:id/permanent", validateParams(idSchema), permanentlyDeleteMeeting);
+
+//POST /api/meeting/create/clone - Create a Clone of the Meeting
+router.post("/create/clone", validateBody(cloneMeetingSchema), createMeetingClone)
 
 
 export default router;
