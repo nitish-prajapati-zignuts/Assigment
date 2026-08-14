@@ -16,7 +16,7 @@ export function NotificationsTabContent({ settings, setSettings }: Notifications
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-zinc-200/80 dark:border-zinc-800/80 shadow-xs space-y-6"
+      className="max-w-4xl mx-auto space-y-8 p-4 sm:p-6"
     >
       <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-3">
         <span className="p-2.5 rounded-2xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/80 dark:text-indigo-400">

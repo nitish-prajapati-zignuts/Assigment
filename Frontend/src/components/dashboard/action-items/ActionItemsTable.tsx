@@ -187,7 +187,7 @@ export function ActionItemsTable({
 
       {/* Action Items Table */}
       <div className="hidden md:block bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 overflow-x-auto shadow-sm">
-        <Table className="w-full min-w-full">
+        <Table className="w-full max-w-8xl">
           <TableHeader>
             <TableRow className="border-b border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/30 hover:bg-transparent">
               <TableHead className="w-10 pl-4 py-3.5">
@@ -198,7 +198,7 @@ export function ActionItemsTable({
                   className="rounded border-zinc-300 dark:border-zinc-700 text-indigo-600 focus:ring-indigo-500 h-4 w-4 cursor-pointer"
                 />
               </TableHead>
-              <TableHead className="w-[25%] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
+              <TableHead className="w-[20%] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
                 Task Description
               </TableHead>
               {/* <TableHead className="w-[15%] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
@@ -270,9 +270,8 @@ export function ActionItemsTable({
                 return (
                   <TableRow
                     key={item.id}
-                    className={`border-b border-zinc-100 dark:border-zinc-800/50 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/50 transition-colors ${
-                      isSelected ? "bg-indigo-50/50 dark:bg-indigo-950/30" : ""
-                    }`}
+                    className={`border-b border-zinc-100 dark:border-zinc-800/50 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/50 transition-colors ${isSelected ? "bg-indigo-50/50 dark:bg-indigo-950/30" : ""
+                      }`}
                   >
                     <TableCell className="pl-4 py-3.5">
                       <input

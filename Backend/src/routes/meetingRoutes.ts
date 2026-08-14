@@ -11,6 +11,8 @@ import {
   chatMeeting,
   archiveMeeting,
   unArchiveMeeting,
+  restoreMeeting,
+  permanentlyDeleteMeeting,
 } from "../controllers/meetingController";
 import { protect } from "../middleware/authMiddleware";
 import { validateBody, validateQuery, validateParams } from "../middleware/validation";
@@ -53,12 +55,19 @@ router.post("/:id/summarize", validateParams(idSchema), summarizeMeeting);
 router.post("/:id/chat", validateParams(idSchema), validateBody(chatValidationSchema), chatMeeting);
 
 // POST /api/meetings/:id - Delete a meeting
-router.post("/:id", validateParams(idSchema), deleteMeeting);
+router.post("/:id/delete", validateParams(idSchema), deleteMeeting);
 
 // POST /api/meetings/:id/archive - Archive a meeting
 router.post("/:id/archive", validateParams(idSchema), archiveMeeting)
 
 // POST /api/meetings/:id/unArchive - UnArchive a meeting
 router.post("/:id/unArchive", validateParams(idSchema), unArchiveMeeting)
+
+// POST /api/meetings/:id/restore - Restore a meeting from trash
+router.post("/:id/restore", validateParams(idSchema), restoreMeeting);
+
+// DELETE /api/meetings/:id/permanent - Permanently delete a meeting from database
+router.delete("/:id/permanent", validateParams(idSchema), permanentlyDeleteMeeting);
+
 
 export default router;

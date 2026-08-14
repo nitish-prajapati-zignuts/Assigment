@@ -70,7 +70,7 @@ const syncActionItemsToDb = async (meetingId: string, summary: MeetingSummary | 
  * Uses database indexes for efficient querying.
  */
 export const getMeetings = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-  const { search, type, page, limit, sortBy, sortOrder } = req.query as unknown as MeetingQueryInput;
+  const { search, type, page, limit, sortBy, sortOrder, isArchived, isDeleted } = req.query as any;
   const userEmail = req.user?.email?.toLowerCase();
 
   if (!userEmail) {
@@ -84,8 +84,8 @@ export const getMeetings = asyncHandler(async (req: AuthenticatedRequest, res: R
       .from(meetings)
       .leftJoin(meetingChunks, eq(meetingChunks.meetingId, meetings.id))
       .where(and(
-        eq(meetings.isArchived, false),
-        eq(meetings.isDeleted, false)
+        eq(meetings.isArchived, isArchived ?? false),
+        eq(meetings.isDeleted, isDeleted ?? false)
       ))
       .groupBy(meetings.id)
       .orderBy(desc(meetings.createdAt));
@@ -410,7 +410,7 @@ export const deleteMeeting = asyncHandler(async (req: AuthenticatedRequest, res:
   const targetId = String(req.params.id);
 
   try {
-    const deleted = await db.update(meetings).set({ isDeleted: true, isDeletedAt: new Date() }).where(eq(meetings.id, targetId)).returning();
+    const deleted = await db.update(meetings).set({ isArchived: false, isDeleted: true, isDeletedAt: new Date() }).where(eq(meetings.id, targetId)).returning();
 
     if (deleted.length === 0) {
       throw new NotFoundError("Meeting");
@@ -654,3 +654,54 @@ export const unArchiveMeeting = asyncHandler(async (req: AuthenticatedRequest, r
     throw new ValidationError("Meeting Cannot Be Archived")
   }
 })
+
+export const restoreMeeting = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  const targetId = String(req.params.id);
+  try {
+    if (!targetId) {
+      throw new ValidationError("Meeting ID is required.");
+    }
+    const restored = await db
+      .update(meetings)
+      .set({
+        isDeleted: false,
+        isDeletedAt: null,
+      })
+      .where(eq(meetings.id, targetId))
+      .returning();
+
+    if (restored.length === 0) {
+      throw new NotFoundError("Meeting");
+    }
+
+    res.json({
+      message: "Meeting restored successfully",
+      meeting: restored[0]
+    });
+  } catch (error) {
+    throw new ValidationError("Failed to restore meeting");
+  }
+});
+
+export const permanentlyDeleteMeeting = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  const targetId = String(req.params.id);
+  try {
+    if (!targetId) {
+      throw new ValidationError("Meeting ID is required.");
+    }
+    const deleted = await db
+      .delete(meetings)
+      .where(eq(meetings.id, targetId))
+      .returning();
+
+    if (deleted.length === 0) {
+      throw new NotFoundError("Meeting");
+    }
+
+    res.json({
+      message: "Meeting permanently deleted successfully"
+    });
+  } catch (error) {
+    throw new ValidationError("Failed to permanently delete meeting");
+  }
+});

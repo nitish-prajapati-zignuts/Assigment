@@ -113,7 +113,7 @@ export default function SettingsPage() {
 
   return (
     <div className="w-full flex justify-center py-6 px-4">
-      <div className="w-full max-w-4xl space-y-8">
+      <div className="w-full space-y-8 max-w-4xl">
         {/* Header */}
         <SettingsHeader
           handleReset={handleReset}

@@ -150,11 +150,10 @@ function SummaryPane({
                   <span>📅 {item.dueDate}</span>
                   <Badge
                     variant="outline"
-                    className={`text-[9px] ${
-                      item.priority === "High" || item.priority === "Urgent"
-                        ? "border-red-300 text-red-600"
-                        : "border-zinc-300 text-zinc-500"
-                    }`}
+                    className={`text-[9px] ${item.priority === "High" || item.priority === "Urgent"
+                      ? "border-red-300 text-red-600"
+                      : "border-zinc-300 text-zinc-500"
+                      }`}
                   >
                     {item.priority}
                   </Badge>
@@ -220,7 +219,7 @@ export function MeetingComparisonModal({ isOpen, onClose, meetings }: MeetingCom
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[100vw] max-w-3xl sm:max-w-3xl md:max-w-3xl max-h-[90vh] overflow-y-auto bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 p-6">
+      <DialogContent className="w-[90vw] max-w-4xl sm:max-w-4xl md:max-w-3xl max-h-[80vh] overflow-y-auto bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 p-6">
         <DialogHeader>
           <DialogTitle className="text-lg font-extrabold text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
             <GitCompareArrows className="h-5 w-5 text-indigo-500" />

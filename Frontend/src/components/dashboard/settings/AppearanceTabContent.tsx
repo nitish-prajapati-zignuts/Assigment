@@ -60,7 +60,7 @@ export function AppearanceTabContent() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className="space-y-6"
+      className="max-w-4xl mx-auto space-y-8 p-4 sm:p-6"
     >
       {/* Description Card */}
       <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-zinc-200/80 dark:border-zinc-800/80 shadow-xs space-y-4">
@@ -87,11 +87,10 @@ export function AppearanceTabContent() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setTheme(t.id)}
-              className={`flex flex-col text-left p-5 rounded-3xl border transition-all cursor-pointer relative overflow-hidden ${
-                isActive
+              className={`flex flex-col text-left p-5 rounded-3xl border transition-all cursor-pointer relative overflow-hidden ${isActive
                   ? "border-primary ring-2 ring-primary/20 bg-white dark:bg-zinc-900 shadow-md"
                   : "border-zinc-200/80 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-900/70 hover:bg-white dark:hover:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-2xs"
-              }`}
+                }`}
             >
               {isActive && (
                 <div className="absolute top-4 right-4 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
@@ -141,11 +140,10 @@ export function AppearanceTabContent() {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => handleColorThemeChange(cp.id)}
-                className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col items-center justify-center gap-2.5 ${
-                  isSelected
+                className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col items-center justify-center gap-2.5 ${isSelected
                     ? "border-primary bg-primary/5 dark:bg-primary/10 ring-2 ring-primary/20"
                     : "border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-800/20 hover:bg-white dark:hover:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-700"
-                }`}
+                  }`}
               >
                 <div className={`w-8 h-8 rounded-full ${cp.colorClass} shadow-inner flex items-center justify-center text-white`}>
                   {isSelected && <Check className="w-4 h-4 stroke-[3]" />}

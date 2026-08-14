@@ -85,6 +85,16 @@ export const meetingQuerySchema = z.object({
   type: z.enum(["meeting", "standup", "presentation", "workshop", "other"]).optional(),
   sortBy: z.enum(["date", "createdAt", "title"]).default("date"),
   sortOrder: z.enum(["asc", "desc"]).default("desc"),
+  isArchived: z.preprocess((val) => {
+    if (val === "true" || val === true) return true;
+    if (val === "false" || val === false) return false;
+    return undefined;
+  }, z.boolean().optional()),
+  isDeleted: z.preprocess((val) => {
+    if (val === "true" || val === true) return true;
+    if (val === "false" || val === false) return false;
+    return undefined;
+  }, z.boolean().optional()),
 });
 
 // Action Item Schemas

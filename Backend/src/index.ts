@@ -5,6 +5,7 @@ dotenv.config();
 
 import express, { Request, Response } from "express";
 import cors from "cors";
+import swaggerUi from "swagger-ui-express";
 import meetingRoutes from "./routes/meetingRoutes";
 import authRoutes from "./routes/authRoutes";
 import actionItemRoutes from "./routes/actionItemRoutes";
@@ -16,6 +17,13 @@ import { generalRateLimiter, authRateLimiter, apiRateLimiter } from "./middlewar
 import { csrfTokenGenerator, csrfProtect } from "./middleware/csrf";
 import { initializeJobHandlers } from "./services/jobHandlers";
 import cookieParser from "cookie-parser";
+
+const swaggerDocument = require("./swagger.json");
+import jobRoutes from "./routes/jobRoutes";
+import settingsRoutes from "./routes/settingsRoutes";
+import dashboardRoutes from "./routes/dashboardRoutes";
+import notificationRoutes from "./routes/notificationRoutes";
+
 
 // Initialize job queue handlers
 initializeJobHandlers();
@@ -39,7 +47,7 @@ app.use(
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
-    maxAge: 86400, // 24 hours
+    maxAge: 86400,
   })
 );
 
@@ -112,10 +120,8 @@ if (isDevelopment()) {
 // ROUTES
 // ============================================
 
-import jobRoutes from "./routes/jobRoutes";
-import settingsRoutes from "./routes/settingsRoutes";
-import dashboardRoutes from "./routes/dashboardRoutes";
-import notificationRoutes from "./routes/notificationRoutes";
+// Swagger API documentation
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Auth routes with stricter rate limiting
 app.use("/api/auth", asyncHandler(authRateLimiter), authRoutes);
@@ -162,7 +168,7 @@ app.get(
           delete: "DELETE /api/action-items/:id",
         },
       },
-      documentation: isDevelopment() ? "See endpoints above" : "Contact API admin",
+      documentation: "/api-docs",
     });
   })
 );

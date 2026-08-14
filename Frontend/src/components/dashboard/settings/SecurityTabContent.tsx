@@ -26,7 +26,7 @@ export function SecurityTabContent({ sessions }: SecurityTabContentProps) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
-      className="space-y-6"
+      className="max-w-4xl mx-auto space-y-8 p-4 sm:p-6"
     >
       {/* System Security Card */}
       <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-zinc-200/80 dark:border-zinc-800/80 shadow-xs space-y-4">
@@ -65,11 +65,10 @@ export function SecurityTabContent({ sessions }: SecurityTabContentProps) {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3, delay: idx * 0.05 }}
                 whileHover={{ scale: 1.01 }}
-                className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
-                  sess.isCurrent
+                className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${sess.isCurrent
                     ? "bg-indigo-50/50 dark:bg-indigo-950/20 border-indigo-200/80 dark:border-indigo-800/80 shadow-xs"
                     : "bg-zinc-50/50 dark:bg-zinc-800/30 border-zinc-200/60 dark:border-zinc-800"
-                }`}
+                  }`}
               >
                 <div className="flex items-start gap-3.5">
                   <div className="p-2.5 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 mt-0.5 shadow-xs">
@@ -107,11 +106,11 @@ export function SecurityTabContent({ sessions }: SecurityTabContentProps) {
                   <span>
                     {sess.lastActive
                       ? new Date(sess.lastActive).toLocaleDateString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
                       : "Active Now"}
                   </span>
                 </div>
