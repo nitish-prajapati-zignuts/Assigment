@@ -115,7 +115,7 @@ export function EmptyMeetingsIllustration({ className = "w-36 h-36" }: { classNa
 
       {/* Calendar dashboard module */}
       <rect x="52" y="42" width="56" height="70" rx="12" fill="white" className="fill-white dark:fill-zinc-950" stroke="url(#meeting-grad)" strokeWidth="2.5" />
-      
+
       {/* Calendar banner line */}
       <path d="M52 58 H108" stroke="url(#meeting-grad)" strokeWidth="2.5" />
       <circle cx="66" cy="50" r="3" fill="url(#meeting-grad)" />
@@ -163,7 +163,7 @@ export function EmptyActionItemsIllustration({ className = "w-36 h-36" }: { clas
 
       {/* Styled Clipboard base */}
       <rect x="52" y="38" width="56" height="80" rx="10" fill="white" className="fill-white dark:fill-zinc-950 stroke-zinc-200 dark:stroke-zinc-800" stroke="#e4e4e7" strokeWidth="2.5" />
-      
+
       {/* Metallic clip header */}
       <rect x="66" y="30" width="28" height="12" rx="4" fill="#e4e4e7" className="fill-zinc-200 dark:fill-zinc-800" />
       <circle cx="80" cy="36" r="2.5" fill="#71717a" className="fill-zinc-500" />

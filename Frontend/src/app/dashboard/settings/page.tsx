@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Loader2, Sparkles, Bell, Shield, Palette, LockKeyholeIcon, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/axios";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import { SettingsHeader } from "@/components/dashboard/settings/SettingsHeader";
 import { SettingsTabs, SettingsTabType } from "@/components/dashboard/settings/SettingsTabs";
@@ -104,9 +105,57 @@ export default function SettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3 text-zinc-400">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
-        <span className="text-sm font-medium">Loading settings...</span>
+      <div className="w-full flex justify-center py-6 px-4">
+        <div className="w-full space-y-8 max-w-4xl animate-pulse">
+          {/* Header Skeleton */}
+          <div className="flex justify-between items-center pb-4 border-b border-zinc-100 dark:border-zinc-800">
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-48 rounded-lg" />
+              <Skeleton className="h-4 w-72 rounded-md" />
+            </div>
+            <div className="flex gap-3">
+              <Skeleton className="h-9 w-20 rounded-xl" />
+              <Skeleton className="h-9 w-24 rounded-xl" />
+            </div>
+          </div>
+
+          {/* Navigation Tabs Skeleton */}
+          <div className="hidden md:flex gap-2">
+            <Skeleton className="h-10 w-28 rounded-xl" />
+            <Skeleton className="h-10 w-36 rounded-xl" />
+            <Skeleton className="h-10 w-32 rounded-xl" />
+            <Skeleton className="h-10 w-28 rounded-xl" />
+            <Skeleton className="h-10 w-32 rounded-xl" />
+          </div>
+
+          {/* Form Content Skeleton */}
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-32 rounded-md" />
+              <Skeleton className="h-10 w-full rounded-xl" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-5 w-40 rounded-md" />
+              <Skeleton className="h-10 w-full rounded-xl" />
+            </div>
+            <div className="space-y-4 pt-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-48 rounded-md" />
+                  <Skeleton className="h-4 w-72 rounded-md" />
+                </div>
+                <Skeleton className="h-6 w-11 rounded-full" />
+              </div>
+              <div className="flex items-center justify-between pt-4">
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-56 rounded-md" />
+                  <Skeleton className="h-4 w-64 rounded-md" />
+                </div>
+                <Skeleton className="h-6 w-11 rounded-full" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
