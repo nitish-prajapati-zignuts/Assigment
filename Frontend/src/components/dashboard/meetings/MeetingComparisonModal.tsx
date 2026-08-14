@@ -150,10 +150,11 @@ function SummaryPane({
                   <span>📅 {item.dueDate}</span>
                   <Badge
                     variant="outline"
-                    className={`text-[9px] ${item.priority === "High" || item.priority === "Urgent"
-                      ? "border-red-300 text-red-600"
-                      : "border-zinc-300 text-zinc-500"
-                      }`}
+                    className={`text-[9px] ${
+                      item.priority === "High" || item.priority === "Urgent"
+                        ? "border-red-300 text-red-600"
+                        : "border-zinc-300 text-zinc-500"
+                    }`}
                   >
                     {item.priority}
                   </Badge>

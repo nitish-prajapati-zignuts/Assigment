@@ -51,13 +51,7 @@ export default function NotFound() {
                 strokeWidth="2"
                 strokeDasharray="8 8"
               />
-              <circle
-                cx="250"
-                cy="250"
-                r="120"
-                className="stroke-zinc-200 dark:stroke-zinc-800"
-                strokeWidth="1.5"
-              />
+              <circle cx="250" cy="250" r="120" className="stroke-zinc-200 dark:stroke-zinc-800" strokeWidth="1.5" />
 
               {/* Spinning/pulsing radar sweep */}
               <motion.circle
@@ -72,8 +66,19 @@ export default function NotFound() {
 
               {/* Holographic Planet (representing the page that is lost) */}
               <g transform="translate(180, 150)">
-                <circle cx="0" cy="0" r="35" className="fill-violet-100 dark:fill-violet-950/60 stroke-violet-500 dark:stroke-violet-400" strokeWidth="4" />
-                <path d="M-45,10 C-15,-20 15,-20 45,10" className="stroke-violet-500 dark:stroke-violet-400" strokeWidth="3" fill="none" />
+                <circle
+                  cx="0"
+                  cy="0"
+                  r="35"
+                  className="fill-violet-100 dark:fill-violet-950/60 stroke-violet-500 dark:stroke-violet-400"
+                  strokeWidth="4"
+                />
+                <path
+                  d="M-45,10 C-15,-20 15,-20 45,10"
+                  className="stroke-violet-500 dark:stroke-violet-400"
+                  strokeWidth="3"
+                  fill="none"
+                />
                 {/* Dots inside planet */}
                 <circle cx="-10" cy="-5" r="3" className="fill-violet-400 dark:fill-violet-300" />
                 <circle cx="10" cy="10" r="4" className="fill-violet-400 dark:fill-violet-300" />
@@ -82,9 +87,25 @@ export default function NotFound() {
               {/* Floating Astronaut/Telescope Searcher */}
               <g transform="translate(290, 260)">
                 {/* Robot/Searcher Body */}
-                <rect x="-30" y="-30" width="60" height="60" rx="20" className="fill-zinc-100 dark:fill-zinc-900 stroke-zinc-400 dark:stroke-zinc-700" strokeWidth="3" />
+                <rect
+                  x="-30"
+                  y="-30"
+                  width="60"
+                  height="60"
+                  rx="20"
+                  className="fill-zinc-100 dark:fill-zinc-900 stroke-zinc-400 dark:stroke-zinc-700"
+                  strokeWidth="3"
+                />
                 {/* Head/Screen */}
-                <rect x="-20" y="-20" width="40" height="30" rx="10" className="fill-zinc-800 dark:fill-zinc-950 stroke-zinc-500" strokeWidth="2" />
+                <rect
+                  x="-20"
+                  y="-20"
+                  width="40"
+                  height="30"
+                  rx="10"
+                  className="fill-zinc-800 dark:fill-zinc-950 stroke-zinc-500"
+                  strokeWidth="2"
+                />
                 {/* Glowing Eyes */}
                 <ellipse cx="-8" cy="-5" rx="4" ry="4" className="fill-amber-400 animate-pulse" />
                 <ellipse cx="8" cy="-5" rx="4" ry="4" className="fill-amber-400 animate-pulse" />
@@ -97,7 +118,6 @@ export default function NotFound() {
               </g>
 
               {/* "404" stylized text */}
-
             </svg>
           </motion.div>
         </motion.div>

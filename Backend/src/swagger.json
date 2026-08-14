@@ -22,11 +22,7 @@
     "schemas": {
       "RegisterInput": {
         "type": "object",
-        "required": [
-          "name",
-          "email",
-          "password"
-        ],
+        "required": ["name", "email", "password"],
         "properties": {
           "name": {
             "type": "string",
@@ -46,10 +42,7 @@
       },
       "LoginInput": {
         "type": "object",
-        "required": [
-          "email",
-          "password"
-        ],
+        "required": ["email", "password"],
         "properties": {
           "email": {
             "type": "string",
@@ -65,10 +58,7 @@
       },
       "MeetingInput": {
         "type": "object",
-        "required": [
-          "title",
-          "transcript"
-        ],
+        "required": ["title", "transcript"],
         "properties": {
           "title": {
             "type": "string",
@@ -91,13 +81,7 @@
       },
       "ActionItemInput": {
         "type": "object",
-        "required": [
-          "task",
-          "owner",
-          "dueDate",
-          "priority",
-          "status"
-        ],
+        "required": ["task", "owner", "dueDate", "priority", "status"],
         "properties": {
           "task": {
             "type": "string",
@@ -114,21 +98,12 @@
           },
           "priority": {
             "type": "string",
-            "enum": [
-              "Low",
-              "Medium",
-              "High"
-            ],
+            "enum": ["Low", "Medium", "High"],
             "example": "High"
           },
           "status": {
             "type": "string",
-            "enum": [
-              "Pending",
-              "In Progress",
-              "Completed",
-              "Blocked"
-            ],
+            "enum": ["Pending", "In Progress", "Completed", "Blocked"],
             "example": "In Progress"
           },
           "meetingId": {
@@ -143,9 +118,7 @@
     "/api/auth/register": {
       "post": {
         "summary": "Register a new user account",
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "requestBody": {
           "required": true,
           "content": {
@@ -181,9 +154,7 @@
     "/api/auth/login": {
       "post": {
         "summary": "Authenticate user credentials",
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "requestBody": {
           "required": true,
           "content": {
@@ -219,9 +190,7 @@
     "/api/auth/me": {
       "get": {
         "summary": "Retrieve currently authenticated user metadata",
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "security": [
           {
             "bearerAuth": []
@@ -237,9 +206,7 @@
     "/api/meetings": {
       "get": {
         "summary": "List all meeting notes catalogs",
-        "tags": [
-          "Meetings"
-        ],
+        "tags": ["Meetings"],
         "security": [
           {
             "bearerAuth": []
@@ -253,9 +220,7 @@
       },
       "post": {
         "summary": "Upload a new meeting transcript and auto-extract items",
-        "tags": [
-          "Meetings"
-        ],
+        "tags": ["Meetings"],
         "security": [
           {
             "bearerAuth": []
@@ -281,9 +246,7 @@
     "/api/meetings/{id}": {
       "get": {
         "summary": "Get specific meeting details",
-        "tags": [
-          "Meetings"
-        ],
+        "tags": ["Meetings"],
         "security": [
           {
             "bearerAuth": []
@@ -307,9 +270,7 @@
       },
       "put": {
         "summary": "Update specific meeting summary/transcript",
-        "tags": [
-          "Meetings"
-        ],
+        "tags": ["Meetings"],
         "security": [
           {
             "bearerAuth": []
@@ -343,9 +304,7 @@
       },
       "delete": {
         "summary": "Delete specific meeting note",
-        "tags": [
-          "Meetings"
-        ],
+        "tags": ["Meetings"],
         "security": [
           {
             "bearerAuth": []
@@ -371,9 +330,7 @@
     "/api/action-items": {
       "get": {
         "summary": "List all action tracker tasks",
-        "tags": [
-          "Action Items"
-        ],
+        "tags": ["Action Items"],
         "security": [
           {
             "bearerAuth": []
@@ -387,9 +344,7 @@
       },
       "post": {
         "summary": "Create new custom action item task manually",
-        "tags": [
-          "Action Items"
-        ],
+        "tags": ["Action Items"],
         "security": [
           {
             "bearerAuth": []
@@ -415,9 +370,7 @@
     "/api/action-items/{id}": {
       "put": {
         "summary": "Update specific action item details",
-        "tags": [
-          "Action Items"
-        ],
+        "tags": ["Action Items"],
         "security": [
           {
             "bearerAuth": []
@@ -451,9 +404,7 @@
       },
       "delete": {
         "summary": "Delete specific action tracker item",
-        "tags": [
-          "Action Items"
-        ],
+        "tags": ["Action Items"],
         "security": [
           {
             "bearerAuth": []

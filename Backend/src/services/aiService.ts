@@ -245,9 +245,9 @@ export function cleanSummary(summary: MeetingSummary): MeetingSummary {
       summary.speakerAnalytics && summary.speakerAnalytics.length > 0
         ? summary.speakerAnalytics
         : [
-          { name: "Speaker 1", talkTimePercentage: 60, wordCount: 350 },
-          { name: "Speaker 2", talkTimePercentage: 40, wordCount: 230 },
-        ],
+            { name: "Speaker 1", talkTimePercentage: 60, wordCount: 350 },
+            { name: "Speaker 2", talkTimePercentage: 40, wordCount: 230 },
+          ],
     sentimentAnalysis: summary.sentimentAnalysis || {
       overallTone: "Positive",
       score: 82,
@@ -256,33 +256,33 @@ export function cleanSummary(summary: MeetingSummary): MeetingSummary {
     templateStyle: summary.templateStyle || "Standard",
     executiveDetails: summary.executiveDetails
       ? {
-        strategicImpact: stripHtml(summary.executiveDetails.strategicImpact),
-        financialOrTimelineRisks: (summary.executiveDetails.financialOrTimelineRisks || []).map(stripHtml),
-        executiveRecommendations: (summary.executiveDetails.executiveRecommendations || []).map(stripHtml),
-      }
+          strategicImpact: stripHtml(summary.executiveDetails.strategicImpact),
+          financialOrTimelineRisks: (summary.executiveDetails.financialOrTimelineRisks || []).map(stripHtml),
+          executiveRecommendations: (summary.executiveDetails.executiveRecommendations || []).map(stripHtml),
+        }
       : undefined,
     developerDetails: summary.developerDetails
       ? {
-        codeDeliverables: (summary.developerDetails.codeDeliverables || []).map(stripHtml),
-        architecturalChanges: (summary.developerDetails.architecturalChanges || []).map(stripHtml),
-        apiContractsAndDependencies: (summary.developerDetails.apiContractsAndDependencies || []).map(stripHtml),
-        technicalBlockers: (summary.developerDetails.technicalBlockers || []).map(stripHtml),
-      }
+          codeDeliverables: (summary.developerDetails.codeDeliverables || []).map(stripHtml),
+          architecturalChanges: (summary.developerDetails.architecturalChanges || []).map(stripHtml),
+          apiContractsAndDependencies: (summary.developerDetails.apiContractsAndDependencies || []).map(stripHtml),
+          technicalBlockers: (summary.developerDetails.technicalBlockers || []).map(stripHtml),
+        }
       : undefined,
     technicalDetails: summary.technicalDetails
       ? {
-        systemArchitectureChoices: (summary.technicalDetails.systemArchitectureChoices || []).map(stripHtml),
-        techStackTradeoffs: (summary.technicalDetails.techStackTradeoffs || []).map(stripHtml),
-        engineeringConstraints: (summary.technicalDetails.engineeringConstraints || []).map(stripHtml),
-      }
+          systemArchitectureChoices: (summary.technicalDetails.systemArchitectureChoices || []).map(stripHtml),
+          techStackTradeoffs: (summary.technicalDetails.techStackTradeoffs || []).map(stripHtml),
+          engineeringConstraints: (summary.technicalDetails.engineeringConstraints || []).map(stripHtml),
+        }
       : undefined,
     salesDetails: summary.salesDetails
       ? {
-        clientPainPoints: (summary.salesDetails.clientPainPoints || []).map(stripHtml),
-        budgetAndAuthority: stripHtml(summary.salesDetails.budgetAndAuthority),
-        timelineExpectations: stripHtml(summary.salesDetails.timelineExpectations),
-        nextSalesSteps: (summary.salesDetails.nextSalesSteps || []).map(stripHtml),
-      }
+          clientPainPoints: (summary.salesDetails.clientPainPoints || []).map(stripHtml),
+          budgetAndAuthority: stripHtml(summary.salesDetails.budgetAndAuthority),
+          timelineExpectations: stripHtml(summary.salesDetails.timelineExpectations),
+          nextSalesSteps: (summary.salesDetails.nextSalesSteps || []).map(stripHtml),
+        }
       : undefined,
   };
 }
@@ -574,9 +574,7 @@ export async function generateMeetingSummary(
     // ========================================================
     if (geminiFallBackKey) {
       try {
-        console.log(
-          "[Step 3] Primary & Rotating keys failed. Attempting Fallback Model Key (GEMINI_FALL_BACK_KEY)..."
-        );
+        console.log("[Step 3] Primary & Rotating keys failed. Attempting Fallback Model Key (GEMINI_FALL_BACK_KEY)...");
         const google = createGoogleGenerativeAI({ apiKey: geminiFallBackKey });
         const { object } = await generateObject({
           model: google("gemini-3.5-flash-lite"),

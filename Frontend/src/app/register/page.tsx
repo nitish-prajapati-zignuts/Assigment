@@ -157,10 +157,21 @@ export default function RegisterPage() {
               className="relative flex h-13 w-13 items-center justify-center rounded-2xl bg-zinc-900 text-white dark:bg-white dark:text-zinc-950 shadow-xl shadow-zinc-950/10 dark:shadow-white/5 ring-1 ring-zinc-800/10 dark:ring-white/20"
             >
               {/* Modern Syncra branding SVG logo */}
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white dark:text-zinc-950">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-white dark:text-zinc-950"
+              >
                 <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
                 <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-                <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" opacity="0.6" />
+                <path
+                  d="M2 12L12 17L22 12"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                  opacity="0.6"
+                />
               </svg>
             </motion.div>
             <div className="space-y-1">

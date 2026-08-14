@@ -45,7 +45,13 @@ export function CompletedItemsIcon({ className = "w-5 h-5" }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
       <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
-      <path d="M8.5 12.5L10.5 14.5L15.5 9.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M8.5 12.5L10.5 14.5L15.5 9.5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -53,12 +59,7 @@ export function CompletedItemsIcon({ className = "w-5 h-5" }: IconProps) {
 export function OverdueItemsIcon({ className = "w-5 h-5" }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
-      <path
-        d="M12 3L21 19H3L12 3Z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
+      <path d="M12 3L21 19H3L12 3Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
       <path d="M12 9V13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
       <circle cx="12" cy="16.5" r="1" fill="currentColor" />
     </svg>

@@ -4,7 +4,20 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Calendar, Eye, Edit, Trash2, Share2, Loader2, Archive, MapPinned, Pin, PinOff, Copy, MoreVertical } from "lucide-react";
+import {
+  Calendar,
+  Eye,
+  Edit,
+  Trash2,
+  Share2,
+  Loader2,
+  Archive,
+  MapPinned,
+  Pin,
+  PinOff,
+  Copy,
+  MoreVertical,
+} from "lucide-react";
 import { EmptyMeetingsIllustration } from "@/components/ui/illustrations";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -24,11 +37,22 @@ interface MeetingsTableProps {
   onArchive: (meeting: Meeting) => void;
   onTogglePin: (meeting: Meeting) => void;
   pinningMeetingId: string | null;
-  handleCreatingClone: (meeting: Meeting) => void
-  IsCloneMeetingLoading: boolean
+  handleCreatingClone: (meeting: Meeting) => void;
+  IsCloneMeetingLoading: boolean;
 }
 
-export function MeetingsTable({ isLoading, displayMeetings, onViewDetails, onEdit, onDelete, onArchive, onTogglePin, pinningMeetingId, handleCreatingClone, IsCloneMeetingLoading }: MeetingsTableProps) {
+export function MeetingsTable({
+  isLoading,
+  displayMeetings,
+  onViewDetails,
+  onEdit,
+  onDelete,
+  onArchive,
+  onTogglePin,
+  pinningMeetingId,
+  handleCreatingClone,
+  IsCloneMeetingLoading,
+}: MeetingsTableProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -86,8 +110,12 @@ export function MeetingsTable({ isLoading, displayMeetings, onViewDetails, onEdi
                 <div className="flex flex-col items-center justify-center space-y-3">
                   <EmptyMeetingsIllustration className="w-24 h-24 text-zinc-400" />
                   <div>
-                    <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">No meetings found matching your search.</p>
-                    <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">Try adjusting your filters or search keywords.</p>
+                    <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                      No meetings found matching your search.
+                    </p>
+                    <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
+                      Try adjusting your filters or search keywords.
+                    </p>
                   </div>
                 </div>
               </TableCell>
@@ -161,10 +189,11 @@ export function MeetingsTable({ isLoading, displayMeetings, onViewDetails, onEdi
                         size="icon"
                         onClick={() => onTogglePin(meeting)}
                         disabled={pinningMeetingId === meeting.id}
-                        className={`h-8 w-8 rounded-md ${meeting.isPinned
-                          ? "text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30"
-                          : "text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                          }`}
+                        className={`h-8 w-8 rounded-md ${
+                          meeting.isPinned
+                            ? "text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30"
+                            : "text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                        }`}
                         title={meeting.isPinned ? "Unpin Meeting" : "Pin Meeting"}
                       >
                         {pinningMeetingId === meeting.id ? (
@@ -211,19 +240,15 @@ export function MeetingsTable({ isLoading, displayMeetings, onViewDetails, onEdi
                             <Archive className="mr-2 h-4 w-4 text-zinc-500" />
                             <span>Archive</span>
                           </DropdownMenuItem>
-                          <DropdownMenuItem
-                            closeOnClick={false}
-                            onClick={() => handleCreatingClone(meeting)}
-                          >
+                          <DropdownMenuItem closeOnClick={false} onClick={() => handleCreatingClone(meeting)}>
                             <Copy className="mr-2 h-4 w-4 text-zinc-500" />
                             <span>Clone Meeting</span>
-                            {IsCloneMeetingLoading ? <Loader2 className="ml-auto h-4 w-4 animate-spin text-zinc-500" /> : null}
+                            {IsCloneMeetingLoading ? (
+                              <Loader2 className="ml-auto h-4 w-4 animate-spin text-zinc-500" />
+                            ) : null}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            variant="destructive"
-                            onClick={() => onDelete(meeting)}
-                          >
+                          <DropdownMenuItem variant="destructive" onClick={() => onDelete(meeting)}>
                             <Trash2 className="mr-2 h-4 w-4" />
                             <span>Delete</span>
                           </DropdownMenuItem>

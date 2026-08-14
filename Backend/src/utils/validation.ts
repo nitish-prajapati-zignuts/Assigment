@@ -164,7 +164,7 @@ export const createCloneSchema = z.object({
   template: z.string().optional(),
   customPrompt: z.string().optional(),
   isMeetingPublished: z.boolean().optional(),
-})
+});
 
 // Detailed Meeting and Summary Schemas
 export const keyDecisionSchema = z.object({

@@ -12,17 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import {
-  Search,
-  Calendar,
-  Clock,
-  Archive,
-  RefreshCw,
-  FolderOpen,
-  Trash2,
-  Users,
-  Eye,
-} from "lucide-react";
+import { Search, Calendar, Clock, Archive, RefreshCw, FolderOpen, Trash2, Users, Eye } from "lucide-react";
 import { EmptyMeetingsIllustration } from "@/components/ui/illustrations";
 
 export default function ArchivePage() {
@@ -240,7 +230,7 @@ export default function ArchivePage() {
             setIsDetailModalOpen(false);
             setViewingMeeting(null);
           }}
-          onEdit={() => { }}
+          onEdit={() => {}}
           meeting={viewingMeeting}
         />
       )}

@@ -42,13 +42,19 @@ export function AppearanceTabContent() {
       name: "System Settings",
       description: "Automatically sync with your operating system's theme preference.",
       icon: Laptop,
-      bgColor: "bg-gradient-to-br from-zinc-50 to-zinc-950 border-zinc-200 dark:border-zinc-900 text-zinc-900 dark:text-zinc-50",
+      bgColor:
+        "bg-gradient-to-br from-zinc-50 to-zinc-950 border-zinc-200 dark:border-zinc-900 text-zinc-900 dark:text-zinc-50",
       accentBg: "bg-white dark:bg-zinc-900",
     },
   ];
 
   const colorPalettes = [
-    { id: "violet", name: "Royal Violet", colorClass: "bg-indigo-600 dark:bg-indigo-500", textClass: "text-indigo-600" },
+    {
+      id: "violet",
+      name: "Royal Violet",
+      colorClass: "bg-indigo-600 dark:bg-indigo-500",
+      textClass: "text-indigo-600",
+    },
     { id: "blue", name: "Ocean Blue", colorClass: "bg-blue-500", textClass: "text-blue-500" },
     { id: "emerald", name: "Emerald Forest", colorClass: "bg-emerald-500", textClass: "text-emerald-500" },
     { id: "rose", name: "Crimson Rose", colorClass: "bg-rose-500", textClass: "text-rose-500" },
@@ -71,7 +77,8 @@ export function AppearanceTabContent() {
           Interface Customization
         </h3>
         <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-          Customize how Syncra looks on your screen. Choose your default display mode or sync it with your system settings.
+          Customize how Syncra looks on your screen. Choose your default display mode or sync it with your system
+          settings.
         </p>
       </div>
 
@@ -87,10 +94,11 @@ export function AppearanceTabContent() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setTheme(t.id)}
-              className={`flex flex-col text-left p-5 rounded-3xl border transition-all cursor-pointer relative overflow-hidden ${isActive
+              className={`flex flex-col text-left p-5 rounded-3xl border transition-all cursor-pointer relative overflow-hidden ${
+                isActive
                   ? "border-primary ring-2 ring-primary/20 bg-white dark:bg-zinc-900 shadow-md"
                   : "border-zinc-200/80 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-900/70 hover:bg-white dark:hover:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-2xs"
-                }`}
+              }`}
             >
               {isActive && (
                 <div className="absolute top-4 right-4 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
@@ -108,7 +116,9 @@ export function AppearanceTabContent() {
               </div>
 
               {/* Theme Mockup Visual */}
-              <div className={`mt-5 w-full h-16 rounded-xl border border-inherit p-2 ${t.bgColor} opacity-90 overflow-hidden flex flex-col gap-1.5`}>
+              <div
+                className={`mt-5 w-full h-16 rounded-xl border border-inherit p-2 ${t.bgColor} opacity-90 overflow-hidden flex flex-col gap-1.5`}
+              >
                 <div className={`h-3 w-16 rounded-sm ${t.accentBg} opacity-80`} />
                 <div className="flex gap-1.5">
                   <div className={`h-2.5 w-full rounded-sm ${t.accentBg} opacity-50`} />
@@ -140,12 +150,15 @@ export function AppearanceTabContent() {
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => handleColorThemeChange(cp.id)}
-                className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col items-center justify-center gap-2.5 ${isSelected
+                className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col items-center justify-center gap-2.5 ${
+                  isSelected
                     ? "border-primary bg-primary/5 dark:bg-primary/10 ring-2 ring-primary/20"
                     : "border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-800/20 hover:bg-white dark:hover:bg-zinc-900 hover:border-zinc-300 dark:hover:border-zinc-700"
-                  }`}
+                }`}
               >
-                <div className={`w-8 h-8 rounded-full ${cp.colorClass} shadow-inner flex items-center justify-center text-white`}>
+                <div
+                  className={`w-8 h-8 rounded-full ${cp.colorClass} shadow-inner flex items-center justify-center text-white`}
+                >
                   {isSelected && <Check className="w-4 h-4 stroke-[3]" />}
                 </div>
                 <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200">{cp.name}</span>

@@ -92,7 +92,7 @@ export const users = pgTable(
     password: text("password").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
-    isDeleted: boolean().default(false)
+    isDeleted: boolean().default(false),
   },
   (table) => [uniqueIndex("users_email_idx").on(table.email), index("users_created_at_idx").on(table.createdAt)]
 );
@@ -120,7 +120,7 @@ export const meetings = pgTable(
     isDeletedAt: timestamp("is_deleted_at", { withTimezone: true }),
     isArchived: boolean("is_archived").notNull().default(false),
     isArchivedAt: timestamp("is_archived_at", { withTimezone: true }),
-    isPinned: boolean("is_pinned").notNull().default(false)
+    isPinned: boolean("is_pinned").notNull().default(false),
   },
   (table) => [
     index("meetings_date_idx").on(table.date),
@@ -250,7 +250,6 @@ export const notifications = pgTable(
 
 export type NotificationRecord = typeof notifications.$inferSelect;
 export type NewNotificationRecord = typeof notifications.$inferInsert;
-
 
 const vector = customType<{ data: number[] }>({
   dataType() {

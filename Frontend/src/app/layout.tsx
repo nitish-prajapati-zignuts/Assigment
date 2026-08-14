@@ -39,7 +39,7 @@ export default function RootLayout({
                 const theme = localStorage.getItem('color-theme') || 'violet';
                 document.documentElement.setAttribute('data-color-theme', theme);
               } catch (_) {}
-            `
+            `,
           }}
         />
       </head>

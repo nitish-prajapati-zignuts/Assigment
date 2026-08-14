@@ -12,16 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import {
-  Search,
-  Calendar,
-  Clock,
-  Trash2,
-  RefreshCw,
-  Eye,
-  AlertTriangle,
-  Users,
-} from "lucide-react";
+import { Search, Calendar, Clock, Trash2, RefreshCw, Eye, AlertTriangle, Users } from "lucide-react";
 import { EmptyMeetingsIllustration } from "@/components/ui/illustrations";
 
 export default function TrashPage() {
@@ -41,7 +32,7 @@ export default function TrashPage() {
       return res.data;
     },
     staleTime: 1000 * 60 * 2, // 2 minutes cache
-    refetchOnMount: "always"
+    refetchOnMount: "always",
   });
 
   const meetings: Meeting[] = Array.isArray(meetingsResponse?.data)
@@ -268,7 +259,7 @@ export default function TrashPage() {
             setIsDetailModalOpen(false);
             setViewingMeeting(null);
           }}
-          onEdit={() => { }}
+          onEdit={() => {}}
           meeting={viewingMeeting}
         />
       )}

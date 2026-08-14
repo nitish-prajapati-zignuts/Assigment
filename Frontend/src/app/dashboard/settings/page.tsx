@@ -191,7 +191,7 @@ export default function SettingsPage() {
             label="AI Prompts & Rules"
             icon={Sparkles}
             isOpen={activeTab === "ai"}
-            onClick={() => setActiveTab(activeTab === "ai" ? "" as any : "ai")}
+            onClick={() => setActiveTab(activeTab === "ai" ? ("" as any) : "ai")}
           >
             <AiTabContent settings={settings} setSettings={setSettings} />
           </MobileCollapsibleTab>
@@ -200,7 +200,7 @@ export default function SettingsPage() {
             label="Alerts & Webhooks"
             icon={Bell}
             isOpen={activeTab === "notifications"}
-            onClick={() => setActiveTab(activeTab === "notifications" ? "" as any : "notifications")}
+            onClick={() => setActiveTab(activeTab === "notifications" ? ("" as any) : "notifications")}
           >
             <NotificationsTabContent settings={settings} setSettings={setSettings} />
           </MobileCollapsibleTab>
@@ -209,7 +209,7 @@ export default function SettingsPage() {
             label="Account & Security"
             icon={Shield}
             isOpen={activeTab === "security"}
-            onClick={() => setActiveTab(activeTab === "security" ? "" as any : "security")}
+            onClick={() => setActiveTab(activeTab === "security" ? ("" as any) : "security")}
           >
             <SecurityTabContent sessions={sessions} />
           </MobileCollapsibleTab>
@@ -218,7 +218,7 @@ export default function SettingsPage() {
             label="Appearance"
             icon={Palette}
             isOpen={activeTab === "appearance"}
-            onClick={() => setActiveTab(activeTab === "appearance" ? "" as any : "appearance")}
+            onClick={() => setActiveTab(activeTab === "appearance" ? ("" as any) : "appearance")}
           >
             <AppearanceTabContent />
           </MobileCollapsibleTab>
@@ -227,7 +227,7 @@ export default function SettingsPage() {
             label="Change Password"
             icon={LockKeyholeIcon}
             isOpen={activeTab === "Change Password"}
-            onClick={() => setActiveTab(activeTab === "Change Password" ? "" as any : "Change Password")}
+            onClick={() => setActiveTab(activeTab === "Change Password" ? ("" as any) : "Change Password")}
           >
             <ChangePassword />
           </MobileCollapsibleTab>
@@ -256,7 +256,11 @@ function MobileCollapsibleTab({ label, icon: Icon, isOpen, onClick, children }: 
           <Icon className="w-4.5 h-4.5 text-indigo-500" />
           <span>{label}</span>
         </div>
-        {isOpen ? <ChevronUp className="w-4.5 h-4.5 text-zinc-500" /> : <ChevronDown className="w-4.5 h-4.5 text-zinc-500" />}
+        {isOpen ? (
+          <ChevronUp className="w-4.5 h-4.5 text-zinc-500" />
+        ) : (
+          <ChevronDown className="w-4.5 h-4.5 text-zinc-500" />
+        )}
       </button>
       {isOpen && (
         <div className="p-1 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/20 dark:bg-zinc-900/20">

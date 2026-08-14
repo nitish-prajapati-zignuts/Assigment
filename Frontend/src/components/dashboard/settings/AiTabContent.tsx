@@ -138,10 +138,11 @@ export function AiTabContent({ settings, setSettings }: AiTabContentProps) {
                 key={len}
                 type="button"
                 onClick={() => setSettings({ ...settings, summaryLength: len })}
-                className={`py-2.5 px-3 text-xs font-bold rounded-2xl border transition-all cursor-pointer ${settings.summaryLength === len
+                className={`py-2.5 px-3 text-xs font-bold rounded-2xl border transition-all cursor-pointer ${
+                  settings.summaryLength === len
                     ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 shadow-xs"
                     : "border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800"
-                  }`}
+                }`}
               >
                 {len}
               </motion.button>

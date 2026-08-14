@@ -189,10 +189,21 @@ export function Sidebar() {
               className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 text-white shadow-md shadow-indigo-500/20"
             >
               {/* Modern Syncra branding SVG logo */}
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-5.5 w-5.5 text-white">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5.5 w-5.5 text-white"
+              >
                 <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
                 <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-                <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" opacity="0.6" />
+                <path
+                  d="M2 12L12 17L22 12"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                  opacity="0.6"
+                />
               </svg>
             </motion.div>
             <div>
@@ -233,10 +244,11 @@ export function Sidebar() {
                 <motion.div
                   whileHover={{ x: 3 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors ${isActive
-                    ? "text-zinc-900 dark:text-zinc-50 font-semibold"
-                    : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-                    }`}
+                  className={`relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors ${
+                    isActive
+                      ? "text-zinc-900 dark:text-zinc-50 font-semibold"
+                      : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                  }`}
                 >
                   {isActive && (
                     <motion.div
@@ -255,10 +267,7 @@ export function Sidebar() {
           })}
 
           {/* Notifications Nav Item */}
-          <button
-            onClick={() => setIsNotificationsOpen(true)}
-            className="w-full relative block text-left"
-          >
+          <button onClick={() => setIsNotificationsOpen(true)} className="w-full relative block text-left">
             <motion.div
               whileHover={{ x: 3 }}
               whileTap={{ scale: 0.98 }}
@@ -369,8 +378,9 @@ export function Sidebar() {
 
       {/* Mobile Drawer Sidebar */}
       <aside
-        className={`lg:hidden fixed top-0 bottom-0 left-0 z-50 w-64 bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 transform transition-transform duration-300 ease-out ${isMobileOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        className={`lg:hidden fixed top-0 bottom-0 left-0 z-50 w-64 bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 transform transition-transform duration-300 ease-out ${
+          isMobileOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
         {sidebarContent}
       </aside>
@@ -455,7 +465,9 @@ export function Sidebar() {
                     <CheckCircle2 className="h-10 w-10 text-zinc-300 dark:text-zinc-700" />
                     <div>
                       <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">All caught up!</p>
-                      <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">No alerts or notifications recorded.</p>
+                      <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
+                        No alerts or notifications recorded.
+                      </p>
                     </div>
                   </div>
                 ) : (
@@ -468,10 +480,11 @@ export function Sidebar() {
                         {items.map((item) => (
                           <div
                             key={item.id}
-                            className={`p-4 rounded-2xl border transition-all ${item.isRead
-                              ? "bg-zinc-50/40 dark:bg-zinc-900/30 border-zinc-200/50 dark:border-zinc-800/50 opacity-80"
-                              : "bg-indigo-50/15 dark:bg-indigo-950/15 border-indigo-200/60 dark:border-indigo-900/50 ring-2 ring-indigo-500/5 shadow-2xs"
-                              }`}
+                            className={`p-4 rounded-2xl border transition-all ${
+                              item.isRead
+                                ? "bg-zinc-50/40 dark:bg-zinc-900/30 border-zinc-200/50 dark:border-zinc-800/50 opacity-80"
+                                : "bg-indigo-50/15 dark:bg-indigo-950/15 border-indigo-200/60 dark:border-indigo-900/50 ring-2 ring-indigo-500/5 shadow-2xs"
+                            }`}
                           >
                             <div className="flex items-start gap-3">
                               <div className="p-2 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200/50 dark:border-zinc-700/60 shadow-2xs mt-0.5">
@@ -479,9 +492,14 @@ export function Sidebar() {
                               </div>
                               <div className="flex-1 space-y-1 min-w-0">
                                 <div className="flex items-center justify-between gap-2">
-                                  <span className="font-bold text-xs text-zinc-800 dark:text-zinc-200 truncate">{item.title}</span>
+                                  <span className="font-bold text-xs text-zinc-800 dark:text-zinc-200 truncate">
+                                    {item.title}
+                                  </span>
                                   <span className="text-[9px] text-zinc-400 dark:text-zinc-500 shrink-0 font-medium">
-                                    {new Date(item.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                    {new Date(item.createdAt).toLocaleTimeString([], {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })}
                                   </span>
                                 </div>
                                 <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium">

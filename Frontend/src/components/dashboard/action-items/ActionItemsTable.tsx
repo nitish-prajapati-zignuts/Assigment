@@ -258,8 +258,12 @@ export function ActionItemsTable({
                   <div className="flex flex-col items-center justify-center space-y-3">
                     <EmptyActionItemsIllustration className="w-24 h-24 text-zinc-400" />
                     <div>
-                      <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">No action items match the active filters.</p>
-                      <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">Try clearing search parameters or adjusting active filters.</p>
+                      <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                        No action items match the active filters.
+                      </p>
+                      <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
+                        Try clearing search parameters or adjusting active filters.
+                      </p>
                     </div>
                   </div>
                 </TableCell>
@@ -270,8 +274,9 @@ export function ActionItemsTable({
                 return (
                   <TableRow
                     key={item.id}
-                    className={`border-b border-zinc-100 dark:border-zinc-800/50 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/50 transition-colors ${isSelected ? "bg-indigo-50/50 dark:bg-indigo-950/30" : ""
-                      }`}
+                    className={`border-b border-zinc-100 dark:border-zinc-800/50 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/50 transition-colors ${
+                      isSelected ? "bg-indigo-50/50 dark:bg-indigo-950/30" : ""
+                    }`}
                   >
                     <TableCell className="pl-4 py-3.5">
                       <input

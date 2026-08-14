@@ -125,9 +125,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 sm:p-12 lg:p-8 pt-16 lg:pt-4 min-w-0">
-          {children}
-        </main>
+        <main className="flex-1 overflow-y-auto p-4 sm:p-12 lg:p-8 pt-16 lg:pt-4 min-w-0">{children}</main>
       </div>
       <CommandPalette isOpen={isCommandPaletteOpen} onClose={() => setIsCommandPaletteOpen(false)} />
       <ShortcutsDialog isOpen={isShortcutsOpen} onClose={() => setIsShortcutsOpen(false)} />

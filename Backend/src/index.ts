@@ -24,7 +24,6 @@ import settingsRoutes from "./routes/settingsRoutes";
 import dashboardRoutes from "./routes/dashboardRoutes";
 import notificationRoutes from "./routes/notificationRoutes";
 
-
 // Initialize job queue handlers
 initializeJobHandlers();
 

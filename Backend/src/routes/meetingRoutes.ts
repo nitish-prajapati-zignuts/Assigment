@@ -61,10 +61,10 @@ router.post("/:id/chat", validateParams(idSchema), validateBody(chatValidationSc
 router.post("/:id/delete", validateParams(idSchema), deleteMeeting);
 
 // POST /api/meetings/:id/archive - Archive a meeting
-router.post("/:id/archive", validateParams(idSchema), archiveMeeting)
+router.post("/:id/archive", validateParams(idSchema), archiveMeeting);
 
 // POST /api/meetings/:id/unArchive - UnArchive a meeting
-router.post("/:id/unArchive", validateParams(idSchema), unArchiveMeeting)
+router.post("/:id/unArchive", validateParams(idSchema), unArchiveMeeting);
 
 // POST /api/meetings/:id/restore - Restore a meeting from trash
 router.post("/:id/restore", validateParams(idSchema), restoreMeeting);
@@ -76,7 +76,6 @@ router.post("/:id/pin", validateParams(idSchema), toggleMeetingPin);
 router.delete("/:id/permanent", validateParams(idSchema), permanentlyDeleteMeeting);
 
 //POST /api/meeting/create/clone - Create a Clone of the Meeting
-router.post("/create/clone", validateBody(cloneMeetingSchema), createMeetingClone)
-
+router.post("/create/clone", validateBody(cloneMeetingSchema), createMeetingClone);
 
 export default router;

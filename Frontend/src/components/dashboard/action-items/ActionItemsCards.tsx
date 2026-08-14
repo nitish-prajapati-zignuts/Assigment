@@ -40,8 +40,12 @@ export function ActionItemsCards({
         <div className="p-8 text-center bg-white/80 dark:bg-zinc-900/80 rounded-2xl border border-zinc-200/85 dark:border-zinc-800/80 text-zinc-500 flex flex-col items-center justify-center space-y-3">
           <EmptyActionItemsIllustration className="w-20 h-20 text-zinc-400" />
           <div>
-            <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">No action items found matching your filters.</p>
-            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">Try clearing search parameters or overdue filter.</p>
+            <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">
+              No action items found matching your filters.
+            </p>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
+              Try clearing search parameters or overdue filter.
+            </p>
           </div>
         </div>
       ) : (

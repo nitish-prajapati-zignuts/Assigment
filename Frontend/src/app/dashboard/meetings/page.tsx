@@ -144,7 +144,7 @@ export default function MeetingsPage() {
 
   const ArchiveMutation = useMutation({
     mutationFn: async (id: string) => {
-      await api.post(`/meetings/${id}/archive`)
+      await api.post(`/meetings/${id}/archive`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["meetings"] });
@@ -155,10 +155,10 @@ export default function MeetingsPage() {
       toast.success("Meeting Archived successfully");
     },
     onError: (error) => {
-      console.error("Failed to archive meeting:", error)
-      toast.error("Failed to Archive Meeting")
-    }
-  })
+      console.error("Failed to archive meeting:", error);
+      toast.error("Failed to Archive Meeting");
+    },
+  });
 
   const PinMutationChanges = useMutation({
     mutationFn: async (id: string) => {
@@ -172,7 +172,7 @@ export default function MeetingsPage() {
     onError: (error) => {
       console.error("Failed to pin/unpin meeting:", error);
       toast.error("Failed to update pin status");
-    }
+    },
   });
 
   const handleTogglePin = (meeting: Meeting) => {
@@ -183,27 +183,27 @@ export default function MeetingsPage() {
 
   const CloneMeetingMutation = useMutation({
     mutationFn: async (meeting: Meeting) => {
-      await api.post("/meetings/create/clone", { meeting })
+      await api.post("/meetings/create/clone", { meeting });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["meetings"] })
+      queryClient.invalidateQueries({ queryKey: ["meetings"] });
       queryClient.invalidateQueries({ queryKey: ["meetingsList"] });
       queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
       queryClient.invalidateQueries({ queryKey: ["actionItems"] });
       queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] });
-      toast.success("Clone Created of Meeting")
+      toast.success("Clone Created of Meeting");
     },
     onError: (error) => {
-      console.log("Failed to Create a Clone of Meeting", error)
+      console.log("Failed to Create a Clone of Meeting", error);
       toast.error("Could Not Clone the Meeting Successfully.");
-    }
-  })
+    },
+  });
 
-  const IsCloneMeetingLoading = CloneMeetingMutation.isPending
+  const IsCloneMeetingLoading = CloneMeetingMutation.isPending;
 
   const handleCreatingClone = async (meeting: Meeting) => {
-    CloneMeetingMutation.mutateAsync(meeting)
-  }
+    CloneMeetingMutation.mutateAsync(meeting);
+  };
 
   // TanStack Mutation for Delete Meeting
   const deleteMeetingMutation = useMutation({
@@ -225,7 +225,7 @@ export default function MeetingsPage() {
   });
 
   const isDeleting = deleteMeetingMutation.isPending;
-  const isArchiving = ArchiveMutation.isPending
+  const isArchiving = ArchiveMutation.isPending;
 
   // Client-side filtering (for search and type filter)
   const filteredMeetings = useMemo(() => {

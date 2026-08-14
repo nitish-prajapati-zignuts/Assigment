@@ -83,10 +83,7 @@ export const getMeetings = asyncHandler(async (req: AuthenticatedRequest, res: R
       .select({ ...getTableColumns(meetings), hasChunks: sql<boolean>`COUNT(${meetingChunks.id}) > 0` })
       .from(meetings)
       .leftJoin(meetingChunks, eq(meetingChunks.meetingId, meetings.id))
-      .where(and(
-        eq(meetings.isArchived, isArchived ?? false),
-        eq(meetings.isDeleted, isDeleted ?? false)
-      ))
+      .where(and(eq(meetings.isArchived, isArchived ?? false), eq(meetings.isDeleted, isDeleted ?? false)))
       .groupBy(meetings.id)
       .orderBy(desc(meetings.createdAt));
     appendDebugLog(JSON.stringify(allMeetings));
@@ -410,7 +407,11 @@ export const deleteMeeting = asyncHandler(async (req: AuthenticatedRequest, res:
   const targetId = String(req.params.id);
 
   try {
-    const deleted = await db.update(meetings).set({ isArchived: false, isDeleted: true, isDeletedAt: new Date() }).where(eq(meetings.id, targetId)).returning();
+    const deleted = await db
+      .update(meetings)
+      .set({ isArchived: false, isDeleted: true, isDeletedAt: new Date() })
+      .where(eq(meetings.id, targetId))
+      .returning();
 
     if (deleted.length === 0) {
       throw new NotFoundError("Meeting");
@@ -580,15 +581,15 @@ export const getPublicMeetingByToken = asyncHandler(async (req: Request, res: Re
 });
 
 export const archiveMeeting = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-  const targetId = String(req.params.id)
+  const targetId = String(req.params.id);
   try {
     if (!targetId) {
-      throw new ValidationError("Meeting Details is Required.")
+      throw new ValidationError("Meeting Details is Required.");
     }
 
-    const getMeetingDetails = await db.select().from(meetings).where(eq(meetings.id, targetId))
+    const getMeetingDetails = await db.select().from(meetings).where(eq(meetings.id, targetId));
     if (!getMeetingDetails) {
-      throw new ValidationError("Meeting Details is Required.")
+      throw new ValidationError("Meeting Details is Required.");
     }
 
     const setMeetingArchived = await db
@@ -597,7 +598,8 @@ export const archiveMeeting = asyncHandler(async (req: AuthenticatedRequest, res
         isArchived: true,
         isArchivedAt: new Date(),
       })
-      .where(eq(meetings.id, targetId)).returning();
+      .where(eq(meetings.id, targetId))
+      .returning();
 
     // Cascade archive to action items
     await db
@@ -609,24 +611,23 @@ export const archiveMeeting = asyncHandler(async (req: AuthenticatedRequest, res
       .where(eq(actionItems.meetingId, targetId));
 
     res.json({
-      message: "Meeting Archived Successfully"
-    })
-
+      message: "Meeting Archived Successfully",
+    });
   } catch (error) {
-    throw new ValidationError("Meeting Cannot Be Archived")
+    throw new ValidationError("Meeting Cannot Be Archived");
   }
-})
+});
 
 export const unArchiveMeeting = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-  const targetId = String(req.params.id)
+  const targetId = String(req.params.id);
   try {
     if (!targetId) {
-      throw new ValidationError("Meeting Details is Required.")
+      throw new ValidationError("Meeting Details is Required.");
     }
 
-    const getMeetingDetails = await db.select().from(meetings).where(eq(meetings.id, targetId))
+    const getMeetingDetails = await db.select().from(meetings).where(eq(meetings.id, targetId));
     if (!getMeetingDetails) {
-      throw new ValidationError("Meeting Details is Required.")
+      throw new ValidationError("Meeting Details is Required.");
     }
 
     const setMeetingArchived = await db
@@ -635,7 +636,8 @@ export const unArchiveMeeting = asyncHandler(async (req: AuthenticatedRequest, r
         isArchived: false,
         isArchivedAt: new Date(),
       })
-      .where(eq(meetings.id, targetId)).returning();
+      .where(eq(meetings.id, targetId))
+      .returning();
 
     // Cascade unarchive to action items
     await db
@@ -647,13 +649,12 @@ export const unArchiveMeeting = asyncHandler(async (req: AuthenticatedRequest, r
       .where(eq(actionItems.meetingId, targetId));
 
     res.json({
-      message: "Meeting Archived Successfully"
-    })
-
+      message: "Meeting Archived Successfully",
+    });
   } catch (error) {
-    throw new ValidationError("Meeting Cannot Be Archived")
+    throw new ValidationError("Meeting Cannot Be Archived");
   }
-})
+});
 
 export const restoreMeeting = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const targetId = String(req.params.id);
@@ -676,35 +677,34 @@ export const restoreMeeting = asyncHandler(async (req: AuthenticatedRequest, res
 
     res.json({
       message: "Meeting restored successfully",
-      meeting: restored[0]
+      meeting: restored[0],
     });
   } catch (error) {
     throw new ValidationError("Failed to restore meeting");
   }
 });
 
-export const permanentlyDeleteMeeting = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-  const targetId = String(req.params.id);
-  try {
-    if (!targetId) {
-      throw new ValidationError("Meeting ID is required.");
-    }
-    const deleted = await db
-      .delete(meetings)
-      .where(eq(meetings.id, targetId))
-      .returning();
+export const permanentlyDeleteMeeting = asyncHandler(
+  async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    const targetId = String(req.params.id);
+    try {
+      if (!targetId) {
+        throw new ValidationError("Meeting ID is required.");
+      }
+      const deleted = await db.delete(meetings).where(eq(meetings.id, targetId)).returning();
 
-    if (deleted.length === 0) {
-      throw new NotFoundError("Meeting");
-    }
+      if (deleted.length === 0) {
+        throw new NotFoundError("Meeting");
+      }
 
-    res.json({
-      message: "Meeting permanently deleted successfully"
-    });
-  } catch (error) {
-    throw new ValidationError("Failed to permanently delete meeting");
+      res.json({
+        message: "Meeting permanently deleted successfully",
+      });
+    } catch (error) {
+      throw new ValidationError("Failed to permanently delete meeting");
+    }
   }
-});
+);
 
 export const toggleMeetingPin = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const targetId = String(req.params.id);
@@ -729,7 +729,7 @@ export const toggleMeetingPin = asyncHandler(async (req: AuthenticatedRequest, r
 
     res.json({
       message: `Meeting ${!currentPinStatus ? "pinned" : "unpinned"} successfully`,
-      meeting: updated[0]
+      meeting: updated[0],
     });
   } catch (error) {
     throw new ValidationError("Failed to toggle pin status");
@@ -738,7 +738,7 @@ export const toggleMeetingPin = asyncHandler(async (req: AuthenticatedRequest, r
 
 export const createMeetingClone = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    const targetId = req.body.meeting?.id ? String(req.body.meeting.id) : (req.body.id ? String(req.body.id) : undefined);
+    const targetId = req.body.meeting?.id ? String(req.body.meeting.id) : req.body.id ? String(req.body.id) : undefined;
     if (!targetId) {
       throw new ValidationError("Meeting ID is required");
     }
@@ -752,20 +752,23 @@ export const createMeetingClone = asyncHandler(async (req: AuthenticatedRequest,
     const originalMeeting = doesMeetingExist[0];
     const newId = Date.now().toString();
 
-    const cloneMeeting = await db.insert(meetings).values({
-      ...originalMeeting,
-      id: newId,
-      title: `${originalMeeting.title} (Copy)`,
-      isDeleted: false,
-      isArchived: false,
-      isPinned: false,
-      shareExpiresAt: null,
-      sharePassword: null,
-      isArchivedAt: null,
-      isDeletedAt: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }).returning();
+    const cloneMeeting = await db
+      .insert(meetings)
+      .values({
+        ...originalMeeting,
+        id: newId,
+        title: `${originalMeeting.title} (Copy)`,
+        isDeleted: false,
+        isArchived: false,
+        isPinned: false,
+        shareExpiresAt: null,
+        sharePassword: null,
+        isArchivedAt: null,
+        isDeletedAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
 
     if (cloneMeeting.length === 0) {
       throw new InternalServerError("Failed to clone meeting");
@@ -791,9 +794,8 @@ export const createMeetingClone = asyncHandler(async (req: AuthenticatedRequest,
 
     res.status(201).json({
       message: "Meeting cloned successfully",
-      meeting: cloneMeeting[0]
+      meeting: cloneMeeting[0],
     });
-
   } catch (error) {
     logger.error("Error cloning meeting", error as Error, { meetingId: req.body.id });
     throw error instanceof ValidationError || error instanceof InternalServerError

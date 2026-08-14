@@ -94,8 +94,12 @@ export function RecentMeetingsSection({ isLoading, recentMeetings, onViewDetails
                       <div className="flex flex-col items-center justify-center space-y-3">
                         <EmptyMeetingsIllustration className="w-24 h-24 text-zinc-400" />
                         <div>
-                          <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">No meetings recorded yet.</p>
-                          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">Click &quot;Manage Meetings&quot; to get started.</p>
+                          <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">
+                            No meetings recorded yet.
+                          </p>
+                          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
+                            Click &quot;Manage Meetings&quot; to get started.
+                          </p>
                         </div>
                       </div>
                     </TableCell>
@@ -189,7 +193,9 @@ export function RecentMeetingsSection({ isLoading, recentMeetings, onViewDetails
                 <EmptyMeetingsIllustration className="w-20 h-20 text-zinc-400" />
                 <div>
                   <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">No meetings recorded yet.</p>
-                  <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">Click &quot;Manage Meetings&quot; to get started.</p>
+                  <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
+                    Click &quot;Manage Meetings&quot; to get started.
+                  </p>
                 </div>
               </div>
             ) : (
