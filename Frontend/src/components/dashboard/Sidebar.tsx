@@ -25,6 +25,7 @@ import {
   Trash2,
   Check,
   RefreshCw,
+  Delete,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -35,8 +36,9 @@ const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Meetings", href: "/dashboard/meetings", icon: Calendar },
   { label: "Action Tracker", href: "/dashboard/action-items", icon: CheckSquare },
-  { label: "Archive", href: "/dashboard/archive", icon: Archive },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
+  { label: "Archive", href: "/dashboard/archive", icon: Archive },
+  { label: "Trash", href: "/dashboard/trash", icon: Delete },
 ];
 
 export function Sidebar() {
@@ -177,21 +179,26 @@ export function Sidebar() {
       .slice(0, 2) || "NP";
 
   const sidebarContent = (
-    <div className="flex h-full flex-col justify-between p-6">
-      <div>
-        <div className="flex items-center justify-between mb-8">
+    <div className="flex h-full flex-col justify-between p-6 overflow-hidden">
+      <div className="flex flex-col flex-1 min-h-0 overflow-y-auto pr-1">
+        <div className="flex items-center justify-between mb-8 shrink-0">
           <Link href="/dashboard" className="flex items-center gap-3 group">
             <motion.div
-              whileHover={{ scale: 1.05, rotate: 3 }}
+              whileHover={{ scale: 1.05, rotate: 6 }}
               whileTap={{ scale: 0.95 }}
               className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 text-white shadow-md shadow-indigo-500/20"
             >
-              <Video className="h-5 w-5" />
+              {/* Modern Syncra branding SVG logo */}
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-5.5 w-5.5 text-white">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" opacity="0.6" />
+              </svg>
             </motion.div>
             <div>
               <div className="flex items-center gap-1.5">
                 <h2 className="font-bold text-lg leading-none tracking-tight text-zinc-900 dark:text-zinc-50 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                  MeetNotes
+                  Syncra
                 </h2>
               </div>
               <span className="text-[11px] font-medium text-zinc-500">AI Assistant</span>
@@ -271,7 +278,7 @@ export function Sidebar() {
         </nav>
       </div>
 
-      <div className="pt-4 border-t border-zinc-200/80 dark:border-zinc-800/80 flex items-center justify-between">
+      <div className="pt-4 border-t border-zinc-200/80 dark:border-zinc-800/80 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <Avatar className="h-9 w-9 ring-2 ring-indigo-500/20">
             <AvatarImage src="" />
@@ -316,7 +323,7 @@ export function Sidebar() {
           >
             <Menu className="h-5 w-5" />
           </button>
-          <span className="font-bold text-base text-zinc-900 dark:text-zinc-100">MeetNotes</span>
+          <span className="font-bold text-base text-zinc-900 dark:text-zinc-100">Syncra</span>
         </div>
         <div className="flex items-center gap-2">
           {/* Bell Trigger in Mobile Header Bar */}
@@ -369,7 +376,7 @@ export function Sidebar() {
       </aside>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-64 border-r border-zinc-200/80 bg-white dark:border-zinc-800/80 dark:bg-zinc-950 flex-col shrink-0 min-h-screen">
+      <aside className="hidden lg:flex w-64 border-r border-zinc-200/80 bg-white dark:border-zinc-800/80 dark:bg-zinc-950 flex-col shrink-0 h-screen sticky top-0 overflow-hidden">
         {sidebarContent}
       </aside>
 
@@ -462,8 +469,8 @@ export function Sidebar() {
                           <div
                             key={item.id}
                             className={`p-4 rounded-2xl border transition-all ${item.isRead
-                                ? "bg-zinc-50/40 dark:bg-zinc-900/30 border-zinc-200/50 dark:border-zinc-800/50 opacity-80"
-                                : "bg-indigo-50/15 dark:bg-indigo-950/15 border-indigo-200/60 dark:border-indigo-900/50 ring-2 ring-indigo-500/5 shadow-2xs"
+                              ? "bg-zinc-50/40 dark:bg-zinc-900/30 border-zinc-200/50 dark:border-zinc-800/50 opacity-80"
+                              : "bg-indigo-50/15 dark:bg-indigo-950/15 border-indigo-200/60 dark:border-indigo-900/50 ring-2 ring-indigo-500/5 shadow-2xs"
                               }`}
                           >
                             <div className="flex items-start gap-3">

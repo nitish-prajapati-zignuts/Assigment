@@ -93,6 +93,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
     { title: "Go to Meetings Catalog", icon: Calendar, action: () => navigateTo("/dashboard/meetings") },
     { title: "Go to Action Tracker", icon: CheckSquare, action: () => navigateTo("/dashboard/action-items") },
     { title: "Go to Archive", icon: Archive, action: () => navigateTo("/dashboard/archive") },
+    { title: "Go to Trash", icon: Archive, action: () => navigateTo("/dashboard/trash") },
     { title: "Go to Settings", icon: Settings, action: () => navigateTo("/dashboard/settings") },
   ];
 
@@ -337,7 +338,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   Close
                 </span>
               </div>
-              <span className="font-semibold text-indigo-500">MeetNotes Assistant</span>
+              <span className="font-semibold text-indigo-500">Syncra Assistant</span>
             </div>
           </motion.div>
         </div>

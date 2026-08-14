@@ -32,7 +32,7 @@ export function DashboardMetricsGrid({ metrics, isLoading }: DashboardMetricsGri
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
+      className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4"
     >
       {/* 1. Total Meetings */}
       <motion.div variants={cardVariants} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
@@ -133,11 +133,10 @@ export function DashboardMetricsGrid({ metrics, isLoading }: DashboardMetricsGri
       {/* 5. Overdue Action Items */}
       <motion.div variants={cardVariants} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
         <Card
-          className={`rounded-2xl border backdrop-blur-md transition-all duration-300 shadow-xs hover:shadow-md ${
-            metrics.overdueActionItems > 0
-              ? "border-red-200 dark:border-red-900/50 bg-red-50/40 dark:bg-red-950/20"
-              : "border-zinc-200/80 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-900/70 hover:border-zinc-300 dark:hover:border-zinc-700"
-          }`}
+          className={`rounded-2xl border backdrop-blur-md transition-all duration-300 shadow-xs hover:shadow-md ${metrics.overdueActionItems > 0
+            ? "border-red-200 dark:border-red-900/50 bg-red-50/40 dark:bg-red-950/20"
+            : "border-zinc-200/80 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-900/70 hover:border-zinc-300 dark:hover:border-zinc-700"
+            }`}
         >
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400">

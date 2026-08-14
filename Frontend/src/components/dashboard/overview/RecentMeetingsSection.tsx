@@ -31,7 +31,7 @@ export function RecentMeetingsSection({ isLoading, recentMeetings, onViewDetails
               Recently Created Meetings
             </CardTitle>
             <CardDescription className="text-xs text-zinc-500 dark:text-zinc-400">
-              Latest meeting notes and transcripts uploaded to MeetNotes.
+              Latest meeting notes and transcripts uploaded to Syncra.
             </CardDescription>
           </div>
           <Link href="/dashboard/meetings">

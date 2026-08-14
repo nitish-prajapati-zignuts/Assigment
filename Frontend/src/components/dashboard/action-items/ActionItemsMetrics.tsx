@@ -2,8 +2,9 @@
 
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckSquare, Clock, AlertCircle, AlertTriangle, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { ActionItemMetrics } from "./types";
+import { ActionItemsIcon, OpenItemsIcon, BlockedItemsIcon, OverdueItemsIcon } from "@/components/ui/dashboard-icons";
 
 interface ActionItemsMetricsProps {
   metrics: ActionItemMetrics;
@@ -29,7 +30,7 @@ export function ActionItemsMetricsCards({ metrics, isLoading }: ActionItemsMetri
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+      className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8"
     >
       {/* Total Action Items */}
       <motion.div variants={cardVariants} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
@@ -39,7 +40,7 @@ export function ActionItemsMetricsCards({ metrics, isLoading }: ActionItemsMetri
               Total Action Items
             </CardTitle>
             <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
-              <CheckSquare className="h-5 w-5" />
+              <ActionItemsIcon className="h-5 w-5" />
             </div>
           </CardHeader>
           <CardContent>
@@ -65,7 +66,7 @@ export function ActionItemsMetricsCards({ metrics, isLoading }: ActionItemsMetri
               In Progress Tasks
             </CardTitle>
             <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
-              <Clock className="h-5 w-5" />
+              <OpenItemsIcon className="h-5 w-5" />
             </div>
           </CardHeader>
           <CardContent>
@@ -91,7 +92,7 @@ export function ActionItemsMetricsCards({ metrics, isLoading }: ActionItemsMetri
               Blocked Tasks
             </CardTitle>
             <div className="p-2.5 rounded-xl bg-rose-500/10 text-rose-500">
-              <AlertCircle className="h-5 w-5" />
+              <BlockedItemsIcon className="h-5 w-5" />
             </div>
           </CardHeader>
           <CardContent>
@@ -123,7 +124,7 @@ export function ActionItemsMetricsCards({ metrics, isLoading }: ActionItemsMetri
               Overdue Tasks
             </CardTitle>
             <div className="p-2.5 rounded-xl bg-red-500/10 text-red-500">
-              <AlertTriangle className="h-5 w-5 animate-pulse" />
+              <OverdueItemsIcon className="h-5 w-5 animate-pulse" />
             </div>
           </CardHeader>
           <CardContent>

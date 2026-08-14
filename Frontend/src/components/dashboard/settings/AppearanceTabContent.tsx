@@ -71,7 +71,7 @@ export function AppearanceTabContent() {
           Interface Customization
         </h3>
         <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-          Customize how MeetNotes looks on your screen. Choose your default display mode or sync it with your system settings.
+          Customize how Syncra looks on your screen. Choose your default display mode or sync it with your system settings.
         </p>
       </div>
 
@@ -127,7 +127,7 @@ export function AppearanceTabContent() {
         <div>
           <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Brand Color Accent</h4>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-            Select a custom brand accent color to style buttons, badges, links, and highlights throughout MeetNotes.
+            Select a custom brand accent color to style buttons, badges, links, and highlights throughout Syncra.
           </p>
         </div>
 

@@ -128,7 +128,7 @@ export function ShortcutsDialog({ isOpen, onClose }: ShortcutsDialogProps) {
                 Press <kbd className="px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded font-mono text-[10px]">?</kbd>{" "}
                 anytime to open
               </span>
-              <span className="font-semibold text-indigo-500">MeetNotes Productivity</span>
+              <span className="font-semibold text-indigo-500">Syncra Productivity</span>
             </div>
           </motion.div>
         </div>

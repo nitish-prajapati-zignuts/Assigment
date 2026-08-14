@@ -197,7 +197,7 @@ export function buildExecutiveReportHTML(meeting: Meeting): string {
     }
 
     <div class="footer">
-      Generated automatically by <strong>MeetNotes AI Executive Assistant</strong> &bull; ${new Date().toLocaleDateString()}
+      Generated automatically by <strong>Syncra AI Executive Assistant</strong> &bull; ${new Date().toLocaleDateString()}
     </div>
   </div>
 </body>

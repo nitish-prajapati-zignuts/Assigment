@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MeetNotes - AI Meeting Assistant",
+  title: "Syncra - AI Meeting Assistant",
   description: "Manage, view, and search team meetings effortlessly.",
 };
 
