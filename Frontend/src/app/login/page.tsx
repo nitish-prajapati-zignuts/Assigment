@@ -195,35 +195,35 @@ export default function LoginPage() {
 
           {/* Form Card — Glass with gradient border */}
           <div className="gradient-border-wrap rounded-3xl p-[1px]">
-          <Card className="border-0 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl shadow-xl shadow-indigo-500/5 text-zinc-900 dark:text-zinc-100 rounded-3xl overflow-hidden">
-            <CardHeader className="space-y-1.5 text-center pb-2 pt-6">
-              <CardTitle className="text-xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
-                Sign In to Your Account
-              </CardTitle>
-              <CardDescription className="text-xs text-zinc-500 dark:text-zinc-400">
-                Enter your credentials to access meetings and action items
-              </CardDescription>
-            </CardHeader>
+            <Card className="border-0 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl shadow-xl shadow-indigo-500/5 text-zinc-900 dark:text-zinc-100 rounded-3xl overflow-hidden">
+              <CardHeader className="space-y-1.5 text-center pb-2 pt-6">
+                <CardTitle className="text-xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
+                  Sign In to Your Account
+                </CardTitle>
+                <CardDescription className="text-xs text-zinc-500 dark:text-zinc-400">
+                  Enter your credentials to access meetings and action items
+                </CardDescription>
+              </CardHeader>
 
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <CardContent className="space-y-4 pt-4">
-                {/* Error Alert Banner */}
-                {errorMessage && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="flex items-start gap-2.5 text-xs text-red-600 dark:text-red-400 bg-red-500/10 border border-red-500/20 p-3.5 rounded-2xl"
-                  >
-                    <AlertCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
-                    <span className="font-semibold leading-relaxed">{errorMessage}</span>
-                  </motion.div>
-                )}
+              <form onSubmit={handleSubmit(onSubmit)}>
+                <CardContent className="space-y-4 pt-4">
+                  {/* Error Alert Banner */}
+                  {errorMessage && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="flex items-start gap-2.5 text-xs text-red-600 dark:text-red-400 bg-red-500/10 border border-red-500/20 p-3.5 rounded-2xl"
+                    >
+                      <AlertCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+                      <span className="font-semibold leading-relaxed">{errorMessage}</span>
+                    </motion.div>
+                  )}
 
-                {/* Email Address Input */}
-                <div className="space-y-1.5">
-                  <Label htmlFor="email" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                    Email Address
-                  </Label>
+                  {/* Email Address Input */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="email" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                      Email Address
+                    </Label>
                     <div className="relative group input-focus-glow rounded-2xl transition-all">
                       <Mail className="absolute left-3.5 top-3.5 h-4 w-4 text-zinc-400 transition-colors group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400" />
                       <Input
@@ -234,24 +234,24 @@ export default function LoginPage() {
                         {...register("email")}
                       />
                     </div>
-                  {errors.email && (
-                    <p className="text-[11px] font-semibold text-red-500 pl-1">{errors.email.message}</p>
-                  )}
-                </div>
-
-                {/* Password Input */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                      Password
-                    </Label>
-                    <Link
-                      href="#"
-                      className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline transition-colors"
-                    >
-                      Forgot password?
-                    </Link>
+                    {errors.email && (
+                      <p className="text-[11px] font-semibold text-red-500 pl-1">{errors.email.message}</p>
+                    )}
                   </div>
+
+                  {/* Password Input */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="password" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                        Password
+                      </Label>
+                      <Link
+                        href="#"
+                        className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline transition-colors"
+                      >
+                        Forgot password?
+                      </Link>
+                    </div>
                     <div className="relative group input-focus-glow rounded-2xl transition-all">
                       <Lock className="absolute left-3.5 top-3.5 h-4 w-4 text-zinc-400 transition-colors group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400" />
                       <Input
@@ -261,54 +261,54 @@ export default function LoginPage() {
                         className="pl-10 pr-10 h-11 bg-zinc-50/50 dark:bg-zinc-950/40 border-zinc-200/60 dark:border-zinc-800/60 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 text-xs rounded-2xl transition-all focus-visible:ring-2 focus-visible:ring-indigo-500/40 focus-visible:ring-offset-0"
                         {...register("password")}
                       />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-3 p-1 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all"
-                      tabIndex={-1}
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3 p-1 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    {errors.password && (
+                      <p className="text-[11px] font-semibold text-red-500 pl-1">{errors.password.message}</p>
+                    )}
                   </div>
-                  {errors.password && (
-                    <p className="text-[11px] font-semibold text-red-500 pl-1">{errors.password.message}</p>
-                  )}
-                </div>
-              </CardContent>
+                </CardContent>
 
-              <CardFooter className="flex flex-col space-y-4 pt-6 pb-6">
-                <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }} className="w-full">
+                <CardFooter className="flex flex-col space-y-4 pt-6 pb-6">
+                  <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }} className="w-full">
                     <Button
                       type="submit"
                       className="w-full bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 hover:from-indigo-700 hover:via-violet-700 hover:to-purple-700 text-white font-bold h-11 rounded-2xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-indigo-500/25 shimmer-btn"
                       disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span>Signing in...</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>Sign In</span>
-                        <ArrowRight className="h-4 w-4 stroke-[2.2]" />
-                      </>
-                    )}
-                  </Button>
-                </motion.div>
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Signing in...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Sign In</span>
+                          <ArrowRight className="h-4 w-4 stroke-[2.2]" />
+                        </>
+                      )}
+                    </Button>
+                  </motion.div>
 
-                <p className="text-center text-xs text-zinc-500 dark:text-zinc-400 font-medium">
-                  Don&apos;t have an account?{" "}
-                  <Link
-                    href="/register"
-                    className="font-bold text-indigo-600 dark:text-indigo-400 hover:underline underline-offset-4"
-                  >
-                    Create an account
-                  </Link>
-                </p>
-              </CardFooter>
-            </form>
-          </Card>
+                  <p className="text-center text-xs text-zinc-500 dark:text-zinc-400 font-medium">
+                    Don&apos;t have an account?{" "}
+                    <Link
+                      href="/register"
+                      className="font-bold text-indigo-600 dark:text-indigo-400 hover:underline underline-offset-4"
+                    >
+                      Create an account
+                    </Link>
+                  </p>
+                </CardFooter>
+              </form>
+            </Card>
           </div>
         </motion.div>
       </div>

@@ -4,11 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { motion } from "framer-motion";
 import { Sun, Moon, Laptop, Palette, Check, ChevronDown, Sparkles } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from "@/components/ui/dropdown-menu";
 
 const primaryPalettes = [
   { id: "violet", name: "Royal Violet", bgClass: "bg-indigo-600 dark:bg-indigo-500" },
@@ -160,7 +156,9 @@ export function AppearanceDropdown() {
                   onClick={() => handleColorThemeChange(cp.id)}
                   title={cp.name}
                   className={`relative group p-1 rounded-full transition-all cursor-pointer ${
-                    isSelected ? "ring-2 ring-indigo-500 ring-offset-2 ring-offset-white dark:ring-offset-zinc-950 scale-110" : "hover:scale-105"
+                    isSelected
+                      ? "ring-2 ring-indigo-500 ring-offset-2 ring-offset-white dark:ring-offset-zinc-950 scale-110"
+                      : "hover:scale-105"
                   }`}
                 >
                   <div
@@ -191,7 +189,9 @@ export function AppearanceDropdown() {
                   onClick={() => handleSubColorChange(sub.id)}
                   title={`SubColor: ${sub.name}`}
                   className={`relative group p-1 rounded-full transition-all cursor-pointer ${
-                    isSelected ? "ring-2 ring-purple-500 ring-offset-2 ring-offset-white dark:ring-offset-zinc-950 scale-110" : "hover:scale-105"
+                    isSelected
+                      ? "ring-2 ring-purple-500 ring-offset-2 ring-offset-white dark:ring-offset-zinc-950 scale-110"
+                      : "hover:scale-105"
                   }`}
                 >
                   <div

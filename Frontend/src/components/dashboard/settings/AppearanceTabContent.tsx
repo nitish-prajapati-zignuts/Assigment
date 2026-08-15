@@ -114,7 +114,8 @@ export function AppearanceTabContent() {
           </span>
         </div>
         <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-          Customize how Syncra looks on your screen. Select your display mode and customize both Primary & SubColor accents to personalize cards, buttons, badges, and gradient highlights across all pages.
+          Customize how Syncra looks on your screen. Select your display mode and customize both Primary & SubColor
+          accents to personalize cards, buttons, badges, and gradient highlights across all pages.
         </p>
 
         {/* Dynamic Dual Accent Live Preview Banner */}
@@ -130,9 +131,7 @@ export function AppearanceTabContent() {
               </p>
             </div>
           </div>
-          <span className="px-3 py-1 bg-white/25 backdrop-blur-md rounded-lg text-xs font-bold">
-            Interactive Theme
-          </span>
+          <span className="px-3 py-1 bg-white/25 backdrop-blur-md rounded-lg text-xs font-bold">Interactive Theme</span>
         </div>
       </div>
 
@@ -229,7 +228,8 @@ export function AppearanceTabContent() {
             SubColor Accent Palette
           </h4>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-            Choose a complementary secondary accent color to build multi-tone gradients, secondary badges, and glowing card highlights.
+            Choose a complementary secondary accent color to build multi-tone gradients, secondary badges, and glowing
+            card highlights.
           </p>
         </div>
 
