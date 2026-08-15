@@ -31,6 +31,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import api from "@/lib/axios";
 import { NotificationItem } from "./NotificationDropdown";
+import { AppearanceDropdown } from "./AppearanceDropdown";
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -179,14 +180,14 @@ export function Sidebar() {
       .slice(0, 2) || "NP";
 
   const sidebarContent = (
-    <div className="flex h-full flex-col justify-between p-6 overflow-hidden">
+    <div className="flex h-full flex-col justify-between p-6 overflow-hidden sidebar-gradient">
       <div className="flex flex-col flex-1 min-h-0 overflow-y-auto pr-1">
         <div className="flex items-center justify-between mb-8 shrink-0">
           <Link href="/dashboard" className="flex items-center gap-3 group">
             <motion.div
               whileHover={{ scale: 1.05, rotate: 6 }}
               whileTap={{ scale: 0.95 }}
-              className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 text-white shadow-md shadow-indigo-500/20"
+              className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-dual text-white shadow-lg shadow-indigo-500/25 ring-1 ring-white/15"
             >
               {/* Modern Syncra branding SVG logo */}
               <svg
@@ -244,16 +245,16 @@ export function Sidebar() {
                 <motion.div
                   whileHover={{ x: 3 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors ${
+                  className={`relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-200 ${
                     isActive
-                      ? "text-zinc-900 dark:text-zinc-50 font-semibold"
-                      : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                      ? "text-zinc-900 dark:text-zinc-50 font-semibold nav-active-accent"
+                      : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100/60 dark:hover:bg-zinc-800/40"
                   }`}
                 >
                   {isActive && (
                     <motion.div
                       layoutId="activeSidebarPill"
-                      className="absolute inset-0 rounded-xl bg-zinc-100 dark:bg-zinc-800/90 border border-zinc-200/80 dark:border-zinc-700/50 shadow-sm"
+                      className="absolute inset-0 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/30 border border-indigo-200/30 dark:border-indigo-800/30 shadow-sm"
                       transition={{ type: "spring", stiffness: 350, damping: 30 }}
                     />
                   )}
@@ -287,11 +288,11 @@ export function Sidebar() {
         </nav>
       </div>
 
-      <div className="pt-4 border-t border-zinc-200/80 dark:border-zinc-800/80 flex items-center justify-between shrink-0">
+      <div className="pt-4 border-t border-zinc-200/50 dark:border-zinc-800/50 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <Avatar className="h-9 w-9 ring-2 ring-indigo-500/20">
+          <Avatar className="h-9 w-9 ring-2 ring-indigo-500/25 ring-offset-1 ring-offset-white dark:ring-offset-zinc-950">
             <AvatarImage src="" />
-            <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-xs font-bold text-white">
+            <AvatarFallback className="bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-600 text-xs font-bold text-white">
               {userInitials}
             </AvatarFallback>
           </Avatar>
@@ -335,6 +336,7 @@ export function Sidebar() {
           <span className="font-bold text-base text-zinc-900 dark:text-zinc-100">Syncra</span>
         </div>
         <div className="flex items-center gap-2">
+          <AppearanceDropdown />
           {/* Bell Trigger in Mobile Header Bar */}
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -386,7 +388,7 @@ export function Sidebar() {
       </aside>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-64 border-r border-zinc-200/80 bg-white dark:border-zinc-800/80 dark:bg-zinc-950 flex-col shrink-0 h-screen sticky top-0 overflow-hidden">
+      <aside className="hidden lg:flex w-64 border-r border-zinc-200/50 bg-white/80 dark:border-zinc-800/50 dark:bg-zinc-950/80 backdrop-blur-sm flex-col shrink-0 h-screen sticky top-0 overflow-hidden">
         {sidebarContent}
       </aside>
 
@@ -408,7 +410,7 @@ export function Sidebar() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed right-0 top-0 bottom-0 z-55 w-full max-w-md bg-white dark:bg-zinc-950 border-l border-zinc-200 dark:border-zinc-800/80 shadow-2xl flex flex-col"
+              className="fixed right-0 top-0 bottom-0 z-55 w-full max-w-md bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border-l border-zinc-200/50 dark:border-zinc-800/50 shadow-2xl flex flex-col"
             >
               {/* Drawer Header */}
               <div className="p-6 border-b border-zinc-200/80 dark:border-zinc-800/80 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-900/10">

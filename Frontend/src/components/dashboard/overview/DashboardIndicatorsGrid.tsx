@@ -21,7 +21,7 @@ export function DashboardIndicatorsGrid({ metrics }: DashboardIndicatorsGridProp
     >
       {/* Saved Transcripts Indicator */}
       <motion.div whileHover={{ y: -3, transition: { duration: 0.2 } }}>
-        <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md shadow-xs transition-all hover:shadow-md">
+        <Card className="rounded-2xl border border-blue-200/40 dark:border-blue-900/30 metric-card-indigo accent-bar-blue backdrop-blur-sm shadow-xs transition-all hover:shadow-elevated duration-300">
           <CardHeader className="flex flex-row items-start justify-between pb-2">
             <div className="space-y-1">
               <CardTitle className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
@@ -31,7 +31,7 @@ export function DashboardIndicatorsGrid({ metrics }: DashboardIndicatorsGridProp
                 Transcripts ready for AI summary and action extraction
               </CardDescription>
             </div>
-            <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+            <div className="p-2.5 rounded-xl bg-blue-500/10 dark:bg-blue-500/15 backdrop-blur-sm text-blue-600 dark:text-blue-400 ring-1 ring-blue-500/10">
               <FileText className="h-5 w-5" />
             </div>
           </CardHeader>
@@ -52,7 +52,7 @@ export function DashboardIndicatorsGrid({ metrics }: DashboardIndicatorsGridProp
 
       {/* Blocked Action Items Indicator */}
       <motion.div whileHover={{ y: -3, transition: { duration: 0.2 } }}>
-        <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md shadow-xs transition-all hover:shadow-md">
+        <Card className="rounded-2xl border border-rose-200/40 dark:border-rose-900/30 metric-card-red accent-bar-rose backdrop-blur-sm shadow-xs transition-all hover:shadow-elevated duration-300">
           <CardHeader className="flex flex-row items-start justify-between pb-2">
             <div className="space-y-1">
               <CardTitle className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Blocked Action Items</CardTitle>
@@ -60,7 +60,7 @@ export function DashboardIndicatorsGrid({ metrics }: DashboardIndicatorsGridProp
                 Tasks flagged with roadblocks or dependencies
               </CardDescription>
             </div>
-            <div className="p-2.5 rounded-xl bg-rose-500/10 text-rose-500">
+            <div className="p-2.5 rounded-xl bg-rose-500/10 dark:bg-rose-500/15 backdrop-blur-sm text-rose-500 ring-1 ring-rose-500/10">
               <AlertCircle className="h-5 w-5" />
             </div>
           </CardHeader>

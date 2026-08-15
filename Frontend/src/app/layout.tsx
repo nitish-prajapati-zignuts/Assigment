@@ -37,7 +37,9 @@ export default function RootLayout({
             __html: `
               try {
                 const theme = localStorage.getItem('color-theme') || 'violet';
+                const subTheme = localStorage.getItem('color-sub-theme') || 'cyan';
                 document.documentElement.setAttribute('data-color-theme', theme);
+                document.documentElement.setAttribute('data-color-subtheme', subTheme);
               } catch (_) {}
             `,
           }}

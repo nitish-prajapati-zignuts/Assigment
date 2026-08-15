@@ -45,7 +45,7 @@ export default function DashboardPage() {
   const chartsData: DashboardChartsData = dashboardData?.charts || {};
 
   return (
-    <div className="space-y-8 mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="space-y-8 mx-auto px-4 sm:px-6 lg:px-8 ">
       {/* Header */}
       <DashboardHeader />
 

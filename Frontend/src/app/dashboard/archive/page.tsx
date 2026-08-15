@@ -89,7 +89,7 @@ export default function ArchivePage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-white flex items-center gap-2">
-            <Archive className="h-6 w-6 text-indigo-500" />
+            <Archive className="h-6 w-6 text-[var(--brand)]" />
             <span>Archive Catalog</span>
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">

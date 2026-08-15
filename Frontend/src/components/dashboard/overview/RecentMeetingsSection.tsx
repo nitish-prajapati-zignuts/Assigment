@@ -24,8 +24,8 @@ export function RecentMeetingsSection({ isLoading, recentMeetings, onViewDetails
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.3 }}
     >
-      <Card className="rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md shadow-xs overflow-hidden">
-        <CardHeader className="flex flex-row items-center justify-between border-b border-zinc-100 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/50 py-4 px-6">
+      <Card className="rounded-2xl border border-zinc-200/50 dark:border-zinc-800/50 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-md shadow-elevated overflow-hidden gradient-top-stripe">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-zinc-100/80 dark:border-zinc-800/50 bg-gradient-to-r from-zinc-50/80 via-indigo-50/20 to-zinc-50/80 dark:from-zinc-900/50 dark:via-indigo-950/10 dark:to-zinc-900/50 py-4 px-6">
           <div className="space-y-0.5">
             <CardTitle className="text-base font-bold text-zinc-900 dark:text-zinc-100">
               Recently Created Meetings
@@ -49,7 +49,7 @@ export function RecentMeetingsSection({ isLoading, recentMeetings, onViewDetails
           <div className="hidden md:block overflow-x-auto">
             <Table className="w-full">
               <TableHeader>
-                <TableRow className="border-b border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/30 hover:bg-transparent">
+                <TableRow className="border-b border-zinc-200/50 dark:border-zinc-800/50 bg-gradient-to-r from-zinc-50/60 via-indigo-50/10 to-zinc-50/60 dark:from-zinc-900/30 dark:via-indigo-950/5 dark:to-zinc-900/30 hover:bg-transparent">
                   <TableHead className="font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider pl-6 py-3.5">
                     Title
                   </TableHead>
@@ -111,7 +111,7 @@ export function RecentMeetingsSection({ isLoading, recentMeetings, onViewDetails
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.05 }}
-                      className="border-b border-zinc-100 dark:border-zinc-800/50 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 transition-colors"
+                      className="border-b border-zinc-100/60 dark:border-zinc-800/40 hover:bg-indigo-50/30 dark:hover:bg-indigo-950/10 transition-all duration-200"
                     >
                       <TableCell className="font-medium pl-6 py-3.5">
                         <button
@@ -124,7 +124,7 @@ export function RecentMeetingsSection({ isLoading, recentMeetings, onViewDetails
                       <TableCell className="py-3.5">
                         <Badge
                           variant="outline"
-                          className="text-xs font-medium border-indigo-200 dark:border-indigo-900/50 bg-indigo-50/50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-300 rounded-lg"
+                          className="text-xs font-medium border-indigo-200/50 dark:border-indigo-900/40 bg-gradient-to-r from-indigo-50/80 to-violet-50/60 dark:from-indigo-950/40 dark:to-violet-950/30 text-indigo-700 dark:text-indigo-300 rounded-lg"
                         >
                           {meeting.type}
                         </Badge>

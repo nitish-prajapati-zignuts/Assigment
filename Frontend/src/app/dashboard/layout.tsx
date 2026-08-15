@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { CommandPalette } from "@/components/dashboard/CommandPalette";
 import { ShortcutsDialog } from "@/components/dashboard/ShortcutsDialog";
+import { AppearanceDropdown } from "@/components/dashboard/AppearanceDropdown";
 import { Search, Command } from "lucide-react";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -108,11 +109,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <Sidebar />
       <div className="flex-1 flex flex-col min-h-screen min-w-0">
         {/* Desktop Header bar at the top of every dashboard page */}
-        <header className="hidden lg:flex items-center justify-center px-8 py-4 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md sticky top-0 z-20">
-          <div className="w-full flex items-center justify-center">
+        <header className="hidden lg:flex items-center justify-between px-8 py-3.5 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md sticky top-0 z-20 border-b border-zinc-200/40 dark:border-zinc-800/40">
+          <div className="flex-1" />
+          <div className="flex-1 flex justify-center max-w-xl">
             <button
               onClick={() => setIsCommandPaletteOpen(true)}
-              className="flex w-1/2 items-center justify-between rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/80 dark:bg-zinc-900/80 px-4 py-2 shadow-2xs hover:bg-zinc-100 dark:hover:bg-zinc-800 text-xs font-semibold text-zinc-600 dark:text-zinc-300 transition-colors cursor-pointer"
+              className="flex w-full max-w-md items-center justify-between rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/80 dark:bg-zinc-900/80 px-4 py-2 shadow-2xs hover:bg-zinc-100 dark:hover:bg-zinc-800 text-xs font-semibold text-zinc-600 dark:text-zinc-300 transition-colors cursor-pointer"
             >
               <div className="flex items-center gap-2">
                 <Search className="h-4 w-4 text-indigo-500" />
@@ -123,9 +125,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </kbd>
             </button>
           </div>
+          <div className="flex-1 flex items-center justify-end">
+            <AppearanceDropdown />
+          </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 sm:p-12 lg:p-8 pt-16 lg:pt-4 min-w-0">{children}</main>
+        <main className="flex-1 overflow-y-auto p-4 sm:p-8 lg:p-8 pt-12 lg:pt-4 min-w-0">{children}</main>
       </div>
       <CommandPalette isOpen={isCommandPaletteOpen} onClose={() => setIsCommandPaletteOpen(false)} />
       <ShortcutsDialog isOpen={isShortcutsOpen} onClose={() => setIsShortcutsOpen(false)} />

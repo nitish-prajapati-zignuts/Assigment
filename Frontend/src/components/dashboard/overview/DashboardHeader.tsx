@@ -42,7 +42,7 @@ export function DashboardHeader() {
 
             <Link href="/dashboard/meetings">
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl shadow-md shadow-indigo-500/20 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold text-xs sm:text-sm">
+                <Button className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl shadow-md bg-gradient-dual hover:opacity-95 text-white font-semibold text-xs sm:text-sm">
                   <Plus className="h-4 w-4" />
                   Manage Meetings
                 </Button>

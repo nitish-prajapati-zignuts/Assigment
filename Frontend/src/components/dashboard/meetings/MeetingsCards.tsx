@@ -55,7 +55,7 @@ export function MeetingsCards({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ type: "spring", stiffness: 350, damping: 35 }}
-              className="p-4.5 rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md shadow-xs space-y-3"
+              className="p-4.5 rounded-2xl border border-zinc-200/50 dark:border-zinc-800/50 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-md shadow-xs hover:shadow-elevated hover:border-indigo-200/40 dark:hover:border-indigo-800/30 transition-all duration-300 space-y-3 gradient-top-stripe"
             >
               <div className="flex items-start justify-between gap-2">
                 <button

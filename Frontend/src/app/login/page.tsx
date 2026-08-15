@@ -114,18 +114,28 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative h-screen w-screen flex flex-col lg:flex-row bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 overflow-hidden">
+    <div className="relative h-screen w-screen flex flex-col lg:flex-row bg-background text-zinc-900 dark:text-zinc-100 overflow-hidden">
       {/* Ambient glowing gradients background */}
       <motion.div
-        animate={{ scale: [1, 1.1, 1], opacity: [0.15, 0.25, 0.15] }}
+        animate={{ scale: [1, 1.15, 1], opacity: [0.18, 0.3, 0.18] }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute -top-24 -left-20 w-[450px] h-[450px] bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full blur-3xl pointer-events-none"
+        className="absolute -top-24 -left-20 w-[500px] h-[500px] bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-600 rounded-full blur-[100px] pointer-events-none"
       />
       <motion.div
-        animate={{ scale: [1, 1.15, 1], opacity: [0.1, 0.2, 0.1] }}
+        animate={{ scale: [1, 1.2, 1], opacity: [0.12, 0.22, 0.12] }}
         transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute -bottom-24 -right-20 w-[450px] h-[450px] bg-gradient-to-tr from-purple-600 to-indigo-500 rounded-full blur-3xl pointer-events-none"
+        className="absolute -bottom-24 -right-20 w-[500px] h-[500px] bg-gradient-to-tr from-purple-600 via-pink-500 to-indigo-500 rounded-full blur-[100px] pointer-events-none"
       />
+      <motion.div
+        animate={{ scale: [1, 1.1, 1], opacity: [0.08, 0.15, 0.08] }}
+        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute top-1/3 right-1/4 w-[300px] h-[300px] bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-full blur-[80px] pointer-events-none"
+      />
+
+      {/* Floating geometric shapes */}
+      <div className="absolute top-[15%] left-[10%] w-16 h-16 border border-indigo-500/10 dark:border-indigo-400/10 rounded-2xl rotate-12 animate-float-slow pointer-events-none" />
+      <div className="absolute bottom-[20%] right-[15%] w-12 h-12 border border-purple-500/10 dark:border-purple-400/10 rounded-full animate-float-medium pointer-events-none" />
+      <div className="absolute top-[60%] left-[5%] w-8 h-8 bg-indigo-500/5 dark:bg-indigo-400/5 rounded-lg rotate-45 animate-float-medium pointer-events-none" />
 
       {/* Left Side: Modern SVG Illustration (50% width on Desktop, stacks on top on tablet/mobile) */}
       <div className="w-full lg:w-[50%] flex flex-col items-center justify-center p-8 lg:p-12 bg-indigo-50/5 dark:bg-zinc-900/5 border-b lg:border-b-0 lg:border-r border-zinc-200/50 dark:border-zinc-800/50 h-[40%] lg:h-full overflow-hidden">
@@ -157,7 +167,7 @@ export default function LoginPage() {
             <motion.div
               whileHover={{ scale: 1.05, rotate: 6 }}
               whileTap={{ scale: 0.95 }}
-              className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/25 ring-1 ring-white/20"
+              className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 via-violet-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30 ring-1 ring-white/20"
             >
               {/* Modern Syncra branding SVG logo */}
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-white">
@@ -183,8 +193,9 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Form Card */}
-          <Card className="border border-zinc-200/80 dark:border-zinc-800/80 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl shadow-xl shadow-indigo-500/5 text-zinc-900 dark:text-zinc-100 rounded-3xl overflow-hidden">
+          {/* Form Card — Glass with gradient border */}
+          <div className="gradient-border-wrap rounded-3xl p-[1px]">
+          <Card className="border-0 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl shadow-xl shadow-indigo-500/5 text-zinc-900 dark:text-zinc-100 rounded-3xl overflow-hidden">
             <CardHeader className="space-y-1.5 text-center pb-2 pt-6">
               <CardTitle className="text-xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
                 Sign In to Your Account
@@ -213,16 +224,16 @@ export default function LoginPage() {
                   <Label htmlFor="email" className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
                     Email Address
                   </Label>
-                  <div className="relative group">
-                    <Mail className="absolute left-3.5 top-3.5 h-4 w-4 text-zinc-400 transition-colors group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400" />
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="name@example.com"
-                      className="pl-10 h-11 bg-zinc-50/70 dark:bg-zinc-950/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 text-xs rounded-2xl transition-all focus-visible:ring-2 focus-visible:ring-indigo-500/40 focus-visible:ring-offset-0"
-                      {...register("email")}
-                    />
-                  </div>
+                    <div className="relative group input-focus-glow rounded-2xl transition-all">
+                      <Mail className="absolute left-3.5 top-3.5 h-4 w-4 text-zinc-400 transition-colors group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400" />
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="name@example.com"
+                        className="pl-10 h-11 bg-zinc-50/50 dark:bg-zinc-950/40 border-zinc-200/60 dark:border-zinc-800/60 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 text-xs rounded-2xl transition-all focus-visible:ring-2 focus-visible:ring-indigo-500/40 focus-visible:ring-offset-0"
+                        {...register("email")}
+                      />
+                    </div>
                   {errors.email && (
                     <p className="text-[11px] font-semibold text-red-500 pl-1">{errors.email.message}</p>
                   )}
@@ -241,15 +252,15 @@ export default function LoginPage() {
                       Forgot password?
                     </Link>
                   </div>
-                  <div className="relative group">
-                    <Lock className="absolute left-3.5 top-3.5 h-4 w-4 text-zinc-400 transition-colors group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400" />
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
-                      className="pl-10 pr-10 h-11 bg-zinc-50/70 dark:bg-zinc-950/50 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 text-xs rounded-2xl transition-all focus-visible:ring-2 focus-visible:ring-indigo-500/40 focus-visible:ring-offset-0"
-                      {...register("password")}
-                    />
+                    <div className="relative group input-focus-glow rounded-2xl transition-all">
+                      <Lock className="absolute left-3.5 top-3.5 h-4 w-4 text-zinc-400 transition-colors group-focus-within:text-indigo-600 dark:group-focus-within:text-indigo-400" />
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        className="pl-10 pr-10 h-11 bg-zinc-50/50 dark:bg-zinc-950/40 border-zinc-200/60 dark:border-zinc-800/60 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 text-xs rounded-2xl transition-all focus-visible:ring-2 focus-visible:ring-indigo-500/40 focus-visible:ring-offset-0"
+                        {...register("password")}
+                      />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
@@ -267,10 +278,10 @@ export default function LoginPage() {
 
               <CardFooter className="flex flex-col space-y-4 pt-6 pb-6">
                 <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }} className="w-full">
-                  <Button
-                    type="submit"
-                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold h-11 rounded-2xl flex items-center justify-center gap-2 transition-all shadow-md shadow-indigo-500/20"
-                    disabled={isLoading}
+                    <Button
+                      type="submit"
+                      className="w-full bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 hover:from-indigo-700 hover:via-violet-700 hover:to-purple-700 text-white font-bold h-11 rounded-2xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-indigo-500/25 shimmer-btn"
+                      disabled={isLoading}
                   >
                     {isLoading ? (
                       <>
@@ -298,6 +309,7 @@ export default function LoginPage() {
               </CardFooter>
             </form>
           </Card>
+          </div>
         </motion.div>
       </div>
     </div>
