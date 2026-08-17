@@ -48,6 +48,7 @@ export default function ActionTrackerPage() {
   // Delete modal states
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<ActionItemWithContext | null>(null);
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
 
   // TanStack Query for Meetings (referenced by action items)
   const { data: meetingsData } = useQuery({
@@ -191,27 +192,64 @@ export default function ActionTrackerPage() {
   });
 
   const handleBulkStatusChange = async (ids: string[], newStatus: ActionItem["status"]) => {
-    try {
-      await Promise.all(ids.map((id) => api.patch(`/action-items/${id}`, { status: newStatus })));
-      queryClient.invalidateQueries({ queryKey: ["actionItems"] });
-      queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
-    } catch (err) {
-      console.error("Bulk status change error:", err);
-      toast.error("Failed to execute bulk status update");
-    }
+    setIsBulkUpdating(true);
+    const promise = (async () => {
+      try {
+        await Promise.all(
+          ids.map((id) =>
+            callService({
+              serviceId: SERVICE_IDS.ACTION_ITEMS.UPDATE,
+              params: { id },
+              payload: { status: newStatus },
+            })
+          )
+        );
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["actionItems"] }),
+          queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] }),
+          queryClient.invalidateQueries({ queryKey: ["dashboardStats"] }),
+          queryClient.invalidateQueries({ queryKey: ["actionItemsLeaderboard"] }),
+        ]);
+      } finally {
+        setIsBulkUpdating(false);
+      }
+    })();
+
+    toast.promise(promise, {
+      loading: "Bulk updating task status...",
+      success: `Successfully updated ${ids.length} task(s) to "${newStatus}"!`,
+      error: "Failed to update selected tasks.",
+    });
   };
 
   const handleBulkDelete = async (ids: string[]) => {
-    try {
-      await Promise.all(ids.map((id) => api.delete(`/action-items/${id}`)));
-      queryClient.invalidateQueries({ queryKey: ["actionItems"] });
-      queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboardStats"] });
-    } catch (err) {
-      console.error("Bulk delete error:", err);
-      toast.error("Failed to execute bulk delete");
-    }
+    setIsBulkUpdating(true);
+    const promise = (async () => {
+      try {
+        await Promise.all(
+          ids.map((id) =>
+            callService({
+              serviceId: SERVICE_IDS.ACTION_ITEMS.DELETE,
+              params: { id },
+            })
+          )
+        );
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["actionItems"] }),
+          queryClient.invalidateQueries({ queryKey: ["allActionItemsMetrics"] }),
+          queryClient.invalidateQueries({ queryKey: ["dashboardStats"] }),
+          queryClient.invalidateQueries({ queryKey: ["actionItemsLeaderboard"] }),
+        ]);
+      } finally {
+        setIsBulkUpdating(false);
+      }
+    })();
+
+    toast.promise(promise, {
+      loading: "Bulk deleting selected tasks...",
+      success: `Successfully deleted ${ids.length} task(s)!`,
+      error: "Failed to delete selected tasks.",
+    });
   };
 
   const isDeleting = deleteActionItemMutation.isPending;
@@ -415,6 +453,7 @@ export default function ActionTrackerPage() {
             onDelete={handleOpenDeleteModal}
             onBulkStatusChange={handleBulkStatusChange}
             onBulkDelete={handleBulkDelete}
+            isBulkUpdating={isBulkUpdating}
           />
 
           {/* Mobile Responsive Cards View */}
@@ -442,6 +481,7 @@ export default function ActionTrackerPage() {
         itemsPerPage={ITEMS_PER_PAGE}
         isFilterActive={isFilterActive}
         displayCount={displayItems.length}
+        disabled={isBulkUpdating}
       />
 
       {/* Create / Edit Modal */}

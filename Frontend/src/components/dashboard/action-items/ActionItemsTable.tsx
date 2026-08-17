@@ -36,6 +36,7 @@ interface ActionItemsTableProps {
   onDelete: (item: ActionItemWithContext) => void;
   onBulkStatusChange?: (ids: string[], newStatus: ActionItem["status"]) => void;
   onBulkDelete?: (ids: string[]) => void;
+  isBulkUpdating?: boolean;
 }
 
 export function ActionItemsTable({
@@ -47,6 +48,7 @@ export function ActionItemsTable({
   onDelete,
   onBulkStatusChange,
   onBulkDelete,
+  isBulkUpdating = false,
 }: ActionItemsTableProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const BADGE_COLORS = [
@@ -87,8 +89,6 @@ export function ActionItemsTable({
     if (newStatus === "Completed") {
       triggerTaskCompletionConfetti();
       toast.success(`Marked ${selectedIds.length} task(s) as Completed! 🎉`);
-    } else {
-      toast.success(`Updated status for ${selectedIds.length} item(s)`);
     }
 
     setSelectedIds([]);
@@ -133,6 +133,7 @@ export function ActionItemsTable({
               size="sm"
               variant="secondary"
               onClick={() => handleBulkStatus("Completed")}
+              disabled={isBulkUpdating}
               className="h-8 text-xs bg-emerald-500 hover:bg-emerald-600 text-white border-0 gap-1"
             >
               <CheckCircle2 className="h-3.5 w-3.5" />
@@ -143,6 +144,7 @@ export function ActionItemsTable({
               size="sm"
               variant="secondary"
               onClick={() => handleBulkStatus("In Progress")}
+              disabled={isBulkUpdating}
               className="h-8 text-xs bg-blue-500 hover:bg-blue-600 text-white border-0 gap-1"
             >
               <Clock className="h-3.5 w-3.5" />
@@ -153,6 +155,7 @@ export function ActionItemsTable({
               size="sm"
               variant="secondary"
               onClick={() => handleBulkStatus("Blocked")}
+              disabled={isBulkUpdating}
               className="h-8 text-xs bg-red-500 hover:bg-red-600 text-white border-0 gap-1"
             >
               <AlertOctagon className="h-3.5 w-3.5" />
@@ -163,13 +166,14 @@ export function ActionItemsTable({
               size="sm"
               variant="outline"
               onClick={handleBulkExport}
+              disabled={isBulkUpdating}
               className="h-8 text-xs bg-white/10 hover:bg-white/20 text-white border-white/20 gap-1"
             >
               <FileSpreadsheet className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Export CSV</span>
             </Button>
 
-            <Button size="sm" variant="destructive" onClick={handleBulkDeleteAction} className="h-8 text-xs gap-1">
+            <Button size="sm" variant="destructive" onClick={handleBulkDeleteAction} disabled={isBulkUpdating} className="h-8 text-xs gap-1">
               <Trash2 className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Delete</span>
             </Button>
@@ -190,15 +194,16 @@ export function ActionItemsTable({
         <Table className="w-full max-w-8xl">
           <TableHeader>
             <TableRow className="border-b border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/30 hover:bg-transparent">
-              <TableHead className="w-10 pl-4 py-3.5">
+              <TableHead className="w-[1%] pl-4 py-3.5">
                 <input
                   type="checkbox"
                   checked={isAllSelected}
                   onChange={handleToggleSelectAll}
+                  disabled={isBulkUpdating}
                   className="rounded border-zinc-300 dark:border-zinc-700 text-indigo-600 focus:ring-indigo-500 h-4 w-4 cursor-pointer"
                 />
               </TableHead>
-              <TableHead className="w-[20%] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
+              <TableHead className="w-[20%] text-left font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
                 Task Description
               </TableHead>
               {/* <TableHead className="w-[15%] font-semibold text-xs text-zinc-500 dark:text-zinc-400 uppercase tracking-wider py-3.5">
@@ -274,15 +279,15 @@ export function ActionItemsTable({
                 return (
                   <TableRow
                     key={item.id}
-                    className={`border-b border-zinc-100 dark:border-zinc-800/50 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/50 transition-colors ${
-                      isSelected ? "bg-indigo-50/50 dark:bg-indigo-950/30" : ""
-                    }`}
+                    className={`border-b border-zinc-100 dark:border-zinc-800/50 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/50 transition-colors ${isSelected ? "bg-indigo-50/50 dark:bg-indigo-950/30" : ""
+                      }`}
                   >
-                    <TableCell className="pl-4 py-3.5">
+                    <TableCell className="w-[1%] pl-4">
                       <input
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => handleToggleSelectRow(item.id)}
+                        disabled={isBulkUpdating}
                         className="rounded border-zinc-300 dark:border-zinc-700 text-indigo-600 focus:ring-indigo-500 h-4 w-4 cursor-pointer"
                       />
                     </TableCell>
@@ -323,7 +328,7 @@ export function ActionItemsTable({
                       <Select
                         value={item.status}
                         onValueChange={(val) => onStatusChange(item.id, val as ActionItem["status"])}
-                        disabled={updatingItemId === item.id}
+                        disabled={updatingItemId === item.id || isBulkUpdating}
                       >
                         <SelectTrigger className="h-7 text-xs bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 w-28">
                           {updatingItemId === item.id ? (
@@ -346,6 +351,7 @@ export function ActionItemsTable({
                           size="icon"
                           variant="ghost"
                           onClick={() => onEdit(item)}
+                          disabled={isBulkUpdating}
                           className="h-7 w-7 text-zinc-500 hover:text-indigo-600"
                         >
                           <Edit className="h-3.5 w-3.5" />
@@ -354,6 +360,7 @@ export function ActionItemsTable({
                           size="icon"
                           variant="ghost"
                           onClick={() => onDelete(item)}
+                          disabled={isBulkUpdating}
                           className="h-7 w-7 text-zinc-500 hover:text-red-600"
                         >
                           <Trash2 className="h-3.5 w-3.5" />

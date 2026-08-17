@@ -9,6 +9,7 @@ interface ActionItemsPaginationProps {
   itemsPerPage: number;
   isFilterActive: boolean;
   displayCount: number;
+  disabled?: boolean;
 }
 
 export function ActionItemsPagination({
@@ -19,6 +20,7 @@ export function ActionItemsPagination({
   itemsPerPage,
   isFilterActive,
   displayCount,
+  disabled,
 }: ActionItemsPaginationProps) {
   if (isFilterActive && displayCount > 0) {
     return (
@@ -52,7 +54,7 @@ export function ActionItemsPagination({
           variant="outline"
           size="sm"
           onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-          disabled={currentPage === 1}
+          disabled={currentPage === 1 || disabled}
           className="h-8 px-2 sm:px-3 text-xs flex items-center gap-1 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 shrink-0"
         >
           <ChevronLeft className="h-3.5 w-3.5" />
@@ -89,6 +91,7 @@ export function ActionItemsPagination({
                   variant={currentPage === page ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setCurrentPage(page)}
+                  disabled={disabled}
                   className={`h-7 w-7 text-xs p-0 font-medium shrink-0 ${
                     currentPage === page
                       ? "bg-zinc-900 text-zinc-50 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
@@ -110,7 +113,7 @@ export function ActionItemsPagination({
           variant="outline"
           size="sm"
           onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-          disabled={currentPage === totalPages}
+          disabled={currentPage === totalPages || disabled}
           className="h-8 px-2 sm:px-3 text-xs flex items-center gap-1 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 shrink-0"
         >
           <span className="hidden xs:inline sm:inline">Next</span>
