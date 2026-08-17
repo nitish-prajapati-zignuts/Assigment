@@ -28,6 +28,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import api from "@/lib/axios";
 import { NotificationItem } from "./NotificationDropdown";
 import { AppearanceDropdown } from "./AppearanceDropdown";
+import pkg from "../../../package.json";
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -248,6 +249,9 @@ export function Sidebar() {
             <p className="font-semibold text-zinc-900 dark:text-zinc-100 truncate max-w-[110px]">{userName}</p>
             <p className="text-zinc-500 truncate max-w-[110px]" title={userEmail}>
               {userEmail}
+            </p>
+            <p className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 mt-0.5" title={`Frontend Version: v${pkg.version}`}>
+              v{pkg.version}
             </p>
           </div>
         </div>
