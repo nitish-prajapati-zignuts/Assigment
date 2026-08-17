@@ -238,7 +238,7 @@ export default function ArchivePage() {
             setIsDetailModalOpen(false);
             setViewingMeeting(null);
           }}
-          onEdit={() => { }}
+          onEdit={() => {}}
           meeting={viewingMeeting}
         />
       )}

@@ -39,7 +39,8 @@ export function AiTabContent({ settings, setSettings }: AiTabContentProps) {
               Custom AI System Prompt Rules
             </h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Set explicit priority instructions for the AI when analyzing meeting transcripts and extracting action items.
+              Set explicit priority instructions for the AI when analyzing meeting transcripts and extracting action
+              items.
             </p>
           </div>
           <span className="text-[11px] bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 px-3 py-1 rounded-full font-semibold border border-zinc-200 dark:border-zinc-800">
@@ -161,4 +162,3 @@ export function AiTabContent({ settings, setSettings }: AiTabContentProps) {
     </motion.div>
   );
 }
-

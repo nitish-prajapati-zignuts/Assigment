@@ -169,7 +169,12 @@ export function Sidebar() {
         <div className="flex items-center justify-between mb-8 shrink-0">
           <Link href="/dashboard" className="flex items-center gap-3 group">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-900 text-white dark:bg-white dark:text-zinc-950 shadow-xs">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 stroke-current">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 stroke-current"
+              >
                 <path d="M12 2L2 7L12 12L22 7L12 2Z" strokeWidth="2" strokeLinejoin="round" />
                 <path d="M2 17L12 22L22 17" strokeWidth="2" strokeLinejoin="round" />
                 <path d="M2 12L12 17L22 12" strokeWidth="2" strokeLinejoin="round" opacity="0.6" />
@@ -250,7 +255,10 @@ export function Sidebar() {
             <p className="text-zinc-500 truncate max-w-[110px]" title={userEmail}>
               {userEmail}
             </p>
-            <p className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 mt-0.5" title={`Frontend Version: v${pkg.version}`}>
+            <p
+              className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 mt-0.5"
+              title={`Frontend Version: v${pkg.version}`}
+            >
               v{pkg.version}
             </p>
           </div>
@@ -405,9 +413,7 @@ export function Sidebar() {
                     <CheckCircle2 className="h-8 w-8 text-zinc-300 dark:text-zinc-700" />
                     <div>
                       <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">No notifications</p>
-                      <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
-                        You have no alerts at this time.
-                      </p>
+                      <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">You have no alerts at this time.</p>
                     </div>
                   </div>
                 ) : (
@@ -461,4 +467,3 @@ export function Sidebar() {
     </>
   );
 }
-

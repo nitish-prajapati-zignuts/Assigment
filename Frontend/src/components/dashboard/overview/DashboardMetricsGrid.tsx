@@ -103,5 +103,3 @@ export function DashboardMetricsGrid({ metrics, isLoading }: DashboardMetricsGri
     </motion.div>
   );
 }
-
-

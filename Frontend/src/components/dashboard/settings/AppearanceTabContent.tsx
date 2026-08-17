@@ -51,7 +51,8 @@ export function AppearanceTabContent() {
           Display Theme Mode
         </h3>
         <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-          Select your display preference. The application uses a minimalist monochrome (Black & White) palette in both light and dark modes.
+          Select your display preference. The application uses a minimalist monochrome (Black & White) palette in both
+          light and dark modes.
         </p>
       </div>
 
@@ -87,7 +88,9 @@ export function AppearanceTabContent() {
               </div>
 
               {/* Visual preview block */}
-              <div className={`mt-4 w-full h-12 rounded-lg border border-inherit p-2 ${t.bgColor} opacity-90 overflow-hidden flex flex-col gap-1`}>
+              <div
+                className={`mt-4 w-full h-12 rounded-lg border border-inherit p-2 ${t.bgColor} opacity-90 overflow-hidden flex flex-col gap-1`}
+              >
                 <div className={`h-2 w-12 rounded-xs ${t.accentBg}`} />
                 <div className="flex gap-1">
                   <div className={`h-2 w-full rounded-xs ${t.accentBg} opacity-30`} />

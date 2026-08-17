@@ -71,4 +71,3 @@ export function DashboardIndicatorsGrid({ metrics }: DashboardIndicatorsGridProp
     </div>
   );
 }
-
