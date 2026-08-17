@@ -1,3 +1,11 @@
+# [1.3.0](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/compare/v1.2.0...v1.3.0) (2026-08-17)
+
+
+### Features
+
+* add automated stale issue and pull request cleanup workflow ([f2015ad](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/commit/f2015ad6d46308697ab751126ff00d8fccce71d4))
+* add Dockerfiles and docker-compose configuration for local stack deployment ([58b136c](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/commit/58b136c9e029be084d8c7f18b6ec4c65d098347c))
+
 # [1.2.0](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/compare/v1.1.0...v1.2.0) (2026-08-17)
 
 
