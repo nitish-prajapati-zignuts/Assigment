@@ -1,0 +1,33 @@
+name: Dependency Security Audit
+
+on:
+  schedule:
+    # Run daily at midnight UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Allow manual triggers
+
+jobs:
+  audit:
+    name: Security Vulnerability Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Audit Root Dependencies
+        run: npm audit --audit-level=high
+
+      - name: Audit Backend Dependencies
+        run: |
+          cd Backend
+          npm audit --audit-level=high
+
+      - name: Audit Frontend Dependencies
+        run: |
+          cd Frontend
+          npm audit --audit-level=high
