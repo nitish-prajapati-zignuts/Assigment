@@ -1,0 +1,51 @@
+name: Stale Issue & PR Cleanup
+
+on:
+  schedule:
+    # Run daily at 3 AM UTC
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    name: Close Stale Issues & PRs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mark & Close Stale Items
+        uses: actions/stale@v9
+        with:
+          # Issues
+          days-before-issue-stale: 30
+          days-before-issue-close: 7
+          stale-issue-label: "stale"
+          stale-issue-message: >
+            This issue has been automatically marked as **stale** because it has
+            not had any activity for 30 days. It will be closed in 7 days if no
+            further activity occurs. If this issue is still relevant, please
+            leave a comment or remove the `stale` label.
+          close-issue-message: >
+            This issue has been automatically closed due to inactivity.
+            Feel free to reopen it if you believe it still needs attention.
+
+          # Pull Requests
+          days-before-pr-stale: 14
+          days-before-pr-close: 7
+          stale-pr-label: "stale"
+          stale-pr-message: >
+            This pull request has been automatically marked as **stale** because
+            it has not had any activity for 14 days. It will be closed in 7 days
+            if no further activity occurs.
+          close-pr-message: >
+            This pull request has been automatically closed due to inactivity.
+            Feel free to reopen it if you'd like to continue working on it.
+
+          # Exempt labels from being marked stale
+          exempt-issue-labels: "pinned,security,bug"
+          exempt-pr-labels: "pinned,dependencies"
+
+          # Process limits
+          operations-per-run: 50
