@@ -3,7 +3,7 @@
   "info": {
     "title": "Syncra AI Meeting Notes API Documentation",
     "version": "1.0.0",
-    "description": "API endpoints for authentication, meeting note processing, task extraction, and action tracking."
+    "description": "API endpoints for authentication, meeting note processing, task extraction, and action tracking using centralized serviceIds."
   },
   "servers": [
     {
@@ -136,6 +136,766 @@
             "example": 1
           }
         }
+      },
+      "AuthRegisterRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "payload"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "auth.register"
+            ]
+          },
+          "payload": {
+            "$ref": "#/components/schemas/RegisterInput"
+          }
+        }
+      },
+      "AuthLoginRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "payload"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "auth.login"
+            ]
+          },
+          "payload": {
+            "$ref": "#/components/schemas/LoginInput"
+          }
+        }
+      },
+      "AuthLogoutRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "auth.logout"
+            ]
+          }
+        }
+      },
+      "AuthMeRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "auth.me"
+            ]
+          }
+        }
+      },
+      "AuthUsersRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "auth.users"
+            ]
+          }
+        }
+      },
+      "AuthChangePasswordRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "payload"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "auth.changePassword"
+            ]
+          },
+          "payload": {
+            "type": "object",
+            "description": "Payload structure"
+          }
+        }
+      },
+      "MeetingsListRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.list"
+            ]
+          },
+          "query": {
+            "type": "object",
+            "description": "Query filters/pagination parameters"
+          }
+        }
+      },
+      "MeetingsGetRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.get"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "MeetingsCreateRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "payload"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.create"
+            ]
+          },
+          "payload": {
+            "$ref": "#/components/schemas/MeetingInput"
+          }
+        }
+      },
+      "MeetingsUpdateRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "payload",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.update"
+            ]
+          },
+          "payload": {
+            "$ref": "#/components/schemas/MeetingInput"
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "MeetingsDeleteRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.delete"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "MeetingsSummarizeRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.summarize"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "MeetingsChatRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "payload",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.chat"
+            ]
+          },
+          "payload": {
+            "type": "object",
+            "description": "Payload structure"
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "MeetingsPublishRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.publish"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "MeetingsArchiveRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.archive"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "MeetingsUnarchiveRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.unarchive"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "MeetingsRestoreRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.restore"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "MeetingsPinRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.pin"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "MeetingsCloneRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "payload"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.clone"
+            ]
+          },
+          "payload": {
+            "type": "object",
+            "description": "Payload structure"
+          }
+        }
+      },
+      "MeetingsPermanentDeleteRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.permanentDelete"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "MeetingsPublicShareGetRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.publicShareGet"
+            ]
+          }
+        }
+      },
+      "ActionItemsListRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "actionItems.list"
+            ]
+          },
+          "query": {
+            "type": "object",
+            "description": "Query filters/pagination parameters"
+          }
+        }
+      },
+      "ActionItemsGetRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "actionItems.get"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "ActionItemsGetByMeetingRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "actionItems.getByMeeting"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "ActionItemsLeaderboardRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "actionItems.leaderboard"
+            ]
+          }
+        }
+      },
+      "ActionItemsCreateRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "payload"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "actionItems.create"
+            ]
+          },
+          "payload": {
+            "$ref": "#/components/schemas/ActionItemInput"
+          }
+        }
+      },
+      "ActionItemsUpdateRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "payload",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "actionItems.update"
+            ]
+          },
+          "payload": {
+            "type": "object",
+            "description": "Payload structure"
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "ActionItemsDeleteRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "actionItems.delete"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "DashboardStatsRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "dashboard.stats"
+            ]
+          }
+        }
+      },
+      "SettingsGetRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "settings.get"
+            ]
+          }
+        }
+      },
+      "SettingsUpdateRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "settings.update"
+            ]
+          }
+        }
+      },
+      "SettingsSessionsRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "settings.sessions"
+            ]
+          }
+        }
+      },
+      "NotificationsListRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "notifications.list"
+            ]
+          }
+        }
+      },
+      "NotificationsReadAllRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "notifications.readAll"
+            ]
+          }
+        }
+      },
+      "NotificationsClearRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "notifications.clear"
+            ]
+          }
+        }
+      },
+      "JobsGetRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "jobs.get"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
       }
     }
   },
@@ -157,32 +917,116 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "required": [
-                  "serviceId"
-                ],
-                "properties": {
-                  "serviceId": {
-                    "type": "string",
-                    "description": "The unique identifier of the target service (e.g. 'meetings.list', 'actionItems.create')",
-                    "example": "dashboard.stats"
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/AuthRegisterRequest"
                   },
-                  "payload": {
-                    "type": "object",
-                    "description": "Optional payload for the service (equivalent to req.body)",
-                    "example": {}
+                  {
+                    "$ref": "#/components/schemas/AuthLoginRequest"
                   },
-                  "params": {
-                    "type": "object",
-                    "description": "Optional parameters for the service path (equivalent to req.params)",
-                    "example": {}
+                  {
+                    "$ref": "#/components/schemas/AuthLogoutRequest"
                   },
-                  "query": {
-                    "type": "object",
-                    "description": "Optional query parameters for the service (equivalent to req.query)",
-                    "example": {}
+                  {
+                    "$ref": "#/components/schemas/AuthMeRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/AuthUsersRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/AuthChangePasswordRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsListRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsGetRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsCreateRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsUpdateRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsDeleteRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsSummarizeRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsChatRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsPublishRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsArchiveRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsUnarchiveRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsRestoreRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsPinRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsCloneRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsPermanentDeleteRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsPublicShareGetRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ActionItemsListRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ActionItemsGetRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ActionItemsGetByMeetingRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ActionItemsLeaderboardRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ActionItemsCreateRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ActionItemsUpdateRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ActionItemsDeleteRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/DashboardStatsRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SettingsGetRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SettingsUpdateRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SettingsSessionsRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/NotificationsListRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/NotificationsReadAllRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/NotificationsClearRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/JobsGetRequest"
                   }
-                }
+                ]
               }
             }
           }
@@ -249,342 +1093,6 @@
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "/api/auth/register": {
-      "post": {
-        "summary": "Register a new user account",
-        "tags": [
-          "Authentication"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RegisterInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "User created successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "token": {
-                      "type": "string"
-                    },
-                    "user": {
-                      "type": "object"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/auth/login": {
-      "post": {
-        "summary": "Authenticate user credentials",
-        "tags": [
-          "Authentication"
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LoginInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Authenticated successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "token": {
-                      "type": "string"
-                    },
-                    "user": {
-                      "type": "object"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/auth/me": {
-      "get": {
-        "summary": "Retrieve currently authenticated user metadata",
-        "tags": [
-          "Authentication"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      }
-    },
-    "/api/meetings": {
-      "get": {
-        "summary": "List all meeting notes catalogs",
-        "tags": [
-          "Meetings"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of meetings retrieved successfully"
-          }
-        }
-      },
-      "post": {
-        "summary": "Upload a new meeting transcript and auto-extract items",
-        "tags": [
-          "Meetings"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MeetingInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Meeting uploaded successfully"
-          }
-        }
-      }
-    },
-    "/api/meetings/{id}": {
-      "get": {
-        "summary": "Get specific meeting details",
-        "tags": [
-          "Meetings"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      },
-      "put": {
-        "summary": "Update specific meeting summary/transcript",
-        "tags": [
-          "Meetings"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MeetingInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete specific meeting note",
-        "tags": [
-          "Meetings"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      }
-    },
-    "/api/action-items": {
-      "get": {
-        "summary": "List all action tracker tasks",
-        "tags": [
-          "Action Items"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List retrieved successfully"
-          }
-        }
-      },
-      "post": {
-        "summary": "Create new custom action item task manually",
-        "tags": [
-          "Action Items"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ActionItemInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Action item created successfully"
-          }
-        }
-      }
-    },
-    "/api/action-items/{id}": {
-      "put": {
-        "summary": "Update specific action item details",
-        "tags": [
-          "Action Items"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ActionItemInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete specific action tracker item",
-        "tags": [
-          "Action Items"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
           }
         }
       }

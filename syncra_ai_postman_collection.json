@@ -1,0 +1,1204 @@
+{
+  "info": {
+    "name": "Syncra AI Services Collection",
+    "description": "Postman collection detailing all Syncra AI Service Router endpoint requests. Import this into Postman to test backend dispatcher services directly.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User (auth.register)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"auth.register\",\n  \"payload\": {\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"password\": \"password123\"\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login User (auth.login)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"auth.login\",\n  \"payload\": {\n    \"email\": \"john@example.com\",\n    \"password\": \"password123\"\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Logout Session (auth.logout)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"auth.logout\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Current User Profile (auth.me)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"auth.me\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List All Registered Users (auth.users)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"auth.users\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Change Password (auth.changePassword)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"auth.changePassword\",\n  \"payload\": {\n    \"oldPassword\": \"password123\",\n    \"newPassword\": \"newpassword123\"\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Meetings",
+      "item": [
+        {
+          "name": "List Meetings (meetings.list)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"meetings.list\",\n  \"query\": {\n    \"page\": 1,\n    \"limit\": 10,\n    \"sortBy\": \"date\",\n    \"sortOrder\": \"desc\"\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Specific Meeting (meetings.get)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"meetings.get\",\n  \"params\": {\n    \"id\": \"65b9c1f2d3a4e5b6c7d8e9f0\"\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Meeting (meetings.create)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"meetings.create\",\n  \"payload\": {\n    \"title\": \"Sprint Planning Meeting\",\n    \"transcript\": \"Maya: Let's scope tasks. Devon: I will tokenize the CSS variables. Nitish: I will update the sidebar.\",\n    \"date\": \"2026-08-17\",\n    \"description\": \"Reviewing sprint board items and dark mode updates\"\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Meeting (meetings.update)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"meetings.update\",\n  \"params\": {\n    \"id\": \"65b9c1f2d3a4e5b6c7d8e9f0\"\n  },\n  \"payload\": {\n    \"title\": \"Sprint Planning Meeting - Updated\",\n    \"transcript\": \"Maya: Let's scope tasks. Devon: Tokenizing CSS variables is 80% done. Nitish: Sidebar is updated.\"\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Meeting (meetings.delete)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"meetings.delete\",\n  \"params\": {\n    \"id\": \"65b9c1f2d3a4e5b6c7d8e9f0\"\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Trigger AI Summarization (meetings.summarize)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"meetings.summarize\",\n  \"params\": {\n    \"id\": \"65b9c1f2d3a4e5b6c7d8e9f0\"\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Chat with Meeting Context (meetings.chat)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"meetings.chat\",\n  \"params\": {\n    \"id\": \"65b9c1f2d3a4e5b6c7d8e9f0\"\n  },\n  \"payload\": {\n    \"message\": \"What is the main topic discussed in this meeting?\"\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Publish Meeting Note (meetings.publish)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"meetings.publish\",\n  \"params\": {\n    \"id\": \"65b9c1f2d3a4e5b6c7d8e9f0\"\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Archive Meeting (meetings.archive)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"meetings.archive\",\n  \"params\": {\n    \"id\": \"65b9c1f2d3a4e5b6c7d8e9f0\"\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Unarchive Meeting (meetings.unarchive)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"meetings.unarchive\",\n  \"params\": {\n    \"id\": \"65b9c1f2d3a4e5b6c7d8e9f0\"\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Restore Trashed Meeting (meetings.restore)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"meetings.restore\",\n  \"params\": {\n    \"id\": \"65b9c1f2d3a4e5b6c7d8e9f0\"\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pin Meeting (meetings.pin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"meetings.pin\",\n  \"params\": {\n    \"id\": \"65b9c1f2d3a4e5b6c7d8e9f0\"\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Clone Meeting (meetings.clone)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"meetings.clone\",\n  \"payload\": {\n    \"meeting\": {\n      \"title\": \"Cloned Team Sync\",\n      \"transcript\": \"Maya: Reviewing roadmap notes.\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Permanently Delete Meeting (meetings.permanentDelete)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"meetings.permanentDelete\",\n  \"params\": {\n    \"id\": \"65b9c1f2d3a4e5b6c7d8e9f0\"\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Shared Meeting Details (meetings.publicShareGet)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"meetings.publicShareGet\",\n  \"params\": {\n    \"token\": \"share-token-xyz-123\"\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Action Items",
+      "item": [
+        {
+          "name": "List Action Items (actionItems.list)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"actionItems.list\",\n  \"query\": {\n    \"page\": 1,\n    \"limit\": 10,\n    \"status\": \"Pending\",\n    \"priority\": \"High\"\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Specific Action Item (actionItems.get)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"actionItems.get\",\n  \"params\": {\n    \"id\": \"65b9c1f2d3a4e5b6c7d8e9f1\"\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Action Items By Meeting (actionItems.getByMeeting)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"actionItems.getByMeeting\",\n  \"params\": {\n    \"meetingId\": \"65b9c1f2d3a4e5b6c7d8e9f0\"\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Retrieve Leaderboard (actionItems.leaderboard)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"actionItems.leaderboard\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Action Item (actionItems.create)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"actionItems.create\",\n  \"payload\": {\n    \"task\": \"Review dark mode canvas charts palette design\",\n    \"owner\": \"Devon Developer\",\n    \"dueDate\": \"2026-08-25\",\n    \"priority\": \"High\",\n    \"status\": \"Pending\",\n    \"meetingId\": 1\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Action Item (actionItems.update)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"actionItems.update\",\n  \"params\": {\n    \"id\": \"65b9c1f2d3a4e5b6c7d8e9f1\"\n  },\n  \"payload\": {\n    \"status\": \"In Progress\"\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Action Item (actionItems.delete)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"actionItems.delete\",\n  \"params\": {\n    \"id\": \"65b9c1f2d3a4e5b6c7d8e9f1\"\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Dashboard Stats (dashboard.stats)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"dashboard.stats\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "item": [
+        {
+          "name": "Get Settings (settings.get)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"settings.get\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Settings (settings.update)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"settings.update\",\n  \"payload\": {\n    \"theme\": \"dark\",\n    \"language\": \"en\",\n    \"timezone\": \"America/New_York\"\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Active User Sessions (settings.sessions)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"settings.sessions\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "List User Notifications (notifications.list)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"notifications.list\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark All as Read (notifications.readAll)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"notifications.readAll\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Clear All Notifications (notifications.clear)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"notifications.clear\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Jobs",
+      "item": [
+        {
+          "name": "Get Background Job Status (jobs.get)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"jobs.get\",\n  \"params\": {\n    \"id\": \"job-uuid-12345\"\n  }\n}"
+            },
+            "url": {
+              "raw": "http://localhost:4000/api/service",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "4000",
+              "path": [
+                "api",
+                "service"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ]
+}

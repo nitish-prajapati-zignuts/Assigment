@@ -218,7 +218,6 @@ export const getMe = asyncHandler(async (req: AuthenticatedRequest, res: Respons
 export const changePassword = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { currentPassword, newPassword, confirmPassword } = req.body;
-    console.log(currentPassword, newPassword, confirmPassword);
     if (!req.user) {
       throw new AuthenticationError("Not Authenticated");
     }
@@ -232,7 +231,6 @@ export const changePassword = asyncHandler(async (req: AuthenticatedRequest, res
     });
 
     const currentUser = await db.select().from(users).where(eq(users.id, req.user?.userId));
-    console.log(currentUser);
     const user = currentUser[0];
 
     const isMatch = await bcrypt.compare(currentPassword, user.password);

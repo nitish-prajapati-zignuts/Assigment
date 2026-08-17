@@ -36,7 +36,6 @@ export const errorHandler = (error: Error | AppError, req: Request, res: Respons
   } else {
     logger.info(message, logContext);
   }
-  console.log("Response", message);
   // Format error response
   const response: ErrorResponse = {
     error: code,
@@ -45,8 +44,6 @@ export const errorHandler = (error: Error | AppError, req: Request, res: Respons
     statusCode,
     ...(details && Object.keys(details).length > 0 && { details }),
   };
-
-  console.log(response);
 
   res.status(statusCode).json(response);
 };

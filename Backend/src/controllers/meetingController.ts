@@ -87,7 +87,6 @@ export const getMeetings = asyncHandler(async (req: AuthenticatedRequest, res: R
       .groupBy(meetings.id)
       .orderBy(desc(meetings.createdAt));
     appendDebugLog(JSON.stringify(allMeetings));
-    console.log("All Meetings", allMeetings);
 
     // Filter meetings where user is a participant
     let userMeetings = allMeetings.filter(

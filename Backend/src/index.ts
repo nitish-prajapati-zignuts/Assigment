@@ -3,6 +3,10 @@ import dotenv from "dotenv";
 // Load environment variables FIRST before any other imports
 dotenv.config();
 
+import { generateDocs } from "./utils/docGenerator";
+// Run document generation to ensure Swagger, Postman collection, and Frontend ServiceIds are in sync
+generateDocs();
+
 import express, { Request, Response } from "express";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
@@ -130,28 +134,10 @@ app.get(
       endpoints: {
         health: "GET /health",
         diagnostics: isDevelopment() ? "GET /api/diagnostics" : undefined,
-        auth: {
-          register: "POST /api/auth/register",
-          login: "POST /api/auth/login",
-          logout: "POST /api/auth/logout",
-          me: "GET /api/auth/me",
-          users: "GET /api/auth/users",
-        },
-        meetings: {
-          list: "GET /api/meetings",
-          create: "POST /api/meetings",
-          get: "GET /api/meetings/:id",
-          update: "PUT /api/meetings/:id",
-          delete: "DELETE /api/meetings/:id",
-          summarize: "POST /api/meetings/:id/summarize",
-        },
-        actionItems: {
-          list: "GET /api/action-items",
-          create: "POST /api/action-items",
-          get: "GET /api/action-items/:id",
-          update: "PUT /api/action-items/:id",
-          delete: "DELETE /api/action-items/:id",
-        },
+        serviceGateway: {
+          dispatch: "POST /api/service",
+          registry: "GET /api/service/registry"
+        }
       },
       documentation: "/api-docs",
     });
