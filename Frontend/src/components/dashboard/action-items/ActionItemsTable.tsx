@@ -173,7 +173,13 @@ export function ActionItemsTable({
               <span className="hidden sm:inline">Export CSV</span>
             </Button>
 
-            <Button size="sm" variant="destructive" onClick={handleBulkDeleteAction} disabled={isBulkUpdating} className="h-8 text-xs gap-1">
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={handleBulkDeleteAction}
+              disabled={isBulkUpdating}
+              className="h-8 text-xs gap-1"
+            >
               <Trash2 className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Delete</span>
             </Button>
@@ -279,8 +285,9 @@ export function ActionItemsTable({
                 return (
                   <TableRow
                     key={item.id}
-                    className={`border-b border-zinc-100 dark:border-zinc-800/50 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/50 transition-colors ${isSelected ? "bg-indigo-50/50 dark:bg-indigo-950/30" : ""
-                      }`}
+                    className={`border-b border-zinc-100 dark:border-zinc-800/50 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/50 transition-colors ${
+                      isSelected ? "bg-indigo-50/50 dark:bg-indigo-950/30" : ""
+                    }`}
                   >
                     <TableCell className="w-[1%] pl-4">
                       <input

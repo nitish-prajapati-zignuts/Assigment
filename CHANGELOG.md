@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/compare/v1.1.0...v1.2.0) (2026-08-17)
+
+
+### Features
+
+* add GitHub issue templates and automation workflow for feature recommendation tracking ([85adadd](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/commit/85adadd99ff50723444e1eb9b050c848b347fd78))
+
 # [1.1.0](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/compare/v1.0.0...v1.1.0) (2026-08-17)
 
 

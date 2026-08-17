@@ -57,11 +57,10 @@ export const SERVICE_IDS = {
 export type SERVICE_IDS_TYPE = typeof SERVICE_IDS;
 
 export type ServiceId =
-  | typeof SERVICE_IDS.MEETINGS[keyof typeof SERVICE_IDS.MEETINGS]
-  | typeof SERVICE_IDS.ACTION_ITEMS[keyof typeof SERVICE_IDS.ACTION_ITEMS]
-  | typeof SERVICE_IDS.DASHBOARD[keyof typeof SERVICE_IDS.DASHBOARD]
-  | typeof SERVICE_IDS.SETTINGS[keyof typeof SERVICE_IDS.SETTINGS]
-  | typeof SERVICE_IDS.NOTIFICATIONS[keyof typeof SERVICE_IDS.NOTIFICATIONS]
-  | typeof SERVICE_IDS.JOBS[keyof typeof SERVICE_IDS.JOBS]
-  | typeof SERVICE_IDS.AUTH[keyof typeof SERVICE_IDS.AUTH];
-
+  | (typeof SERVICE_IDS.MEETINGS)[keyof typeof SERVICE_IDS.MEETINGS]
+  | (typeof SERVICE_IDS.ACTION_ITEMS)[keyof typeof SERVICE_IDS.ACTION_ITEMS]
+  | (typeof SERVICE_IDS.DASHBOARD)[keyof typeof SERVICE_IDS.DASHBOARD]
+  | (typeof SERVICE_IDS.SETTINGS)[keyof typeof SERVICE_IDS.SETTINGS]
+  | (typeof SERVICE_IDS.NOTIFICATIONS)[keyof typeof SERVICE_IDS.NOTIFICATIONS]
+  | (typeof SERVICE_IDS.JOBS)[keyof typeof SERVICE_IDS.JOBS]
+  | (typeof SERVICE_IDS.AUTH)[keyof typeof SERVICE_IDS.AUTH];

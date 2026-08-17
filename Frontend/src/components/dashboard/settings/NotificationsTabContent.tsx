@@ -81,4 +81,3 @@ export function NotificationsTabContent({ settings, setSettings }: Notifications
     </motion.div>
   );
 }
-

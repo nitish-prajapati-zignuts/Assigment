@@ -1,6 +1,6 @@
 {
   "name": "ai-meeting-notes",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "AI-Powered Meeting Notes & Action Item Tracking System",
   "main": "dist/index.js",
   "scripts": {
@@ -20,11 +20,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@ai-sdk/google": "^4.0.34",
+    "@ai-sdk/google": "^4.0.44",
     "@ai-sdk/openai": "^4.0.41",
-    "@ai-sdk/xai": "^4.0.33",
+    "@ai-sdk/xai": "^4.0.38",
     "@neondatabase/serverless": "^1.1.0",
-    "ai": "^7.0.52",
+    "ai": "^7.0.65",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.6",

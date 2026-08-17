@@ -1,13 +1,6 @@
 import { ZodSchema } from "zod";
 import { Request, Response } from "express";
-import {
-  register,
-  login,
-  logout,
-  getUsers,
-  getMe,
-  changePassword,
-} from "../controllers/authController";
+import { register, login, logout, getUsers, getMe, changePassword } from "../controllers/authController";
 import {
   getMeetings,
   getMeetingById,
@@ -35,16 +28,8 @@ import {
   deleteActionItem,
 } from "../controllers/actionItemController";
 import { getDashboardStats } from "../controllers/dashboardController";
-import {
-  getUserSettings,
-  updateUserSettings,
-  getUserSessions,
-} from "../controllers/settingsController";
-import {
-  getNotifications,
-  markAllNotificationsRead,
-  clearNotifications,
-} from "../controllers/notificationController";
+import { getUserSettings, updateUserSettings, getUserSessions } from "../controllers/settingsController";
+import { getNotifications, markAllNotificationsRead, clearNotifications } from "../controllers/notificationController";
 import { jobQueue } from "../services/jobQueue";
 import { NotFoundError } from "../utils/errors";
 import { asyncHandler } from "../middleware/errorHandler";
