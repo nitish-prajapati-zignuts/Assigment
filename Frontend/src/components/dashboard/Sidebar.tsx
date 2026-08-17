@@ -22,6 +22,7 @@ import {
   RefreshCw,
   Delete,
   CheckCircle2,
+  MessageSquare,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -290,6 +291,13 @@ export function Sidebar() {
           <span className="font-bold text-base text-zinc-900 dark:text-zinc-100">Syncra</span>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent("toggle-chatbot"))}
+            className="p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
+            title="AI Co-Pilot Chatbot"
+          >
+            <MessageSquare className="h-4 w-4 text-indigo-500" />
+          </button>
           <AppearanceDropdown />
           <button
             onClick={() => setIsNotificationsOpen(true)}

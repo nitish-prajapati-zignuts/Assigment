@@ -6,13 +6,15 @@ import { Sidebar } from "@/components/dashboard/Sidebar";
 import { CommandPalette } from "@/components/dashboard/CommandPalette";
 import { ShortcutsDialog } from "@/components/dashboard/ShortcutsDialog";
 import { AppearanceDropdown } from "@/components/dashboard/AppearanceDropdown";
-import { Search, Command } from "lucide-react";
+import { Search, Command, MessageSquare } from "lucide-react";
+import { ChatbotPanel } from "@/components/dashboard/ChatbotPanel";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
   // Global Keyboard Event Listeners for ? and Action Hotkeys
   useEffect(() => {
@@ -56,15 +58,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     const handleOpenPalette = () => setIsCommandPaletteOpen(true);
     const handleOpenShortcuts = () => setIsShortcutsOpen(true);
+    const handleToggleChatbot = () => setIsChatbotOpen((prev) => !prev);
 
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("open-command-palette", handleOpenPalette);
     window.addEventListener("open-shortcuts-dialog", handleOpenShortcuts);
+    window.addEventListener("toggle-chatbot", handleToggleChatbot);
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("open-command-palette", handleOpenPalette);
       window.removeEventListener("open-shortcuts-dialog", handleOpenShortcuts);
+      window.removeEventListener("toggle-chatbot", handleToggleChatbot);
     };
   }, [router]);
 
@@ -105,32 +110,44 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="flex h-screen overflow-hidden bg-zinc-50 dark:bg-zinc-950">
       <Sidebar />
-      <div className="flex-1 flex flex-col min-h-screen min-w-0">
+      <div className="flex-1 flex flex-col h-screen min-w-0 overflow-hidden">
         {/* Desktop Header bar at the top of every dashboard page */}
         <header className="hidden lg:flex items-center justify-between px-8 py-3.5 bg-white/40 dark:bg-zinc-900/40 backdrop-blur-md sticky top-0 z-20 border-b border-zinc-200/40 dark:border-zinc-800/40">
           <div className="flex-1" />
-          <div className="flex-1 flex justify-center max-w-xl">
+          <div className="flex-1 flex justify-center max-w-4xl">
             <button
               onClick={() => setIsCommandPaletteOpen(true)}
-              className="flex w-full max-w-md items-center justify-between rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/80 dark:bg-zinc-900/80 px-4 py-2 shadow-2xs hover:bg-zinc-100 dark:hover:bg-zinc-800 text-xs font-semibold text-zinc-600 dark:text-zinc-300 transition-colors cursor-pointer"
+              className="flex w-full max-w-lg items-center justify-between rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/80 dark:bg-zinc-900/80 px-5 py-2.5 shadow-2xs hover:bg-zinc-100 dark:hover:bg-zinc-800 text-sm font-semibold text-zinc-600 dark:text-zinc-300 transition-colors cursor-pointer"
             >
               <div className="flex items-center gap-2">
-                <Search className="h-4 w-4 text-indigo-500" />
+                <Search className="h-5 w-5 text-indigo-500" />
                 <span>Search app...</span>
               </div>
-              <kbd className="flex items-center gap-0.5 px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded font-mono text-[10px]">
+              <kbd className="flex items-center gap-0.5 px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded font-mono text-[10px]">
                 <Command className="h-3 w-3" /> K
               </kbd>
             </button>
           </div>
           <div className="flex-1 flex items-center justify-end">
+            <button
+              onClick={() => setIsChatbotOpen((prev) => !prev)}
+              className="mr-3 p-2 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/80 dark:bg-zinc-900/80 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition-colors cursor-pointer relative"
+              title="AI Co-Pilot Chatbot"
+            >
+              <MessageSquare className="h-4 w-4 text-indigo-500" />
+            </button>
             <AppearanceDropdown />
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 sm:p-8 lg:p-8 pt-12 lg:pt-4 min-w-0">{children}</main>
+        <div className="flex-1 flex min-h-0 overflow-hidden">
+          <main className="flex-1 overflow-y-auto scrollbar-hide p-4 sm:p-8 lg:p-8 pt-12 lg:pt-4 min-w-0">
+            {children}
+          </main>
+          {isChatbotOpen && <ChatbotPanel onClose={() => setIsChatbotOpen(false)} />}
+        </div>
       </div>
       <CommandPalette isOpen={isCommandPaletteOpen} onClose={() => setIsCommandPaletteOpen(false)} />
       <ShortcutsDialog isOpen={isShortcutsOpen} onClose={() => setIsShortcutsOpen(false)} />
