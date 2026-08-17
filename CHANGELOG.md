@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/compare/v1.0.0...v1.1.0) (2026-08-17)
+
+
+### Features
+
+* display app version in sidebar, update release token secret, and append RAG debug log ([5d53756](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/commit/5d537568735606b5a947604be7fac2e95ff2b4a9))
+
 # 1.0.0 (2026-08-17)
 
 
