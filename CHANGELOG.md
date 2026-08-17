@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/compare/v1.3.0...v1.4.0) (2026-08-17)
+
+
+### Features
+
+* add interactive ChatbotPanel for AI meeting queries and integrate sidebar/header toggles ([45bf6a0](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/commit/45bf6a0ca52f342b220054b3f2d5ac925ca066c7))
+
 # [1.3.0](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/compare/v1.2.0...v1.3.0) (2026-08-17)
 
 
