@@ -17,13 +17,15 @@ export function MeetingsFilters({ searchQuery, setSearchQuery, selectedType, set
   return (
     <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-white dark:bg-zinc-900 p-4 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 shadow-sm">
       <div className="relative w-full sm:w-[480px]">
-        <Search className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 transition-opacity duration-200 ${showPlaceholder ? 'opacity-0' : 'opacity-100'}`} />
+        <Search
+          className={`absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400 transition-opacity duration-200 ${showPlaceholder ? "opacity-0" : "opacity-100"}`}
+        />
         <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          className={`bg-zinc-50/50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-800 focus-visible:ring-zinc-400 text-sm w-full h-11 transition-all duration-200 ${showPlaceholder ? 'text-center' : 'text-left pl-9'}`}
+          className={`bg-zinc-50/50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-800 focus-visible:ring-zinc-400 text-sm w-full h-11 transition-all duration-200 ${showPlaceholder ? "text-center" : "text-left pl-9"}`}
         />
         {showPlaceholder && (
           <div className="absolute inset-0 flex items-center justify-center gap-2 pointer-events-none text-zinc-400 text-sm">
