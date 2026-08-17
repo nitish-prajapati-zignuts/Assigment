@@ -54,7 +54,7 @@ export function MeetingsHeader({ onCreateClick, onExportCSV, onCompareClick }: M
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
             onClick={onCreateClick}
-            className="flex items-center gap-2 rounded-xl shadow-md bg-gradient-dual hover:opacity-95 text-white font-semibold text-xs sm:text-sm"
+            className="flex items-center gap-2 rounded-xl shadow-xs bg-white text-zinc-950 dark:bg-zinc-100 dark:text-black font-semibold text-xs sm:text-sm border border-zinc-300 dark:border-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-200"
           >
             <Plus className="h-4.5 w-4.5" />
             Create Meeting

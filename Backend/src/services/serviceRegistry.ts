@@ -1,0 +1,316 @@
+import { ZodSchema } from "zod";
+import { Request, Response } from "express";
+import {
+  register,
+  login,
+  logout,
+  getUsers,
+  getMe,
+  changePassword,
+} from "../controllers/authController";
+import {
+  getMeetings,
+  getMeetingById,
+  createMeeting,
+  updateMeeting,
+  summarizeMeeting,
+  deleteMeeting,
+  toggleMeetingPublish,
+  getPublicMeetingByToken,
+  chatMeeting,
+  archiveMeeting,
+  unArchiveMeeting,
+  restoreMeeting,
+  permanentlyDeleteMeeting,
+  toggleMeetingPin,
+  createMeetingClone,
+} from "../controllers/meetingController";
+import {
+  getActionItems,
+  getActionItemsByMeeting,
+  getActionItemById,
+  getActionItemsLeaderboard,
+  createActionItem,
+  updateActionItem,
+  deleteActionItem,
+} from "../controllers/actionItemController";
+import { getDashboardStats } from "../controllers/dashboardController";
+import {
+  getUserSettings,
+  updateUserSettings,
+  getUserSessions,
+} from "../controllers/settingsController";
+import {
+  getNotifications,
+  markAllNotificationsRead,
+  clearNotifications,
+} from "../controllers/notificationController";
+import { jobQueue } from "../services/jobQueue";
+import { NotFoundError } from "../utils/errors";
+import { asyncHandler } from "../middleware/errorHandler";
+import {
+  registerSchema,
+  loginSchema,
+  updatePasswordSchema,
+  createMeetingSchema,
+  updateMeetingSchema,
+  meetingQuerySchema,
+  idSchema,
+  chatValidationSchema,
+  cloneMeetingSchema,
+  createActionItemSchema,
+  updateActionItemSchema,
+  actionItemQuerySchema,
+} from "../utils/validation";
+
+export interface ServiceDefinition {
+  serviceId: string;
+  handler: any;
+  requiresAuth: boolean;
+  validation?: {
+    body?: ZodSchema;
+    query?: ZodSchema;
+    params?: ZodSchema;
+  };
+}
+
+// Job status handler
+const getJobStatus = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const jobId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const job = jobQueue.getJob(jobId);
+
+  if (!job) {
+    throw new NotFoundError("Job");
+  }
+
+  res.json({
+    id: job.id,
+    type: job.type,
+    status: job.status,
+    result: job.result,
+    error: job.error,
+    createdAt: job.createdAt,
+    startedAt: job.startedAt,
+    completedAt: job.completedAt,
+  });
+});
+
+export const serviceRegistry: Record<string, ServiceDefinition> = {
+  // Auth Services
+  "auth.register": {
+    serviceId: "auth.register",
+    handler: register,
+    requiresAuth: false,
+    validation: { body: registerSchema },
+  },
+  "auth.login": {
+    serviceId: "auth.login",
+    handler: login,
+    requiresAuth: false,
+    validation: { body: loginSchema },
+  },
+  "auth.logout": {
+    serviceId: "auth.logout",
+    handler: logout,
+    requiresAuth: false,
+  },
+  "auth.me": {
+    serviceId: "auth.me",
+    handler: getMe,
+    requiresAuth: true,
+  },
+  "auth.users": {
+    serviceId: "auth.users",
+    handler: getUsers,
+    requiresAuth: true,
+  },
+  "auth.changePassword": {
+    serviceId: "auth.changePassword",
+    handler: changePassword,
+    requiresAuth: true,
+    validation: { body: updatePasswordSchema },
+  },
+
+  // Meetings Services
+  "meetings.list": {
+    serviceId: "meetings.list",
+    handler: getMeetings,
+    requiresAuth: true,
+    validation: { query: meetingQuerySchema },
+  },
+  "meetings.get": {
+    serviceId: "meetings.get",
+    handler: getMeetingById,
+    requiresAuth: true,
+    validation: { params: idSchema },
+  },
+  "meetings.create": {
+    serviceId: "meetings.create",
+    handler: createMeeting,
+    requiresAuth: true,
+    validation: { body: createMeetingSchema },
+  },
+  "meetings.update": {
+    serviceId: "meetings.update",
+    handler: updateMeeting,
+    requiresAuth: true,
+    validation: { params: idSchema, body: updateMeetingSchema },
+  },
+  "meetings.delete": {
+    serviceId: "meetings.delete",
+    handler: deleteMeeting,
+    requiresAuth: true,
+    validation: { params: idSchema },
+  },
+  "meetings.summarize": {
+    serviceId: "meetings.summarize",
+    handler: summarizeMeeting,
+    requiresAuth: true,
+    validation: { params: idSchema },
+  },
+  "meetings.chat": {
+    serviceId: "meetings.chat",
+    handler: chatMeeting,
+    requiresAuth: true,
+    validation: { params: idSchema, body: chatValidationSchema },
+  },
+  "meetings.publish": {
+    serviceId: "meetings.publish",
+    handler: toggleMeetingPublish,
+    requiresAuth: true,
+    validation: { params: idSchema },
+  },
+  "meetings.archive": {
+    serviceId: "meetings.archive",
+    handler: archiveMeeting,
+    requiresAuth: true,
+    validation: { params: idSchema },
+  },
+  "meetings.unarchive": {
+    serviceId: "meetings.unarchive",
+    handler: unArchiveMeeting,
+    requiresAuth: true,
+    validation: { params: idSchema },
+  },
+  "meetings.restore": {
+    serviceId: "meetings.restore",
+    handler: restoreMeeting,
+    requiresAuth: true,
+    validation: { params: idSchema },
+  },
+  "meetings.pin": {
+    serviceId: "meetings.pin",
+    handler: toggleMeetingPin,
+    requiresAuth: true,
+    validation: { params: idSchema },
+  },
+  "meetings.clone": {
+    serviceId: "meetings.clone",
+    handler: createMeetingClone,
+    requiresAuth: true,
+    validation: { body: cloneMeetingSchema },
+  },
+  "meetings.permanentDelete": {
+    serviceId: "meetings.permanentDelete",
+    handler: permanentlyDeleteMeeting,
+    requiresAuth: true,
+    validation: { params: idSchema },
+  },
+  "meetings.publicShareGet": {
+    serviceId: "meetings.publicShareGet",
+    handler: getPublicMeetingByToken,
+    requiresAuth: false,
+  },
+
+  // Action Items Services
+  "actionItems.list": {
+    serviceId: "actionItems.list",
+    handler: getActionItems,
+    requiresAuth: true,
+    validation: { query: actionItemQuerySchema },
+  },
+  "actionItems.get": {
+    serviceId: "actionItems.get",
+    handler: getActionItemById,
+    requiresAuth: true,
+    validation: { params: idSchema },
+  },
+  "actionItems.getByMeeting": {
+    serviceId: "actionItems.getByMeeting",
+    handler: getActionItemsByMeeting,
+    requiresAuth: true,
+    validation: { params: idSchema },
+  },
+  "actionItems.leaderboard": {
+    serviceId: "actionItems.leaderboard",
+    handler: getActionItemsLeaderboard,
+    requiresAuth: true,
+  },
+  "actionItems.create": {
+    serviceId: "actionItems.create",
+    handler: createActionItem,
+    requiresAuth: true,
+    validation: { body: createActionItemSchema },
+  },
+  "actionItems.update": {
+    serviceId: "actionItems.update",
+    handler: updateActionItem,
+    requiresAuth: true,
+    validation: { params: idSchema, body: updateActionItemSchema },
+  },
+  "actionItems.delete": {
+    serviceId: "actionItems.delete",
+    handler: deleteActionItem,
+    requiresAuth: true,
+    validation: { params: idSchema },
+  },
+
+  // Dashboard Services
+  "dashboard.stats": {
+    serviceId: "dashboard.stats",
+    handler: getDashboardStats,
+    requiresAuth: true,
+  },
+
+  // Settings Services
+  "settings.get": {
+    serviceId: "settings.get",
+    handler: getUserSettings,
+    requiresAuth: true,
+  },
+  "settings.update": {
+    serviceId: "settings.update",
+    handler: updateUserSettings,
+    requiresAuth: true,
+  },
+  "settings.sessions": {
+    serviceId: "settings.sessions",
+    handler: getUserSessions,
+    requiresAuth: true,
+  },
+
+  // Notifications Services
+  "notifications.list": {
+    serviceId: "notifications.list",
+    handler: getNotifications,
+    requiresAuth: true,
+  },
+  "notifications.readAll": {
+    serviceId: "notifications.readAll",
+    handler: markAllNotificationsRead,
+    requiresAuth: true,
+  },
+  "notifications.clear": {
+    serviceId: "notifications.clear",
+    handler: clearNotifications,
+    requiresAuth: true,
+  },
+
+  // Jobs Services
+  "jobs.get": {
+    serviceId: "jobs.get",
+    handler: getJobStatus,
+    requiresAuth: true,
+    validation: { params: idSchema },
+  },
+};

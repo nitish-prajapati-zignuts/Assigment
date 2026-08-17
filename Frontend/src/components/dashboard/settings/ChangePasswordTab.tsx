@@ -76,18 +76,18 @@ export function ChangePassword() {
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="max-w-4xl mx-auto space-y-8 p-4 sm:p-6"
+      className="max-w-4xl mx-auto space-y-6 p-4 sm:p-6"
     >
       {/* Change Password Card */}
-      <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-zinc-200/80 dark:border-zinc-800/80 shadow-sm space-y-6">
-        <div className="flex items-center gap-3 border-b border-zinc-100 dark:border-zinc-800/80 pb-5">
-          <span className="p-2.5 rounded-2xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/80 dark:text-indigo-400">
+      <div className="bg-white dark:bg-zinc-950 rounded-3xl p-6 sm:p-8 border border-zinc-200 dark:border-zinc-800 shadow-xs space-y-6">
+        <div className="flex items-center gap-3 border-b border-zinc-100 dark:border-zinc-900 pb-5">
+          <span className="p-2.5 rounded-2xl bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">
             <KeyRound className="w-5 h-5" />
           </span>
           <div>
-            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Change Password</h3>
+            <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">Change Password</h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Ensure your account is using a long, random password to stay secure.
+              Ensure your account is using a strong, random password to stay secure.
             </p>
           </div>
         </div>
@@ -101,10 +101,10 @@ export function ChangePassword() {
                 {...register("currentPassword")}
                 type={showCurrentPassword ? "text" : "password"}
                 placeholder="••••••••••••"
-                className={`w-full px-4 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 transition-all pr-11 ${
+                className={`w-full px-4 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 transition-all pr-11 ${
                   errors.currentPassword
                     ? "border-red-400 focus:ring-red-500/20 focus:border-red-500"
-                    : "border-zinc-200 dark:border-zinc-700/80 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    : "border-zinc-200 dark:border-zinc-800 focus:ring-zinc-400 dark:focus:ring-zinc-700"
                 }`}
               />
               <button
@@ -132,10 +132,10 @@ export function ChangePassword() {
                   {...register("newPassword")}
                   type={showNewPassword ? "text" : "password"}
                   placeholder="••••••••••••"
-                  className={`w-full px-4 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 transition-all pr-11 ${
+                  className={`w-full px-4 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 transition-all pr-11 ${
                     errors.newPassword
                       ? "border-red-400 focus:ring-red-500/20 focus:border-red-500"
-                      : "border-zinc-200 dark:border-zinc-700/80 focus:ring-indigo-500/20 focus:border-indigo-500"
+                      : "border-zinc-200 dark:border-zinc-800 focus:ring-zinc-400 dark:focus:ring-zinc-700"
                   }`}
                 />
                 <button
@@ -155,10 +155,10 @@ export function ChangePassword() {
                 {...register("confirmPassword")}
                 type="password"
                 placeholder="••••••••••••"
-                className={`w-full px-4 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/50 border text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 transition-all ${
+                className={`w-full px-4 py-3 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 transition-all ${
                   errors.confirmPassword
                     ? "border-red-400 focus:ring-red-500/20 focus:border-red-500"
-                    : "border-zinc-200 dark:border-zinc-700/80 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    : "border-zinc-200 dark:border-zinc-800 focus:ring-zinc-400 dark:focus:ring-zinc-700"
                 }`}
               />
               {errors.confirmPassword && (
@@ -175,18 +175,18 @@ export function ChangePassword() {
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
-              className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200/60 dark:border-zinc-800 space-y-2 text-xs"
+              className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 space-y-2 text-xs"
             >
               <span className="font-semibold text-zinc-700 dark:text-zinc-300 block mb-1">Password Requirements:</span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {requirements.map((req, idx) => (
                   <div key={idx} className="flex items-center gap-2">
                     {req.met ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                      <Check className="w-3.5 h-3.5 text-zinc-900 dark:text-zinc-100 shrink-0" />
                     ) : (
                       <X className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                     )}
-                    <span className={req.met ? "text-emerald-600 dark:text-emerald-400 font-medium" : "text-zinc-400"}>
+                    <span className={req.met ? "text-zinc-900 dark:text-zinc-100 font-semibold" : "text-zinc-400"}>
                       {req.label}
                     </span>
                   </div>
@@ -203,7 +203,7 @@ export function ChangePassword() {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0 }}
-                  className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-xs font-semibold"
+                  className="flex items-center gap-2 text-zinc-900 dark:text-zinc-100 text-xs font-semibold"
                 >
                   <Check className="w-4 h-4" /> Password updated successfully!
                 </motion.div>
@@ -213,7 +213,7 @@ export function ChangePassword() {
             <button
               type="submit"
               disabled={!isValid || isSubmitting}
-              className="w-full sm:w-auto ml-auto px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white font-medium text-sm transition-all shadow-md shadow-indigo-600/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-indigo-600 disabled:active:scale-100 flex items-center justify-center gap-2"
+              className="w-full sm:w-auto ml-auto px-6 py-3 rounded-2xl bg-zinc-950 text-white border border-zinc-800 dark:bg-white dark:text-zinc-950 dark:border-zinc-200 hover:bg-zinc-800 dark:hover:bg-zinc-100 font-semibold text-xs transition-all shadow-xs disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
             >
               {isSubmitting ? (
                 <>
@@ -230,3 +230,4 @@ export function ChangePassword() {
     </motion.div>
   );
 }
+

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import api from "@/lib/axios";
+import { callService } from "@/lib/serviceApi";
+import { SERVICE_IDS } from "@/lib/serviceIds";
 import { Meeting } from "@/types/meeting";
 import { MeetingDetailModal } from "@/components/dashboard/MeetingDetailModal";
 import { Tabs, TabsContent } from "@radix-ui/react-tabs";
@@ -25,8 +27,12 @@ export default function DashboardPage() {
   const { data: dashboardData, isLoading } = useQuery({
     queryKey: ["dashboardStats"],
     queryFn: async () => {
-      const res = await api.get("/dashboard/stats");
-      return res.data;
+      return await callService({
+        serviceId: SERVICE_IDS.DASHBOARD.STATS,
+        payload: {},
+        params: {},
+        query: {},
+      });
     },
     staleTime: 1000 * 60 * 5, // 5 minutes cache
   });

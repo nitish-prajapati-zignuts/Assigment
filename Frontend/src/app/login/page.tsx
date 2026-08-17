@@ -9,7 +9,8 @@ import * as z from "zod";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import api from "@/lib/axios";
-
+import { callService } from "@/lib/serviceApi";
+import { SERVICE_IDS } from "@/lib/serviceIds";
 import { getErrorMessage } from "@/lib/apiTypes";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,9 +42,9 @@ export default function LoginPage() {
       }
 
       try {
-        const res = await api.get("/auth/me");
-        if (res.data && res.data.user) {
-          localStorage.setItem("user", JSON.stringify(res.data.user));
+        const data = await callService({ serviceId: SERVICE_IDS.AUTH.ME });
+        if (data && data.user) {
+          localStorage.setItem("user", JSON.stringify(data.user));
           router.replace("/dashboard");
           return;
         }
@@ -87,15 +88,18 @@ export default function LoginPage() {
     setErrorMessage(null);
 
     try {
-      const res = await api.post("/auth/login", {
-        email: data.email,
-        password: data.password,
+      const resData = await callService({
+        serviceId: SERVICE_IDS.AUTH.LOGIN,
+        payload: {
+          email: data.email,
+          password: data.password,
+        },
       });
 
-      if (res.data && res.data.token) {
-        localStorage.setItem("token", res.data.token);
-        if (res.data.user) {
-          localStorage.setItem("user", JSON.stringify(res.data.user));
+      if (resData && resData.token) {
+        localStorage.setItem("token", resData.token);
+        if (resData.user) {
+          localStorage.setItem("user", JSON.stringify(resData.user));
         }
         toast.success("Welcome back! Signed in successfully.");
         router.push("/dashboard");
@@ -280,7 +284,7 @@ export default function LoginPage() {
                   <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }} className="w-full">
                     <Button
                       type="submit"
-                      className="w-full bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 hover:from-indigo-700 hover:via-violet-700 hover:to-purple-700 text-white font-bold h-11 rounded-2xl flex items-center justify-center gap-2 transition-all duration-300 shadow-lg shadow-indigo-500/25 shimmer-btn"
+                      className="w-full bg-white text-zinc-950 border border-zinc-300 hover:bg-zinc-100 hover:border-zinc-400 dark:bg-zinc-950 dark:text-white dark:border-zinc-800 dark:hover:bg-zinc-900 font-bold h-11 rounded-2xl flex items-center justify-center gap-2 transition-all shadow-xs"
                       disabled={isLoading}
                     >
                       {isLoading ? (

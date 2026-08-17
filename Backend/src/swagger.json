@@ -22,7 +22,11 @@
     "schemas": {
       "RegisterInput": {
         "type": "object",
-        "required": ["name", "email", "password"],
+        "required": [
+          "name",
+          "email",
+          "password"
+        ],
         "properties": {
           "name": {
             "type": "string",
@@ -42,7 +46,10 @@
       },
       "LoginInput": {
         "type": "object",
-        "required": ["email", "password"],
+        "required": [
+          "email",
+          "password"
+        ],
         "properties": {
           "email": {
             "type": "string",
@@ -58,7 +65,10 @@
       },
       "MeetingInput": {
         "type": "object",
-        "required": ["title", "transcript"],
+        "required": [
+          "title",
+          "transcript"
+        ],
         "properties": {
           "title": {
             "type": "string",
@@ -81,7 +91,13 @@
       },
       "ActionItemInput": {
         "type": "object",
-        "required": ["task", "owner", "dueDate", "priority", "status"],
+        "required": [
+          "task",
+          "owner",
+          "dueDate",
+          "priority",
+          "status"
+        ],
         "properties": {
           "task": {
             "type": "string",
@@ -98,12 +114,21 @@
           },
           "priority": {
             "type": "string",
-            "enum": ["Low", "Medium", "High"],
+            "enum": [
+              "Low",
+              "Medium",
+              "High"
+            ],
             "example": "High"
           },
           "status": {
             "type": "string",
-            "enum": ["Pending", "In Progress", "Completed", "Blocked"],
+            "enum": [
+              "Pending",
+              "In Progress",
+              "Completed",
+              "Blocked"
+            ],
             "example": "In Progress"
           },
           "meetingId": {
@@ -115,10 +140,125 @@
     }
   },
   "paths": {
+    "/api/service": {
+      "post": {
+        "summary": "Centralized service dispatcher",
+        "description": "Dispatches requests to internal services using serviceId.",
+        "tags": [
+          "Centralized Service Router"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "serviceId"
+                ],
+                "properties": {
+                  "serviceId": {
+                    "type": "string",
+                    "description": "The unique identifier of the target service (e.g. 'meetings.list', 'actionItems.create')",
+                    "example": "dashboard.stats"
+                  },
+                  "payload": {
+                    "type": "object",
+                    "description": "Optional payload for the service (equivalent to req.body)",
+                    "example": {}
+                  },
+                  "params": {
+                    "type": "object",
+                    "description": "Optional parameters for the service path (equivalent to req.params)",
+                    "example": {}
+                  },
+                  "query": {
+                    "type": "object",
+                    "description": "Optional query parameters for the service (equivalent to req.query)",
+                    "example": {}
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Service executed successfully. Returns the JSON response from the target service controller."
+          },
+          "400": {
+            "description": "Validation failed / Bad request"
+          },
+          "401": {
+            "description": "Unauthorized / Session token expired"
+          },
+          "404": {
+            "description": "Service not found"
+          }
+        }
+      }
+    },
+    "/api/service/registry": {
+      "get": {
+        "summary": "Retrieve registered service definitions catalog",
+        "description": "Lists all registered serviceIds, authentication requirements, and validation flags.",
+        "tags": [
+          "Centralized Service Router"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful retrieval of service registry catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer",
+                      "example": 29
+                    },
+                    "services": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "serviceId": {
+                            "type": "string"
+                          },
+                          "requiresAuth": {
+                            "type": "boolean"
+                          },
+                          "hasBodyValidation": {
+                            "type": "boolean"
+                          },
+                          "hasQueryValidation": {
+                            "type": "boolean"
+                          },
+                          "hasParamsValidation": {
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/register": {
       "post": {
         "summary": "Register a new user account",
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -154,7 +294,9 @@
     "/api/auth/login": {
       "post": {
         "summary": "Authenticate user credentials",
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -190,7 +332,9 @@
     "/api/auth/me": {
       "get": {
         "summary": "Retrieve currently authenticated user metadata",
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -206,7 +350,9 @@
     "/api/meetings": {
       "get": {
         "summary": "List all meeting notes catalogs",
-        "tags": ["Meetings"],
+        "tags": [
+          "Meetings"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -220,7 +366,9 @@
       },
       "post": {
         "summary": "Upload a new meeting transcript and auto-extract items",
-        "tags": ["Meetings"],
+        "tags": [
+          "Meetings"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -246,7 +394,9 @@
     "/api/meetings/{id}": {
       "get": {
         "summary": "Get specific meeting details",
-        "tags": ["Meetings"],
+        "tags": [
+          "Meetings"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -270,7 +420,9 @@
       },
       "put": {
         "summary": "Update specific meeting summary/transcript",
-        "tags": ["Meetings"],
+        "tags": [
+          "Meetings"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -304,7 +456,9 @@
       },
       "delete": {
         "summary": "Delete specific meeting note",
-        "tags": ["Meetings"],
+        "tags": [
+          "Meetings"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -330,7 +484,9 @@
     "/api/action-items": {
       "get": {
         "summary": "List all action tracker tasks",
-        "tags": ["Action Items"],
+        "tags": [
+          "Action Items"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -344,7 +500,9 @@
       },
       "post": {
         "summary": "Create new custom action item task manually",
-        "tags": ["Action Items"],
+        "tags": [
+          "Action Items"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -370,7 +528,9 @@
     "/api/action-items/{id}": {
       "put": {
         "summary": "Update specific action item details",
-        "tags": ["Action Items"],
+        "tags": [
+          "Action Items"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -404,7 +564,9 @@
       },
       "delete": {
         "summary": "Delete specific action tracker item",
-        "tags": ["Action Items"],
+        "tags": [
+          "Action Items"
+        ],
         "security": [
           {
             "bearerAuth": []

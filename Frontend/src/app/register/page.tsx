@@ -8,6 +8,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { motion } from "framer-motion";
 import api from "@/lib/axios";
+import { callService } from "@/lib/serviceApi";
+import { SERVICE_IDS } from "@/lib/serviceIds";
 import { getErrorMessage } from "@/lib/apiTypes";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,9 +48,9 @@ export default function RegisterPage() {
       }
 
       try {
-        const res = await api.get("/auth/me");
-        if (res.data && res.data.user) {
-          localStorage.setItem("user", JSON.stringify(res.data.user));
+        const data = await callService({ serviceId: SERVICE_IDS.AUTH.ME });
+        if (data && data.user) {
+          localStorage.setItem("user", JSON.stringify(data.user));
           router.replace("/dashboard");
           return;
         }
@@ -94,16 +96,19 @@ export default function RegisterPage() {
     setErrorMessage(null);
 
     try {
-      const res = await api.post("/auth/register", {
-        name: data.name,
-        email: data.email,
-        password: data.password,
+      const resData = await callService({
+        serviceId: SERVICE_IDS.AUTH.REGISTER,
+        payload: {
+          name: data.name,
+          email: data.email,
+          password: data.password,
+        },
       });
 
-      if (res.data && res.data.token) {
-        localStorage.setItem("token", res.data.token);
-        if (res.data.user) {
-          localStorage.setItem("user", JSON.stringify(res.data.user));
+      if (resData && resData.token) {
+        localStorage.setItem("token", resData.token);
+        if (resData.user) {
+          localStorage.setItem("user", JSON.stringify(resData.user));
         }
         router.push("/dashboard");
       } else {
@@ -295,7 +300,7 @@ export default function RegisterPage() {
               <CardFooter className="flex flex-col space-y-4 pt-6 pb-6">
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold h-11 rounded-2xl flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.99]"
+                  className="w-full bg-white text-zinc-950 border border-zinc-300 hover:bg-zinc-100 hover:border-zinc-400 dark:bg-zinc-950 dark:text-white dark:border-zinc-800 dark:hover:bg-zinc-900 font-bold h-11 rounded-2xl flex items-center justify-center gap-2 transition-all shadow-xs"
                   disabled={isLoading}
                 >
                   {isLoading ? (

@@ -756,6 +756,7 @@ export const createMeetingClone = asyncHandler(async (req: AuthenticatedRequest,
       .insert(meetings)
       .values({
         ...originalMeeting,
+        date: new Date().toISOString().split("T")[0],
         id: newId,
         title: `${originalMeeting.title} (Copy)`,
         isDeleted: false,

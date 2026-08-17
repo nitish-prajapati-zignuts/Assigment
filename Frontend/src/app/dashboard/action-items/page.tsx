@@ -3,6 +3,8 @@
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import api from "@/lib/axios";
+import { callService } from "@/lib/serviceApi";
+import { SERVICE_IDS } from "@/lib/serviceIds";
 import { ActionItem, Meeting } from "@/types/meeting";
 import { exportActionItemsToCSV, exportActionItemsToMarkdown } from "@/lib/exportUtils";
 import { triggerTaskCompletionConfetti } from "@/lib/confetti";
@@ -24,6 +26,7 @@ import {
   ActionItemsPagination,
   DeleteActionItemModal,
 } from "@/components/dashboard/action-items";
+import { config } from "@/lib/config";
 
 export default function ActionTrackerPage() {
   const queryClient = useQueryClient();
@@ -50,8 +53,10 @@ export default function ActionTrackerPage() {
   const { data: meetingsData } = useQuery({
     queryKey: ["meetingsList"],
     queryFn: async () => {
-      const res = await api.get("/meetings");
-      return res.data?.data || res.data;
+      const resData = await callService({
+        serviceId: SERVICE_IDS.MEETINGS.LIST,
+      });
+      return resData?.data || resData;
     },
     staleTime: 0,
     refetchOnMount: "always",
@@ -67,10 +72,10 @@ export default function ActionTrackerPage() {
   } = useQuery({
     queryKey: ["actionItems", currentPage],
     queryFn: async () => {
-      const res = await api.get("/action-items", {
-        params: { page: currentPage, limit: ITEMS_PER_PAGE },
+      return await callService({
+        serviceId: SERVICE_IDS.ACTION_ITEMS.LIST,
+        query: { page: currentPage, limit: ITEMS_PER_PAGE },
       });
-      return res.data;
     },
     staleTime: 0, // Always stale so fresh data is fetched on every mount/query call
     refetchOnMount: "always",
@@ -104,7 +109,11 @@ export default function ActionTrackerPage() {
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: ActionItem["status"] }) => {
       setUpdatingItemId(id);
-      await api.put(`/action-items/${id}`, { status });
+      await callService({
+        serviceId: SERVICE_IDS.ACTION_ITEMS.UPDATE,
+        params: { id },
+        payload: { status },
+      });
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["actionItems"] });
@@ -127,9 +136,16 @@ export default function ActionTrackerPage() {
     mutationFn: async (itemData: Partial<ActionItem> & { meetingId: string }) => {
       if (itemData.id) {
         setUpdatingItemId(itemData.id);
-        await api.put(`/action-items/${itemData.id}`, itemData);
+        await callService({
+          serviceId: SERVICE_IDS.ACTION_ITEMS.UPDATE,
+          params: { id: itemData.id },
+          payload: itemData,
+        });
       } else {
-        await api.post("/action-items", itemData);
+        await callService({
+          serviceId: SERVICE_IDS.ACTION_ITEMS.CREATE,
+          payload: itemData,
+        });
       }
     },
     onSuccess: (_, variables) => {
@@ -152,7 +168,10 @@ export default function ActionTrackerPage() {
   const deleteActionItemMutation = useMutation({
     mutationFn: async (id: string) => {
       setUpdatingItemId(id);
-      await api.delete(`/action-items/${id}`);
+      await callService({
+        serviceId: SERVICE_IDS.ACTION_ITEMS.DELETE,
+        params: { id },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["actionItems"] });
@@ -348,7 +367,7 @@ export default function ActionTrackerPage() {
       <ActionItemsMetricsCards metrics={metrics} isLoading={isMetricsLoading || isMetricsFetching} />
 
       {/* Team Velocity Leaderboard */}
-      <ActionItemsLeaderboard />
+      {config.NEXT_PUBLIC_SHOW_TEAM_CONRIBUTION && <ActionItemsLeaderboard />}
 
       {/* Control Bar: Search & Multi-Filters */}
       <ActionItemsFilters

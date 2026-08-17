@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { Meeting } from "@/types/meeting";
 import { MeetingDetailModal } from "@/components/dashboard/MeetingDetailModal";
 import api from "@/lib/axios";
+import { callService } from "@/lib/serviceApi";
+import { SERVICE_IDS } from "@/lib/serviceIds";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -26,10 +28,10 @@ export default function ArchivePage() {
     queryKey: ["archivedMeetings"],
     refetchOnMount: "always",
     queryFn: async () => {
-      const res = await api.get("/meetings", {
-        params: { isArchived: "true", limit: 50 },
+      return await callService({
+        serviceId: SERVICE_IDS.MEETINGS.LIST,
+        query: { isArchived: true, limit: 50 },
       });
-      return res.data;
     },
     staleTime: 1000 * 60 * 2, // 2 minutes cache
   });
@@ -43,7 +45,10 @@ export default function ArchivePage() {
   // TanStack Mutation for Unarchive
   const unarchiveMutation = useMutation({
     mutationFn: async (id: string) => {
-      await api.post(`/meetings/${id}/unArchive`);
+      await callService({
+        serviceId: SERVICE_IDS.MEETINGS.UNARCHIVE,
+        params: { id },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["archivedMeetings"] });
@@ -60,7 +65,10 @@ export default function ArchivePage() {
   // TanStack Mutation to Move to Trash (Delete)
   const trashMutation = useMutation({
     mutationFn: async (id: string) => {
-      await api.post(`/meetings/${id}/delete`);
+      await callService({
+        serviceId: SERVICE_IDS.MEETINGS.DELETE,
+        params: { id },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["archivedMeetings"] });
@@ -230,7 +238,7 @@ export default function ArchivePage() {
             setIsDetailModalOpen(false);
             setViewingMeeting(null);
           }}
-          onEdit={() => {}}
+          onEdit={() => { }}
           meeting={viewingMeeting}
         />
       )}

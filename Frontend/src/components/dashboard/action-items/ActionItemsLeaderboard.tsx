@@ -5,6 +5,7 @@ import api from "@/lib/axios";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Trophy, User, RefreshCw } from "lucide-react";
+import { getEnv } from "@/lib/config";
 
 export interface OwnerPerformance {
   owner: string;
@@ -113,6 +114,6 @@ export function ActionItemsLeaderboard() {
           ))
         )}
       </div>
-    </div>
+    </div >
   );
 }

@@ -6,9 +6,6 @@ dotenv.config();
 import express, { Request, Response } from "express";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
-import meetingRoutes from "./routes/meetingRoutes";
-import authRoutes from "./routes/authRoutes";
-import actionItemRoutes from "./routes/actionItemRoutes";
 import { config, isDevelopment } from "./utils/config";
 import { logger } from "./utils/logger";
 import { errorHandler, notFoundHandler, asyncHandler } from "./middleware/errorHandler";
@@ -19,10 +16,7 @@ import { initializeJobHandlers } from "./services/jobHandlers";
 import cookieParser from "cookie-parser";
 
 const swaggerDocument = require("./swagger.json");
-import jobRoutes from "./routes/jobRoutes";
-import settingsRoutes from "./routes/settingsRoutes";
-import dashboardRoutes from "./routes/dashboardRoutes";
-import notificationRoutes from "./routes/notificationRoutes";
+import serviceRoutes from "./routes/serviceRoutes";
 
 // Initialize job queue handlers
 initializeJobHandlers();
@@ -122,16 +116,8 @@ if (isDevelopment()) {
 // Swagger API documentation
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-// Auth routes with stricter rate limiting
-app.use("/api/auth", asyncHandler(authRateLimiter), authRoutes);
-
-// API routes with standard rate limiting
-app.use("/api/meetings", asyncHandler(apiRateLimiter), meetingRoutes);
-app.use("/api/action-items", asyncHandler(apiRateLimiter), actionItemRoutes);
-app.use("/api/jobs", asyncHandler(apiRateLimiter), jobRoutes);
-app.use("/api/settings", asyncHandler(apiRateLimiter), settingsRoutes);
-app.use("/api/dashboard", asyncHandler(apiRateLimiter), dashboardRoutes);
-app.use("/api/notifications", asyncHandler(apiRateLimiter), notificationRoutes);
+// Centralized Service API route
+app.use("/api/service", asyncHandler(apiRateLimiter), serviceRoutes);
 
 // API documentation endpoint
 app.get(

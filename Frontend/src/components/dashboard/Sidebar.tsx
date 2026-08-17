@@ -9,23 +9,19 @@ import {
   Calendar,
   LayoutDashboard,
   LogOut,
-  Video,
   CheckSquare,
   Loader2,
   Menu,
   X,
   Settings,
-  Sparkles,
   Keyboard,
   Archive,
   Bell,
-  AlertTriangle,
-  Lock,
-  CheckCircle2,
   Trash2,
   Check,
   RefreshCw,
   Delete,
+  CheckCircle2,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -130,19 +126,6 @@ export function Sidebar() {
     }
   };
 
-  const getNotificationIcon = (type: NotificationItem["type"]) => {
-    switch (type) {
-      case "ai_summary":
-        return <Sparkles className="h-4 w-4 text-amber-500 shrink-0" />;
-      case "overdue_task":
-        return <AlertTriangle className="h-4 w-4 text-red-500 shrink-0" />;
-      case "security_access":
-        return <Lock className="h-4 w-4 text-purple-500 shrink-0" />;
-      default:
-        return <Bell className="h-4 w-4 text-indigo-500 shrink-0" />;
-    }
-  };
-
   // Group notifications date-wise
   const groupNotificationsByDate = (items: NotificationItem[]) => {
     const groups: { [key: string]: NotificationItem[] } = {};
@@ -180,61 +163,41 @@ export function Sidebar() {
       .slice(0, 2) || "NP";
 
   const sidebarContent = (
-    <div className="flex h-full flex-col justify-between p-6 overflow-hidden sidebar-gradient">
+    <div className="flex h-full flex-col justify-between p-6 overflow-hidden bg-white dark:bg-zinc-950">
       <div className="flex flex-col flex-1 min-h-0 overflow-y-auto pr-1">
         <div className="flex items-center justify-between mb-8 shrink-0">
           <Link href="/dashboard" className="flex items-center gap-3 group">
-            <motion.div
-              whileHover={{ scale: 1.05, rotate: 6 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-dual text-white shadow-lg shadow-indigo-500/25 ring-1 ring-white/15"
-            >
-              {/* Modern Syncra branding SVG logo */}
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5.5 w-5.5 text-white"
-              >
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-                <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-                <path
-                  d="M2 12L12 17L22 12"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinejoin="round"
-                  opacity="0.6"
-                />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-900 text-white dark:bg-white dark:text-zinc-950 shadow-xs">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 stroke-current">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" strokeWidth="2" strokeLinejoin="round" />
+                <path d="M2 17L12 22L22 17" strokeWidth="2" strokeLinejoin="round" />
+                <path d="M2 12L12 17L22 12" strokeWidth="2" strokeLinejoin="round" opacity="0.6" />
               </svg>
-            </motion.div>
+            </div>
             <div>
-              <div className="flex items-center gap-1.5">
-                <h2 className="font-bold text-lg leading-none tracking-tight text-zinc-900 dark:text-zinc-50 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                  Syncra
-                </h2>
-              </div>
+              <h2 className="font-bold text-base leading-none tracking-tight text-zinc-900 dark:text-zinc-50">
+                Syncra
+              </h2>
               <span className="text-[11px] font-medium text-zinc-500">AI Assistant</span>
             </div>
           </Link>
           <div className="flex items-center gap-1.5">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <button
               onClick={() => window.dispatchEvent(new CustomEvent("open-shortcuts-dialog"))}
-              className="p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
               title="Keyboard Shortcuts (?)"
             >
               <Keyboard className="h-4 w-4" />
-            </motion.button>
-            {/* Mobile close button */}
+            </button>
             <button
               onClick={() => setIsMobileOpen(false)}
-              className="lg:hidden p-1.5 rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+              className="lg:hidden p-1.5 rounded-lg text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
         </div>
+
         <nav className="space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -242,57 +205,42 @@ export function Sidebar() {
 
             return (
               <Link key={item.label} href={item.href} className="relative block">
-                <motion.div
-                  whileHover={{ x: 3 }}
-                  whileTap={{ scale: 0.98 }}
-                  className={`relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all duration-200 ${
+                <div
+                  className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-all ${
                     isActive
-                      ? "text-zinc-900 dark:text-zinc-50 font-semibold nav-active-accent"
-                      : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100/60 dark:hover:bg-zinc-800/40"
+                      ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-950 font-semibold"
+                      : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900"
                   }`}
                 >
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeSidebarPill"
-                      className="absolute inset-0 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/30 border border-indigo-200/30 dark:border-indigo-800/30 shadow-sm"
-                      transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                    />
-                  )}
-                  <Icon
-                    className={`relative z-10 h-4.5 w-4.5 ${isActive ? "text-indigo-600 dark:text-indigo-400" : "text-zinc-500"}`}
-                  />
-                  <span className="relative z-10">{item.label}</span>
-                </motion.div>
+                  <Icon className="h-4.5 w-4.5" />
+                  <span>{item.label}</span>
+                </div>
               </Link>
             );
           })}
 
           {/* Notifications Nav Item */}
           <button onClick={() => setIsNotificationsOpen(true)} className="w-full relative block text-left">
-            <motion.div
-              whileHover={{ x: 3 }}
-              whileTap={{ scale: 0.98 }}
-              className="relative flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 cursor-pointer"
-            >
+            <div className="flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900 cursor-pointer">
               <div className="flex items-center gap-3">
-                <Bell className="relative z-10 h-4.5 w-4.5 text-zinc-500" />
-                <span className="relative z-10">Notifications</span>
+                <Bell className="h-4.5 w-4.5" />
+                <span>Notifications</span>
               </div>
               {unreadCount > 0 && (
-                <span className="relative z-15 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-xs animate-pulse">
+                <span className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-bold text-white dark:bg-zinc-100 dark:text-zinc-950">
                   {unreadCount}
                 </span>
               )}
-            </motion.div>
+            </div>
           </button>
         </nav>
       </div>
 
-      <div className="pt-4 border-t border-zinc-200/50 dark:border-zinc-800/50 flex items-center justify-between shrink-0">
+      <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <Avatar className="h-9 w-9 ring-2 ring-indigo-500/25 ring-offset-1 ring-offset-white dark:ring-offset-zinc-950">
+          <Avatar className="h-8 w-8 border border-zinc-200 dark:border-zinc-800">
             <AvatarImage src="" />
-            <AvatarFallback className="bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-600 text-xs font-bold text-white">
+            <AvatarFallback className="bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-950 text-xs font-bold">
               {userInitials}
             </AvatarFallback>
           </Avatar>
@@ -303,20 +251,14 @@ export function Sidebar() {
             </p>
           </div>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+        <button
           onClick={handleLogout}
           disabled={isLoggingOut}
-          className="text-zinc-500 hover:text-red-600 dark:hover:text-red-400 p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors disabled:opacity-50 cursor-pointer"
+          className="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 p-2 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors disabled:opacity-50 cursor-pointer"
           title="Logout"
         >
-          {isLoggingOut ? (
-            <Loader2 className="h-4.5 w-4.5 animate-spin text-zinc-500" />
-          ) : (
-            <LogOut className="h-4.5 w-4.5" />
-          )}
-        </motion.button>
+          {isLoggingOut ? <Loader2 className="h-4 w-4 animate-spin text-zinc-500" /> : <LogOut className="h-4 w-4" />}
+        </button>
       </div>
     </div>
   );
@@ -324,11 +266,11 @@ export function Sidebar() {
   return (
     <>
       {/* Mobile Header Bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-4 py-3 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-4 py-3 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsMobileOpen(true)}
-            className="p-2 rounded-lg text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:outline-none"
+            className="p-2 rounded-lg text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
             aria-label="Open sidebar"
           >
             <Menu className="h-5 w-5" />
@@ -337,31 +279,25 @@ export function Sidebar() {
         </div>
         <div className="flex items-center gap-2">
           <AppearanceDropdown />
-          {/* Bell Trigger in Mobile Header Bar */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
             onClick={() => setIsNotificationsOpen(true)}
-            className="relative p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+            className="relative p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
             title="Notifications Center"
           >
             <Bell className="h-4 w-4" />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-xs animate-pulse">
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-bold text-white dark:bg-zinc-100 dark:text-zinc-950">
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
-          </motion.button>
-
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          </button>
+          <button
             onClick={() => window.dispatchEvent(new CustomEvent("open-shortcuts-dialog"))}
-            className="p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
             title="Keyboard Shortcuts (?)"
           >
             <Keyboard className="h-4 w-4" />
-          </motion.button>
+          </button>
         </div>
       </div>
 
@@ -372,7 +308,7 @@ export function Sidebar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="lg:hidden fixed inset-0 z-40 bg-zinc-950/60 backdrop-blur-xs"
+            className="lg:hidden fixed inset-0 z-40 bg-black/50"
             onClick={() => setIsMobileOpen(false)}
           />
         )}
@@ -388,7 +324,7 @@ export function Sidebar() {
       </aside>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-64 border-r border-zinc-200/50 bg-white/80 dark:border-zinc-800/50 dark:bg-zinc-950/80 backdrop-blur-sm flex-col shrink-0 h-screen sticky top-0 overflow-hidden">
+      <aside className="hidden lg:flex w-64 border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex-col shrink-0 h-screen sticky top-0 overflow-hidden">
         {sidebarContent}
       </aside>
 
@@ -396,59 +332,57 @@ export function Sidebar() {
       <AnimatePresence>
         {isNotificationsOpen && (
           <>
-            {/* Dark Backdrop Overlay */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-zinc-950/45 backdrop-blur-xs"
+              className="fixed inset-0 z-50 bg-black/40"
               onClick={() => setIsNotificationsOpen(false)}
             />
-            {/* Notification Center panel body */}
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed right-0 top-0 bottom-0 z-55 w-full max-w-md bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border-l border-zinc-200/50 dark:border-zinc-800/50 shadow-2xl flex flex-col"
+              className="fixed right-0 top-0 bottom-0 z-55 w-full max-w-md bg-white dark:bg-zinc-950 border-l border-zinc-200 dark:border-zinc-800 shadow-xl flex flex-col"
             >
               {/* Drawer Header */}
-              <div className="p-6 border-b border-zinc-200/80 dark:border-zinc-800/80 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-900/10">
+              <div className="p-6 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50 dark:bg-zinc-900/50">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50 text-indigo-600 dark:text-indigo-400">
+                  <div className="p-2 rounded-xl bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">
                     <Bell className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-extrabold text-base text-zinc-900 dark:text-zinc-50">Notification Feed</h3>
+                    <h3 className="font-bold text-base text-zinc-900 dark:text-zinc-50">Notifications</h3>
                     {unreadCount > 0 ? (
-                      <p className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 mt-0.5">
-                        {unreadCount} unread activity log{unreadCount !== 1 ? "s" : ""}
+                      <p className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-400 mt-0.5">
+                        {unreadCount} unread notification{unreadCount !== 1 ? "s" : ""}
                       </p>
                     ) : (
-                      <p className="text-[11px] text-zinc-400 mt-0.5">All activity caught up</p>
+                      <p className="text-[11px] text-zinc-400 mt-0.5">All caught up</p>
                     )}
                   </div>
                 </div>
                 <button
                   onClick={() => setIsNotificationsOpen(false)}
-                  className="p-1.5 rounded-xl border border-zinc-200 dark:border-zinc-850 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
                 >
-                  <X className="w-4.5 h-4.5" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
               {/* Feed Actions */}
               {notifications.length > 0 && (
-                <div className="px-6 py-3 border-b border-zinc-100 dark:border-zinc-900/60 bg-zinc-50/50 dark:bg-zinc-900/20 flex items-center justify-between text-xs font-semibold">
+                <div className="px-6 py-3 border-b border-zinc-100 dark:border-zinc-900 bg-zinc-50 dark:bg-zinc-900/30 flex items-center justify-between text-xs font-semibold">
                   <button
                     onClick={handleMarkAllRead}
-                    className="text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 cursor-pointer"
+                    className="text-zinc-900 dark:text-zinc-100 hover:underline flex items-center gap-1 cursor-pointer"
                   >
                     <Check className="w-3.5 h-3.5" /> Read All
                   </button>
                   <button
                     onClick={handleClearAll}
-                    className="text-zinc-500 hover:text-red-500 transition-colors flex items-center gap-1 cursor-pointer"
+                    className="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-1 cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" /> Clear All
                   </button>
@@ -459,16 +393,16 @@ export function Sidebar() {
               <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 {isLoading && notifications.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 text-zinc-400 gap-2">
-                    <RefreshCw className="h-6 w-6 animate-spin text-indigo-500" />
-                    <span className="text-xs font-semibold">Loading notification feed...</span>
+                    <RefreshCw className="h-5 w-5 animate-spin text-zinc-500" />
+                    <span className="text-xs font-medium">Loading notifications...</span>
                   </div>
                 ) : notifications.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-20 text-center text-zinc-400 space-y-2">
-                    <CheckCircle2 className="h-10 w-10 text-zinc-300 dark:text-zinc-700" />
+                    <CheckCircle2 className="h-8 w-8 text-zinc-300 dark:text-zinc-700" />
                     <div>
-                      <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">All caught up!</p>
+                      <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">No notifications</p>
                       <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">
-                        No alerts or notifications recorded.
+                        You have no alerts at this time.
                       </p>
                     </div>
                   </div>
@@ -484,17 +418,17 @@ export function Sidebar() {
                             key={item.id}
                             className={`p-4 rounded-2xl border transition-all ${
                               item.isRead
-                                ? "bg-zinc-50/40 dark:bg-zinc-900/30 border-zinc-200/50 dark:border-zinc-800/50 opacity-80"
-                                : "bg-indigo-50/15 dark:bg-indigo-950/15 border-indigo-200/60 dark:border-indigo-900/50 ring-2 ring-indigo-500/5 shadow-2xs"
+                                ? "bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 opacity-70"
+                                : "bg-zinc-50 dark:bg-zinc-900 border-zinc-300 dark:border-zinc-700 font-semibold"
                             }`}
                           >
                             <div className="flex items-start gap-3">
-                              <div className="p-2 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200/50 dark:border-zinc-700/60 shadow-2xs mt-0.5">
-                                {getNotificationIcon(item.type)}
+                              <div className="p-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 mt-0.5">
+                                <Bell className="h-4 w-4" />
                               </div>
                               <div className="flex-1 space-y-1 min-w-0">
                                 <div className="flex items-center justify-between gap-2">
-                                  <span className="font-bold text-xs text-zinc-800 dark:text-zinc-200 truncate">
+                                  <span className="font-bold text-xs text-zinc-900 dark:text-zinc-100 truncate">
                                     {item.title}
                                   </span>
                                   <span className="text-[9px] text-zinc-400 dark:text-zinc-500 shrink-0 font-medium">
@@ -523,3 +457,4 @@ export function Sidebar() {
     </>
   );
 }
+

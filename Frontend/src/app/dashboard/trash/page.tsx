@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { Meeting } from "@/types/meeting";
 import { MeetingDetailModal } from "@/components/dashboard/MeetingDetailModal";
 import api from "@/lib/axios";
+import { callService } from "@/lib/serviceApi";
+import { SERVICE_IDS } from "@/lib/serviceIds";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -26,10 +28,10 @@ export default function TrashPage() {
   const { data: meetingsResponse, isLoading } = useQuery({
     queryKey: ["trashedMeetings"],
     queryFn: async () => {
-      const res = await api.get("/meetings", {
-        params: { isDeleted: "true", limit: 50 },
+      return await callService({
+        serviceId: SERVICE_IDS.MEETINGS.LIST,
+        query: { isDeleted: true, limit: 50 },
       });
-      return res.data;
     },
     staleTime: 1000 * 60 * 2, // 2 minutes cache
     refetchOnMount: "always",
@@ -44,7 +46,10 @@ export default function TrashPage() {
   // TanStack Mutation for Restore
   const restoreMutation = useMutation({
     mutationFn: async (id: string) => {
-      await api.post(`/meetings/${id}/restore`);
+      await callService({
+        serviceId: SERVICE_IDS.MEETINGS.RESTORE,
+        params: { id },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trashedMeetings"] });
@@ -61,7 +66,10 @@ export default function TrashPage() {
   // TanStack Mutation for Permanent Delete
   const permanentDeleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await api.delete(`/meetings/${id}/permanent`);
+      await callService({
+        serviceId: SERVICE_IDS.MEETINGS.PERMANENT_DELETE,
+        params: { id },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trashedMeetings"] });

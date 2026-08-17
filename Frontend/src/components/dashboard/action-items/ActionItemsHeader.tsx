@@ -20,15 +20,6 @@ export function ActionItemsHeader({ isSyncing, onAddClick, onExportCSV, onExport
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50">
             Action Tracker
           </h1>
-          {isSyncing && (
-            <Badge
-              variant="outline"
-              className="flex items-center gap-1.5 text-[11px] font-semibold border-amber-300 text-amber-700 bg-amber-50/50 dark:border-amber-800 dark:text-amber-300 dark:bg-amber-950/30 rounded-lg"
-            >
-              <Loader2 className="h-3 w-3 animate-spin text-amber-500" />
-              <span>Syncing live API...</span>
-            </Badge>
-          )}
         </div>
         <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
           Manage, filter, and track deliverables extracted across all meeting notes.
@@ -67,7 +58,7 @@ export function ActionItemsHeader({ isSyncing, onAddClick, onExportCSV, onExport
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
             onClick={onAddClick}
-            className="flex items-center gap-2 rounded-xl shadow-md bg-gradient-dual hover:opacity-95 text-white font-semibold text-xs sm:text-sm"
+            className="flex items-center gap-2 rounded-xl shadow-xs bg-white text-zinc-950 dark:bg-zinc-100 dark:text-black font-semibold text-xs sm:text-sm border border-zinc-300 dark:border-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-200"
           >
             <Plus className="h-4.5 w-4.5" />
             Add Action Item

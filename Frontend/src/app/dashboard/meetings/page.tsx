@@ -8,6 +8,8 @@ import { MeetingModal } from "@/components/dashboard/MeetingModal";
 
 import { MeetingDetailModal } from "@/components/dashboard/MeetingDetailModal";
 import api from "@/lib/axios";
+import { callService } from "@/lib/serviceApi";
+import { SERVICE_IDS } from "@/lib/serviceIds";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   MeetingsHeader,
@@ -44,10 +46,10 @@ export default function MeetingsPage() {
   const { data: meetingsResponse, isLoading } = useQuery({
     queryKey: ["meetings", currentPage],
     queryFn: async () => {
-      const res = await api.get("/meetings", {
-        params: { page: currentPage, limit: ITEMS_PER_PAGE },
+      return await callService({
+        serviceId: SERVICE_IDS.MEETINGS.LIST,
+        query: { page: currentPage, limit: ITEMS_PER_PAGE },
       });
-      return res.data;
     },
     staleTime: 1000 * 60 * 5, // 5 minutes cache
   });
@@ -74,8 +76,11 @@ export default function MeetingsPage() {
 
       for (const jobId of activeJobIds) {
         try {
-          const res = await api.get(`/jobs/${jobId}`);
-          const status = res.data?.status;
+          const resData = await callService({
+            serviceId: SERVICE_IDS.JOBS.GET,
+            params: { id: jobId },
+          });
+          const status = resData?.status;
 
           if (status === "completed" || status === "failed") {
             shouldRefresh = true;
@@ -110,11 +115,18 @@ export default function MeetingsPage() {
   const saveMeetingMutation = useMutation<{ jobId?: string }, Error, Partial<Meeting>>({
     mutationFn: async (meetingData: Partial<Meeting>) => {
       if (meetingData.id) {
-        const res = await api.put<Meeting>(`/meetings/${meetingData.id}`, meetingData);
-        return res.data as { jobId?: string };
+        const resData = await callService<Meeting>({
+          serviceId: SERVICE_IDS.MEETINGS.UPDATE,
+          params: { id: meetingData.id },
+          payload: meetingData,
+        });
+        return resData as { jobId?: string };
       } else {
-        const res = await api.post<{ jobId?: string } & Meeting>("/meetings", meetingData);
-        return res.data;
+        const resData = await callService<{ jobId?: string } & Meeting>({
+          serviceId: SERVICE_IDS.MEETINGS.CREATE,
+          payload: meetingData,
+        });
+        return resData;
       }
     },
     onSuccess: (data, variables) => {
@@ -144,7 +156,10 @@ export default function MeetingsPage() {
 
   const ArchiveMutation = useMutation({
     mutationFn: async (id: string) => {
-      await api.post(`/meetings/${id}/archive`);
+      await callService({
+        serviceId: SERVICE_IDS.MEETINGS.ARCHIVE,
+        params: { id },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["meetings"] });
@@ -162,7 +177,10 @@ export default function MeetingsPage() {
 
   const PinMutationChanges = useMutation({
     mutationFn: async (id: string) => {
-      await api.post(`/meetings/${id}/pin`);
+      await callService({
+        serviceId: SERVICE_IDS.MEETINGS.PIN,
+        params: { id },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["meetings"] });
@@ -183,7 +201,10 @@ export default function MeetingsPage() {
 
   const CloneMeetingMutation = useMutation({
     mutationFn: async (meeting: Meeting) => {
-      await api.post("/meetings/create/clone", { meeting });
+      await callService({
+        serviceId: SERVICE_IDS.MEETINGS.CLONE,
+        payload: { meeting },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["meetings"] });
@@ -208,7 +229,10 @@ export default function MeetingsPage() {
   // TanStack Mutation for Delete Meeting
   const deleteMeetingMutation = useMutation({
     mutationFn: async (id: string) => {
-      await api.post(`/meetings/${id}`);
+      await callService({
+        serviceId: SERVICE_IDS.MEETINGS.DELETE,
+        params: { id },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["meetings"] });

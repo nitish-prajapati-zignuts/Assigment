@@ -79,8 +79,16 @@ export const updateMeetingSchema = z.object({
 });
 
 export const meetingQuerySchema = z.object({
-  page: z.string().regex(/^\d+$/, "Page must be a number").transform(Number).default(1),
-  limit: z.string().regex(/^\d+$/, "Limit must be a number").transform(Number).default(10),
+  page: z.preprocess((val) => {
+    if (typeof val === "number") return val;
+    if (typeof val === "string" && /^\d+$/.test(val)) return Number(val);
+    return undefined;
+  }, z.number().int().min(1).default(1)),
+  limit: z.preprocess((val) => {
+    if (typeof val === "number") return val;
+    if (typeof val === "string" && /^\d+$/.test(val)) return Number(val);
+    return undefined;
+  }, z.number().int().min(1).default(1)),
   search: z.string().max(100, "Search query too long").optional(),
   type: z.enum(["meeting", "standup", "presentation", "workshop", "other"]).optional(),
   sortBy: z.enum(["date", "createdAt", "title"]).default("date"),
@@ -116,8 +124,16 @@ export const updateActionItemSchema = z.object({
 });
 
 export const actionItemQuerySchema = z.object({
-  page: z.string().regex(/^\d+$/, "Page must be a number").transform(Number).default(1),
-  limit: z.string().regex(/^\d+$/, "Limit must be a number").transform(Number).default(10),
+  page: z.preprocess((val) => {
+    if (typeof val === "number") return val;
+    if (typeof val === "string" && /^\d+$/.test(val)) return Number(val);
+    return undefined;
+  }, z.number().int().min(1).default(1)),
+  limit: z.preprocess((val) => {
+    if (typeof val === "number") return val;
+    if (typeof val === "string" && /^\d+$/.test(val)) return Number(val);
+    return undefined;
+  }, z.number().int().min(1).default(1)),
   status: z.string().optional(),
   priority: z.string().optional(),
   meetingId: z.string().optional(),
