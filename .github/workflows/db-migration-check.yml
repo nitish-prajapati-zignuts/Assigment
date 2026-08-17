@@ -1,0 +1,61 @@
+name: Database Migration Check
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "Backend/src/db/**"
+      - "Backend/drizzle/**"
+      - "Backend/drizzle.config.ts"
+
+jobs:
+  migration-check:
+    name: Validate Drizzle Schema
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.2.0
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Install Root Dependencies
+        run: npm ci
+
+      - name: Install Backend Dependencies
+        run: npm ci --prefix Backend
+
+      - name: TypeScript Compilation Check
+        run: npm run type-check --prefix Backend
+
+      - name: Generate Migration Dry Run
+        run: |
+          cd Backend
+          npx drizzle-kit generate --name ci_check 2>&1 | tee migration_output.txt
+          
+          # Check if migration generation produced errors
+          if grep -qi "error" migration_output.txt; then
+            echo "❌ Migration generation failed!"
+            exit 1
+          fi
+          
+          echo "✅ Schema is valid and migration can be generated successfully."
+
+      - name: Verify No Uncommitted Migrations
+        run: |
+          cd Backend
+          # Check if drizzle-kit generate created new files that aren't committed
+          if [ -n "$(git status --porcelain drizzle/)" ]; then
+            echo "⚠️ New migration files were generated but not committed."
+            echo "If you changed the schema, please run 'npm run db:generate --prefix Backend' locally and commit the migration files."
+            git diff --stat drizzle/
+            # Clean up the CI-generated migration
+            git checkout -- drizzle/ 2>/dev/null || true
+            exit 1
+          fi
+          
+          echo "✅ All migration files are up to date."
