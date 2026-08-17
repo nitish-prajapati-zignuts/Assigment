@@ -71,22 +71,20 @@ export const dispatchService = asyncHandler(
  * GET /api/service/registry
  * Returns all registered serviceIds and details (dev/diagnostic helper).
  */
-export const listServices = asyncHandler(
-  async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    const services = Object.keys(serviceRegistry).map((key) => {
-      const service = serviceRegistry[key];
-      return {
-        serviceId: service.serviceId,
-        requiresAuth: service.requiresAuth,
-        hasBodyValidation: !!service.validation?.body,
-        hasQueryValidation: !!service.validation?.query,
-        hasParamsValidation: !!service.validation?.params,
-      };
-    });
+export const listServices = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  const services = Object.keys(serviceRegistry).map((key) => {
+    const service = serviceRegistry[key];
+    return {
+      serviceId: service.serviceId,
+      requiresAuth: service.requiresAuth,
+      hasBodyValidation: !!service.validation?.body,
+      hasQueryValidation: !!service.validation?.query,
+      hasParamsValidation: !!service.validation?.params,
+    };
+  });
 
-    res.json({
-      count: services.length,
-      services,
-    });
-  }
-);
+  res.json({
+    count: services.length,
+    services,
+  });
+});

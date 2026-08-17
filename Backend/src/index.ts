@@ -136,8 +136,8 @@ app.get(
         diagnostics: isDevelopment() ? "GET /api/diagnostics" : undefined,
         serviceGateway: {
           dispatch: "POST /api/service",
-          registry: "GET /api/service/registry"
-        }
+          registry: "GET /api/service/registry",
+        },
       },
       documentation: "/api-docs",
     });

@@ -114,6 +114,6 @@ export function ActionItemsLeaderboard() {
           ))
         )}
       </div>
-    </div >
+    </div>
   );
 }

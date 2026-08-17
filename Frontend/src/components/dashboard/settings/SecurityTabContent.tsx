@@ -37,7 +37,8 @@ export function SecurityTabContent({ sessions }: SecurityTabContentProps) {
           Account Security & Authentication Status
         </h3>
         <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-          Your account is secured with JWT tokens and role-based access control. All active sessions are monitored below in real time.
+          Your account is secured with JWT tokens and role-based access control. All active sessions are monitored below
+          in real time.
         </p>
       </div>
 
@@ -68,11 +69,7 @@ export function SecurityTabContent({ sessions }: SecurityTabContentProps) {
               >
                 <div className="flex items-start gap-3.5">
                   <div className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 mt-0.5">
-                    {sess.device === "Mobile" ? (
-                      <Smartphone className="w-5 h-5" />
-                    ) : (
-                      <Laptop className="w-5 h-5" />
-                    )}
+                    {sess.device === "Mobile" ? <Smartphone className="w-5 h-5" /> : <Laptop className="w-5 h-5" />}
                   </div>
 
                   <div className="space-y-1">
@@ -122,4 +119,3 @@ export function SecurityTabContent({ sessions }: SecurityTabContentProps) {
     </motion.div>
   );
 }
-

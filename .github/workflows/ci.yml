@@ -14,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.4.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v4.4.0
         with:
           node-version: lts/*
           cache: npm
@@ -39,10 +39,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.4.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v4.4.0
         with:
           node-version: lts/*
           cache: npm
@@ -57,7 +57,7 @@ jobs:
         run: npm run type-check --prefix Backend
 
       - name: Frontend Type Check
-        run: npm run lint --prefix Frontend
+        run: npm run type-check --prefix Frontend
 
   build-verification:
     name: Production Build Verification
@@ -65,10 +65,10 @@ jobs:
     needs: [lint-and-format, type-check]
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.4.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v4.4.0
         with:
           node-version: lts/*
           cache: npm

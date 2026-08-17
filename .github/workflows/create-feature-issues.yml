@@ -1,0 +1,64 @@
+name: Create Feature Issues
+
+on:
+  workflow_dispatch: # Allows manual trigger from the GitHub Actions tab
+
+permissions:
+  issues: write
+
+jobs:
+  create-issues:
+    name: Generate Issues from Recommendations
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4.4.0
+
+      - name: Parse Recommendations and Create Issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'feature_recommendations.md';
+            
+            if (!fs.existsSync(path)) {
+              console.error(`${path} does not exist!`);
+              return;
+            }
+            
+            const fileContent = fs.readFileSync(path, 'utf8');
+            const cleanContent = fileContent.replace(/\r\n/g, '\n');
+            
+            // Regex to match header "### <number>. <Title>" and all contents following it
+            // until the next header "###", "##", or page divider "---"
+            const regex = /###\s+(\d+\.\s+.*?)\n([\s\S]*?)(?=\n###|\n##\s+|\n---|$)/g;
+            let match;
+            const features = [];
+            
+            while ((match = regex.exec(cleanContent)) !== null) {
+              features.push({
+                title: match[1].trim(),
+                body: match[2].trim()
+              });
+            }
+            
+            console.log(`Parsed ${features.length} feature recommendations.`);
+            
+            for (const feature of features) {
+              try {
+                const title = `[Feature] ${feature.title}`;
+                const body = `${feature.body}\n\n---\n*Automatically created from feature_recommendations.md*`;
+                
+                console.log(`Creating issue: "${title}"...`);
+                const response = await github.rest.issues.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  title: title,
+                  body: body,
+                  labels: ['enhancement', 'feature-recommendation']
+                });
+                console.log(`Successfully created: ${response.data.html_url}`);
+              } catch (error) {
+                console.error(`Failed to create issue for "${feature.title}":`, error);
+              }
+            }
