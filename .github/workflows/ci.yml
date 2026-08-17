@@ -57,7 +57,7 @@ jobs:
         run: npm run type-check --prefix Backend
 
       - name: Frontend Type Check
-        run: npm run lint --prefix Frontend
+        run: npm run type-check --prefix Frontend
 
   build-verification:
     name: Production Build Verification
