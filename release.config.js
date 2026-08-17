@@ -18,7 +18,7 @@ module.exports = {
     [
       "@semantic-release/exec",
       {
-        prepareCmd: "npm version ${nextRelease.version} --prefix Frontend --no-git-tag-version && npm version ${nextRelease.version} --prefix Backend --no-git-tag-version"
+        prepareCmd: "npm version ${nextRelease.version} --prefix Frontend --no-git-tag-version --allow-same-version && npm version ${nextRelease.version} --prefix Backend --no-git-tag-version --allow-same-version"
       }
     ],
     [
