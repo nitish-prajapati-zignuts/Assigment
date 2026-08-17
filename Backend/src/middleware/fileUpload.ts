@@ -1,3 +1,4 @@
+import xss from "xss";
 import { Request, Response, NextFunction } from "express";
 import { ValidationError } from "../utils/errors";
 import { logger } from "../utils/logger";
@@ -138,19 +139,11 @@ function validateFileContent(file: any): void {
  * Removes potentially dangerous content from text-based files
  */
 export const sanitizeFileContent = (content: string): string => {
-  // Remove script tags
-  content = content.replace(/<script[^>]*>.*?<\/script>/gi, "");
-
-  // Remove event handlers
-  content = content.replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, "");
-
-  // Remove javascript: protocol
-  content = content.replace(/javascript:/gi, "");
-
   // Remove null bytes
   content = content.replace(/\0/g, "");
 
-  return content.trim();
+  // Sanitize content using the well-tested xss library
+  return xss(content).trim();
 };
 
 /**

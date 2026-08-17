@@ -3,6 +3,7 @@
  * Implements various security headers and protections
  */
 
+import xss from "xss";
 import { Request, Response, NextFunction } from "express";
 import { logger } from "../utils/logger";
 
@@ -103,10 +104,8 @@ function sanitizeObject(obj: any): any {
   }
 
   if (typeof obj === "string") {
-    // Remove potential NoSQL injection patterns
-    obj = obj.replace(/[$]/g, "");
-    // Remove potential script injection
-    obj = obj.replace(/<script[^>]*>.*?<\/script>/gi, "");
+    // Sanitize string using the well-tested xss library
+    obj = xss(obj);
   }
 
   return obj;
