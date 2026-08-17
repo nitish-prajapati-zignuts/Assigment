@@ -20,7 +20,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@ai-sdk/google": "^4.0.34",
+    "@ai-sdk/google": "^4.0.44",
     "@ai-sdk/openai": "^4.0.41",
     "@ai-sdk/xai": "^4.0.33",
     "@neondatabase/serverless": "^1.1.0",
