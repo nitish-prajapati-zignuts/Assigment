@@ -1,8 +1,12 @@
 # Security Policy
 
+## Project Description
+
+The **AI-Powered Meeting Notes & Action Item Summarizer** is a full-stack, enterprise-grade web application designed to capture, structure, summarize, and extract actionable insights from meeting transcripts using AI.
+
 ## Supported Versions
 
-We are committed to securing the AI-Powered Meeting Notes & Action Item Summarizer. We actively support and patch the following versions:
+We are committed to securing this application. We actively support and patch the following versions:
 
 | Version | Supported          |
 | ------- | ------------------ |
