@@ -22,7 +22,11 @@
     "schemas": {
       "RegisterInput": {
         "type": "object",
-        "required": ["name", "email", "password"],
+        "required": [
+          "name",
+          "email",
+          "password"
+        ],
         "properties": {
           "name": {
             "type": "string",
@@ -42,7 +46,10 @@
       },
       "LoginInput": {
         "type": "object",
-        "required": ["email", "password"],
+        "required": [
+          "email",
+          "password"
+        ],
         "properties": {
           "email": {
             "type": "string",
@@ -58,7 +65,10 @@
       },
       "MeetingInput": {
         "type": "object",
-        "required": ["title", "transcript"],
+        "required": [
+          "title",
+          "transcript"
+        ],
         "properties": {
           "title": {
             "type": "string",
@@ -81,7 +91,13 @@
       },
       "ActionItemInput": {
         "type": "object",
-        "required": ["task", "owner", "dueDate", "priority", "status"],
+        "required": [
+          "task",
+          "owner",
+          "dueDate",
+          "priority",
+          "status"
+        ],
         "properties": {
           "task": {
             "type": "string",
@@ -98,12 +114,21 @@
           },
           "priority": {
             "type": "string",
-            "enum": ["Low", "Medium", "High"],
+            "enum": [
+              "Low",
+              "Medium",
+              "High"
+            ],
             "example": "High"
           },
           "status": {
             "type": "string",
-            "enum": ["Pending", "In Progress", "Completed", "Blocked"],
+            "enum": [
+              "Pending",
+              "In Progress",
+              "Completed",
+              "Blocked"
+            ],
             "example": "In Progress"
           },
           "meetingId": {
@@ -114,11 +139,16 @@
       },
       "AuthRegisterRequest": {
         "type": "object",
-        "required": ["serviceId", "payload"],
+        "required": [
+          "serviceId",
+          "payload"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["auth.register"]
+            "enum": [
+              "auth.register"
+            ]
           },
           "payload": {
             "$ref": "#/components/schemas/RegisterInput"
@@ -127,11 +157,16 @@
       },
       "AuthLoginRequest": {
         "type": "object",
-        "required": ["serviceId", "payload"],
+        "required": [
+          "serviceId",
+          "payload"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["auth.login"]
+            "enum": [
+              "auth.login"
+            ]
           },
           "payload": {
             "$ref": "#/components/schemas/LoginInput"
@@ -140,41 +175,58 @@
       },
       "AuthLogoutRequest": {
         "type": "object",
-        "required": ["serviceId"],
+        "required": [
+          "serviceId"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["auth.logout"]
+            "enum": [
+              "auth.logout"
+            ]
           }
         }
       },
       "AuthMeRequest": {
         "type": "object",
-        "required": ["serviceId"],
+        "required": [
+          "serviceId"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["auth.me"]
+            "enum": [
+              "auth.me"
+            ]
           }
         }
       },
       "AuthUsersRequest": {
         "type": "object",
-        "required": ["serviceId"],
+        "required": [
+          "serviceId"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["auth.users"]
+            "enum": [
+              "auth.users"
+            ]
           }
         }
       },
       "AuthChangePasswordRequest": {
         "type": "object",
-        "required": ["serviceId", "payload"],
+        "required": [
+          "serviceId",
+          "payload"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["auth.changePassword"]
+            "enum": [
+              "auth.changePassword"
+            ]
           },
           "payload": {
             "type": "object",
@@ -184,11 +236,15 @@
       },
       "MeetingsListRequest": {
         "type": "object",
-        "required": ["serviceId"],
+        "required": [
+          "serviceId"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["meetings.list"]
+            "enum": [
+              "meetings.list"
+            ]
           },
           "query": {
             "type": "object",
@@ -198,15 +254,22 @@
       },
       "MeetingsGetRequest": {
         "type": "object",
-        "required": ["serviceId", "params"],
+        "required": [
+          "serviceId",
+          "params"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["meetings.get"]
+            "enum": [
+              "meetings.get"
+            ]
           },
           "params": {
             "type": "object",
-            "required": ["id"],
+            "required": [
+              "id"
+            ],
             "properties": {
               "id": {
                 "type": "string",
@@ -218,11 +281,16 @@
       },
       "MeetingsCreateRequest": {
         "type": "object",
-        "required": ["serviceId", "payload"],
+        "required": [
+          "serviceId",
+          "payload"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["meetings.create"]
+            "enum": [
+              "meetings.create"
+            ]
           },
           "payload": {
             "$ref": "#/components/schemas/MeetingInput"
@@ -231,18 +299,26 @@
       },
       "MeetingsUpdateRequest": {
         "type": "object",
-        "required": ["serviceId", "payload", "params"],
+        "required": [
+          "serviceId",
+          "payload",
+          "params"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["meetings.update"]
+            "enum": [
+              "meetings.update"
+            ]
           },
           "payload": {
             "$ref": "#/components/schemas/MeetingInput"
           },
           "params": {
             "type": "object",
-            "required": ["id"],
+            "required": [
+              "id"
+            ],
             "properties": {
               "id": {
                 "type": "string",
@@ -254,15 +330,22 @@
       },
       "MeetingsDeleteRequest": {
         "type": "object",
-        "required": ["serviceId", "params"],
+        "required": [
+          "serviceId",
+          "params"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["meetings.delete"]
+            "enum": [
+              "meetings.delete"
+            ]
           },
           "params": {
             "type": "object",
-            "required": ["id"],
+            "required": [
+              "id"
+            ],
             "properties": {
               "id": {
                 "type": "string",
@@ -274,15 +357,22 @@
       },
       "MeetingsSummarizeRequest": {
         "type": "object",
-        "required": ["serviceId", "params"],
+        "required": [
+          "serviceId",
+          "params"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["meetings.summarize"]
+            "enum": [
+              "meetings.summarize"
+            ]
           },
           "params": {
             "type": "object",
-            "required": ["id"],
+            "required": [
+              "id"
+            ],
             "properties": {
               "id": {
                 "type": "string",
@@ -294,11 +384,17 @@
       },
       "MeetingsChatRequest": {
         "type": "object",
-        "required": ["serviceId", "payload", "params"],
+        "required": [
+          "serviceId",
+          "payload",
+          "params"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["meetings.chat"]
+            "enum": [
+              "meetings.chat"
+            ]
           },
           "payload": {
             "type": "object",
@@ -306,7 +402,9 @@
           },
           "params": {
             "type": "object",
-            "required": ["id"],
+            "required": [
+              "id"
+            ],
             "properties": {
               "id": {
                 "type": "string",
@@ -318,15 +416,22 @@
       },
       "MeetingsPublishRequest": {
         "type": "object",
-        "required": ["serviceId", "params"],
+        "required": [
+          "serviceId",
+          "params"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["meetings.publish"]
+            "enum": [
+              "meetings.publish"
+            ]
           },
           "params": {
             "type": "object",
-            "required": ["id"],
+            "required": [
+              "id"
+            ],
             "properties": {
               "id": {
                 "type": "string",
@@ -338,15 +443,22 @@
       },
       "MeetingsArchiveRequest": {
         "type": "object",
-        "required": ["serviceId", "params"],
+        "required": [
+          "serviceId",
+          "params"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["meetings.archive"]
+            "enum": [
+              "meetings.archive"
+            ]
           },
           "params": {
             "type": "object",
-            "required": ["id"],
+            "required": [
+              "id"
+            ],
             "properties": {
               "id": {
                 "type": "string",
@@ -358,15 +470,22 @@
       },
       "MeetingsUnarchiveRequest": {
         "type": "object",
-        "required": ["serviceId", "params"],
+        "required": [
+          "serviceId",
+          "params"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["meetings.unarchive"]
+            "enum": [
+              "meetings.unarchive"
+            ]
           },
           "params": {
             "type": "object",
-            "required": ["id"],
+            "required": [
+              "id"
+            ],
             "properties": {
               "id": {
                 "type": "string",
@@ -378,15 +497,22 @@
       },
       "MeetingsRestoreRequest": {
         "type": "object",
-        "required": ["serviceId", "params"],
+        "required": [
+          "serviceId",
+          "params"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["meetings.restore"]
+            "enum": [
+              "meetings.restore"
+            ]
           },
           "params": {
             "type": "object",
-            "required": ["id"],
+            "required": [
+              "id"
+            ],
             "properties": {
               "id": {
                 "type": "string",
@@ -398,15 +524,22 @@
       },
       "MeetingsPinRequest": {
         "type": "object",
-        "required": ["serviceId", "params"],
+        "required": [
+          "serviceId",
+          "params"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["meetings.pin"]
+            "enum": [
+              "meetings.pin"
+            ]
           },
           "params": {
             "type": "object",
-            "required": ["id"],
+            "required": [
+              "id"
+            ],
             "properties": {
               "id": {
                 "type": "string",
@@ -418,11 +551,16 @@
       },
       "MeetingsCloneRequest": {
         "type": "object",
-        "required": ["serviceId", "payload"],
+        "required": [
+          "serviceId",
+          "payload"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["meetings.clone"]
+            "enum": [
+              "meetings.clone"
+            ]
           },
           "payload": {
             "type": "object",
@@ -432,15 +570,22 @@
       },
       "MeetingsPermanentDeleteRequest": {
         "type": "object",
-        "required": ["serviceId", "params"],
+        "required": [
+          "serviceId",
+          "params"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["meetings.permanentDelete"]
+            "enum": [
+              "meetings.permanentDelete"
+            ]
           },
           "params": {
             "type": "object",
-            "required": ["id"],
+            "required": [
+              "id"
+            ],
             "properties": {
               "id": {
                 "type": "string",
@@ -452,21 +597,29 @@
       },
       "MeetingsPublicShareGetRequest": {
         "type": "object",
-        "required": ["serviceId"],
+        "required": [
+          "serviceId"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["meetings.publicShareGet"]
+            "enum": [
+              "meetings.publicShareGet"
+            ]
           }
         }
       },
       "ActionItemsListRequest": {
         "type": "object",
-        "required": ["serviceId"],
+        "required": [
+          "serviceId"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["actionItems.list"]
+            "enum": [
+              "actionItems.list"
+            ]
           },
           "query": {
             "type": "object",
@@ -476,15 +629,22 @@
       },
       "ActionItemsGetRequest": {
         "type": "object",
-        "required": ["serviceId", "params"],
+        "required": [
+          "serviceId",
+          "params"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["actionItems.get"]
+            "enum": [
+              "actionItems.get"
+            ]
           },
           "params": {
             "type": "object",
-            "required": ["id"],
+            "required": [
+              "id"
+            ],
             "properties": {
               "id": {
                 "type": "string",
@@ -496,15 +656,22 @@
       },
       "ActionItemsGetByMeetingRequest": {
         "type": "object",
-        "required": ["serviceId", "params"],
+        "required": [
+          "serviceId",
+          "params"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["actionItems.getByMeeting"]
+            "enum": [
+              "actionItems.getByMeeting"
+            ]
           },
           "params": {
             "type": "object",
-            "required": ["id"],
+            "required": [
+              "id"
+            ],
             "properties": {
               "id": {
                 "type": "string",
@@ -516,21 +683,30 @@
       },
       "ActionItemsLeaderboardRequest": {
         "type": "object",
-        "required": ["serviceId"],
+        "required": [
+          "serviceId"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["actionItems.leaderboard"]
+            "enum": [
+              "actionItems.leaderboard"
+            ]
           }
         }
       },
       "ActionItemsCreateRequest": {
         "type": "object",
-        "required": ["serviceId", "payload"],
+        "required": [
+          "serviceId",
+          "payload"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["actionItems.create"]
+            "enum": [
+              "actionItems.create"
+            ]
           },
           "payload": {
             "$ref": "#/components/schemas/ActionItemInput"
@@ -539,11 +715,17 @@
       },
       "ActionItemsUpdateRequest": {
         "type": "object",
-        "required": ["serviceId", "payload", "params"],
+        "required": [
+          "serviceId",
+          "payload",
+          "params"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["actionItems.update"]
+            "enum": [
+              "actionItems.update"
+            ]
           },
           "payload": {
             "type": "object",
@@ -551,7 +733,9 @@
           },
           "params": {
             "type": "object",
-            "required": ["id"],
+            "required": [
+              "id"
+            ],
             "properties": {
               "id": {
                 "type": "string",
@@ -563,15 +747,22 @@
       },
       "ActionItemsDeleteRequest": {
         "type": "object",
-        "required": ["serviceId", "params"],
+        "required": [
+          "serviceId",
+          "params"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["actionItems.delete"]
+            "enum": [
+              "actionItems.delete"
+            ]
           },
           "params": {
             "type": "object",
-            "required": ["id"],
+            "required": [
+              "id"
+            ],
             "properties": {
               "id": {
                 "type": "string",
@@ -583,91 +774,168 @@
       },
       "DashboardStatsRequest": {
         "type": "object",
-        "required": ["serviceId"],
+        "required": [
+          "serviceId"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["dashboard.stats"]
+            "enum": [
+              "dashboard.stats"
+            ]
           }
         }
       },
       "SettingsGetRequest": {
         "type": "object",
-        "required": ["serviceId"],
+        "required": [
+          "serviceId"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["settings.get"]
+            "enum": [
+              "settings.get"
+            ]
           }
         }
       },
       "SettingsUpdateRequest": {
         "type": "object",
-        "required": ["serviceId"],
+        "required": [
+          "serviceId"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["settings.update"]
+            "enum": [
+              "settings.update"
+            ]
           }
         }
       },
       "SettingsSessionsRequest": {
         "type": "object",
-        "required": ["serviceId"],
+        "required": [
+          "serviceId"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["settings.sessions"]
+            "enum": [
+              "settings.sessions"
+            ]
           }
         }
       },
       "NotificationsListRequest": {
         "type": "object",
-        "required": ["serviceId"],
+        "required": [
+          "serviceId"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["notifications.list"]
+            "enum": [
+              "notifications.list"
+            ]
           }
         }
       },
       "NotificationsReadAllRequest": {
         "type": "object",
-        "required": ["serviceId"],
+        "required": [
+          "serviceId"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["notifications.readAll"]
+            "enum": [
+              "notifications.readAll"
+            ]
           }
         }
       },
       "NotificationsClearRequest": {
         "type": "object",
-        "required": ["serviceId"],
+        "required": [
+          "serviceId"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["notifications.clear"]
+            "enum": [
+              "notifications.clear"
+            ]
           }
         }
       },
       "JobsGetRequest": {
         "type": "object",
-        "required": ["serviceId", "params"],
+        "required": [
+          "serviceId",
+          "params"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["jobs.get"]
+            "enum": [
+              "jobs.get"
+            ]
           },
           "params": {
             "type": "object",
-            "required": ["id"],
+            "required": [
+              "id"
+            ],
             "properties": {
               "id": {
                 "type": "string",
                 "example": "65b9c1f2d3a4e5b6c7d8e9f0"
               }
             }
+          }
+        }
+      },
+      "ChatGlobalRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "chat.global"
+            ]
+          }
+        }
+      },
+      "ChatSessionsRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "chat.sessions.get"
+            ]
+          }
+        }
+      },
+      "MemorySyncRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "memory.sync"
+            ]
           }
         }
       }
@@ -678,7 +946,9 @@
       "post": {
         "summary": "Centralized service dispatcher",
         "description": "Dispatches requests to internal services using serviceId.",
-        "tags": ["Centralized Service Router"],
+        "tags": [
+          "Centralized Service Router"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -797,6 +1067,18 @@
                   },
                   {
                     "$ref": "#/components/schemas/JobsGetRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ChatGlobalRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ChatSessionsRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ChatSessionsRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MemorySyncRequest"
                   }
                 ]
               }
@@ -823,7 +1105,9 @@
       "get": {
         "summary": "Retrieve registered service definitions catalog",
         "description": "Lists all registered serviceIds, authentication requirements, and validation flags.",
-        "tags": ["Centralized Service Router"],
+        "tags": [
+          "Centralized Service Router"
+        ],
         "responses": {
           "200": {
             "description": "Successful retrieval of service registry catalog",

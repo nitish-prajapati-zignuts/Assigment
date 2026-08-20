@@ -44,6 +44,12 @@ export const SERVICE_IDS = {
   JOBS: {
     GET: "jobs.get",
   },
+  CHAT: {
+    GLOBAL: "chat.global",
+    SESSIONS_LIST: "chat.sessions.list",
+    SESSIONS_GET: "chat.sessions.get",
+    MEMORY_SYNC: "memory.sync",
+  },
   AUTH: {
     REGISTER: "auth.register",
     LOGIN: "auth.login",
@@ -63,4 +69,5 @@ export type ServiceId =
   | (typeof SERVICE_IDS.SETTINGS)[keyof typeof SERVICE_IDS.SETTINGS]
   | (typeof SERVICE_IDS.NOTIFICATIONS)[keyof typeof SERVICE_IDS.NOTIFICATIONS]
   | (typeof SERVICE_IDS.JOBS)[keyof typeof SERVICE_IDS.JOBS]
+  | (typeof SERVICE_IDS.CHAT)[keyof typeof SERVICE_IDS.CHAT]
   | (typeof SERVICE_IDS.AUTH)[keyof typeof SERVICE_IDS.AUTH];

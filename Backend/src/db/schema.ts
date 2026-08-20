@@ -288,3 +288,80 @@ export const meetingChunks = pgTable(
 
 export type MeetingChunkRecord = typeof meetingChunks.$inferSelect;
 export type NewMeetingChunkRecord = typeof meetingChunks.$inferInsert;
+
+/**
+ * User Memory Embeddings Table for LangChain User-Scoped Long-Term Memory
+ */
+export const userMemoryEmbeddings = pgTable(
+  "user_memory_embeddings",
+  {
+    id: varchar("id", { length: 255 }).primaryKey(),
+    userId: varchar("user_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    sourceType: text("source_type").notNull(), // 'meeting_summary' | 'meeting_transcript' | 'action_item' | 'decision'
+    sourceId: varchar("source_id", { length: 255 }).notNull(),
+    content: text("content").notNull(),
+    metadata: jsonb("metadata").$type<Record<string, any>>().default({}),
+    embedding: vector("embedding").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+  },
+  (table) => [
+    index("user_memory_embeddings_user_id_idx").on(table.userId),
+    index("user_memory_embeddings_user_source_idx").on(table.userId, table.sourceType),
+    index("user_memory_embeddings_source_id_idx").on(table.sourceId),
+  ]
+);
+
+export type UserMemoryEmbeddingRecord = typeof userMemoryEmbeddings.$inferSelect;
+export type NewUserMemoryEmbeddingRecord = typeof userMemoryEmbeddings.$inferInsert;
+
+/**
+ * Chat Sessions Table for Long-Term Conversational Memory
+ */
+export const chatSessions = pgTable(
+  "chat_sessions",
+  {
+    id: varchar("id", { length: 255 }).primaryKey(),
+    userId: varchar("user_id", { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    title: text("title").notNull().default("New Chat Session"),
+    sessionType: text("session_type").notNull().default("global"), // 'global' | 'meeting'
+    meetingId: varchar("meeting_id", { length: 255 }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+  },
+  (table) => [
+    index("chat_sessions_user_id_idx").on(table.userId),
+    index("chat_sessions_created_at_idx").on(table.createdAt),
+  ]
+);
+
+export type ChatSessionRecord = typeof chatSessions.$inferSelect;
+export type NewChatSessionRecord = typeof chatSessions.$inferInsert;
+
+/**
+ * Chat Messages Table for Long-Term Conversational History
+ */
+export const chatMessages = pgTable(
+  "chat_messages",
+  {
+    id: varchar("id", { length: 255 }).primaryKey(),
+    sessionId: varchar("session_id", { length: 255 })
+      .notNull()
+      .references(() => chatSessions.id, { onDelete: "cascade" }),
+    role: text("role").notNull(), // 'user' | 'assistant' | 'system'
+    content: text("content").notNull(),
+    sources: jsonb("sources").$type<any[]>().default([]),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (table) => [
+    index("chat_messages_session_id_idx").on(table.sessionId),
+    index("chat_messages_created_at_idx").on(table.createdAt),
+  ]
+);
+
+export type ChatMessageRecord = typeof chatMessages.$inferSelect;
+export type NewChatMessageRecord = typeof chatMessages.$inferInsert;

@@ -9,6 +9,8 @@ import { logger } from "../utils/logger";
 import { NotFoundError, ValidationError, InternalServerError, AuthorizationError } from "../utils/errors";
 import { getPaginationOffset, calculatePagination, buildPaginatedResponse } from "../utils/queryOptimization";
 import { ActionItemQueryInput, CreateActionItemInput, UpdateActionItemInput } from "../utils/validation";
+import { indexActionItemMemory } from "../services/langchain/memoryIndexer";
+import { deleteUserMemoryBySource } from "../services/langchain/vectorStore";
 
 /**
  * GET /api/action-items
@@ -265,7 +267,12 @@ export const createActionItem = asyncHandler(async (req: AuthenticatedRequest, r
 
     const inserted = await db.insert(actionItems).values(newItem).returning();
 
-    logger.info("Action item created", {
+    // Auto-index new action item into long-term memory
+    if (inserted[0]) {
+      await indexActionItemMemory(inserted[0]);
+    }
+
+    logger.info("Action item created and memory indexed", {
       itemId: newItemId,
       meetingId,
       owner,
@@ -325,7 +332,12 @@ export const updateActionItem = asyncHandler(async (req: AuthenticatedRequest, r
       .where(eq(actionItems.id, targetId))
       .returning();
 
-    logger.info("Action item updated", { itemId: targetId });
+    // Auto-update action item memory
+    if (updated[0]) {
+      await indexActionItemMemory(updated[0]);
+    }
+
+    logger.info("Action item updated and memory re-indexed", { itemId: targetId });
 
     createNotificationLog({
       userId: req.user?.userId || (req.user as any)?.id,
@@ -356,7 +368,10 @@ export const deleteActionItem = asyncHandler(async (req: AuthenticatedRequest, r
       throw new NotFoundError("Action item");
     }
 
-    logger.info("Action item deleted", { itemId: targetId });
+    // Delete memory chunk
+    await deleteUserMemoryBySource(targetId);
+
+    logger.info("Action item deleted and memory cleared", { itemId: targetId });
 
     createNotificationLog({
       userId: req.user?.userId || (req.user as any)?.id,

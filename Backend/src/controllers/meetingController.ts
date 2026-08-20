@@ -13,6 +13,8 @@ import { processAndSaveTranscriptEmbeddings } from "../services/aiService";
 import { jobQueue } from "../services/jobQueue";
 import { queryMeetingRAG } from "../services/aiService";
 import { appendDebugLog } from "../utils/appendLog";
+import { indexMeetingMemory } from "../services/langchain/memoryIndexer";
+import { deleteUserMemoryBySource } from "../services/langchain/vectorStore";
 
 /**
  * Helper function that synchronizes extracted AI action items into the relational PostgreSQL `action_items` DB table.
@@ -306,7 +308,12 @@ export const updateMeeting = asyncHandler(async (req: AuthenticatedRequest, res:
       await processAndSaveTranscriptEmbeddings(targetId, transcript);
     }
 
-    logger.info("Meeting updated", { meetingId: targetId });
+    // Auto-update long-term vector memory
+    if (updated[0]) {
+      await indexMeetingMemory(updated[0]);
+    }
+
+    logger.info("Meeting updated and long-term memory re-indexed", { meetingId: targetId });
 
     res.json(updated[0]);
   } catch (error) {
@@ -416,7 +423,10 @@ export const deleteMeeting = asyncHandler(async (req: AuthenticatedRequest, res:
       throw new NotFoundError("Meeting");
     }
 
-    logger.info("Meeting deleted", { meetingId: targetId });
+    // Remove deleted meeting memory vectors
+    await deleteUserMemoryBySource(targetId);
+
+    logger.info("Meeting deleted and memory vectors cleared", { meetingId: targetId });
 
     res.json({ message: "Meeting deleted successfully", meeting: deleted[0] });
   } catch (error) {

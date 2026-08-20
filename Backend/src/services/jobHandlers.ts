@@ -62,7 +62,17 @@ export const initializeJobHandlers = (): void => {
         .where(eq(meetings.id, meetingId))
         .returning();
 
-      logger.info("Meeting summarization completed", {
+      // Index into LangChain long-term memory
+      const { indexMeetingMemory, indexActionItemMemory } = await import("./langchain/memoryIndexer");
+      if (updated[0]) {
+        await indexMeetingMemory(updated[0]);
+      }
+      const createdActionItems = await db.select().from(actionItems).where(eq(actionItems.meetingId, meetingId));
+      for (const item of createdActionItems) {
+        await indexActionItemMemory(item);
+      }
+
+      logger.info("Meeting summarization completed & long-term memory indexed", {
         meetingId,
         actionItemCount: summary?.actionItems?.length || 0,
       });

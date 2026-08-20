@@ -30,6 +30,12 @@ import {
 import { getDashboardStats } from "../controllers/dashboardController";
 import { getUserSettings, updateUserSettings, getUserSessions } from "../controllers/settingsController";
 import { getNotifications, markAllNotificationsRead, clearNotifications } from "../controllers/notificationController";
+import {
+  queryGlobalChatMemory,
+  getChatSessionsList,
+  getChatSessionMessages,
+  triggerUserMemorySync,
+} from "../controllers/chatController";
 import { jobQueue } from "../services/jobQueue";
 import { NotFoundError } from "../utils/errors";
 import { asyncHandler } from "../middleware/errorHandler";
@@ -297,5 +303,27 @@ export const serviceRegistry: Record<string, ServiceDefinition> = {
     handler: getJobStatus,
     requiresAuth: true,
     validation: { params: idSchema },
+  },
+
+  // LangChain Long-Term Memory Chat Services
+  "chat.global": {
+    serviceId: "chat.global",
+    handler: queryGlobalChatMemory,
+    requiresAuth: true,
+  },
+  "chat.sessions.list": {
+    serviceId: "chat.sessions.list",
+    handler: getChatSessionsList,
+    requiresAuth: true,
+  },
+  "chat.sessions.get": {
+    serviceId: "chat.sessions.get",
+    handler: getChatSessionMessages,
+    requiresAuth: true,
+  },
+  "memory.sync": {
+    serviceId: "memory.sync",
+    handler: triggerUserMemorySync,
+    requiresAuth: true,
   },
 };
