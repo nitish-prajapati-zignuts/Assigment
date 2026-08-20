@@ -16,7 +16,11 @@ export function appendDebugLog(message: string): void {
 
   try {
     const timestamp = new Date().toISOString();
-    fs.appendFileSync(logFilePath, `[${timestamp}] ${message}\n`);
+    // Sanitize message to prevent CRLF log injection and strip potential malicious content
+    const sanitizedMessage = typeof message === "string"
+      ? message.replace(/[\r]/g, "").replace(/[^\x20-\x7E\n\t]/g, "?")
+      : "";
+    fs.appendFileSync(logFilePath, `[${timestamp}] ${sanitizedMessage}\n`);
   } catch (err) {
     console.error("Failed to write to debug logs file:", err);
   }

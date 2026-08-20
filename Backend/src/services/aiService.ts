@@ -14,6 +14,30 @@ import { embedMany } from "ai";
 dotenv.config();
 
 /**
+ * Helper to sanitize error messages, masking API keys and sensitive credentials
+ */
+function sanitizeError(err: any): string {
+  if (!err) return "";
+  let msg = typeof err === "string" ? err : err.message || JSON.stringify(err);
+
+  const keysToMask = [
+    process.env.GEMINI_API_KEY,
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+    process.env.GEMINI_FALL_BACK_KEY
+  ].filter(Boolean) as string[];
+
+  keysToMask.forEach(key => {
+    if (key && key.length > 5) {
+      msg = msg.split(key).join("[API_KEY_MASKED]");
+    }
+  });
+
+  return msg
+    .replace(/AIzaSy[A-Za-z0-9_-]{35}/g, "[API_KEY_MASKED]")
+    .replace(/[a-zA-Z0-9_-]{39,40}/g, "[KEY_MASKED]");
+}
+
+/**
  * Rotation Policy Implementation (RPI):
  * Parses process.env.GEMINI_API_KEYS as a comma-separated string of API keys.
  * Cleans quotes, whitespace, and de-duplicates key values.
@@ -172,9 +196,12 @@ export function stripHtml(input: string | null | undefined): string {
     str = str
       .replace(/<br\s*\/?>/gi, " ")
       .replace(/<\/(p|div|li|tr|h[1-6])>/gi, "\n")
-      .replace(/<[^>]+>/g, " ")
-      .replace(/&nbsp;/gi, " ")
-      .replace(/&amp;/gi, "&")
+    let previousStr;
+    do {
+      previousStr = str;
+      str = str.replace(/<[^>]+>/g, " ");
+    } while (str !== previousStr);
+    str = str
       .replace(/&lt;/gi, "<")
       .replace(/&gt;/gi, ">")
       .replace(/&quot;/gi, '"')
@@ -185,13 +212,13 @@ export function stripHtml(input: string | null | undefined): string {
       .replace(/&ldquo;/gi, '"')
       .replace(/&mdash;/gi, "—")
       .replace(/&ndash;/gi, "–")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&amp;/gi, "&")
       .replace(/[ \t]+/g, " ")
       .replace(/\n\s*\n+/g, "\n")
       .trim();
   } else {
     str = str
-      .replace(/&nbsp;/gi, " ")
-      .replace(/&amp;/gi, "&")
       .replace(/&lt;/gi, "<")
       .replace(/&gt;/gi, ">")
       .replace(/&quot;/gi, '"')
@@ -202,6 +229,8 @@ export function stripHtml(input: string | null | undefined): string {
       .replace(/&ldquo;/gi, '"')
       .replace(/&mdash;/gi, "—")
       .replace(/&ndash;/gi, "–")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&amp;/gi, "&")
       .replace(/[ \t]+/g, " ")
       .trim();
   }
@@ -534,7 +563,7 @@ export async function generateMeetingSummary(
         return cleanSummary({ ...object, templateStyle: template });
       } catch (primaryError: any) {
         console.warn(
-          `Primary Google Key failed: ${primaryError?.message || primaryError}. Proceeding to Key Rotation policy...`
+          `Primary Google Key failed: ${sanitizeError(primaryError)}. Proceeding to Key Rotation policy...`
         );
       }
     }
@@ -561,7 +590,7 @@ export async function generateMeetingSummary(
           });
           return cleanSummary(object);
         } catch (rotError: any) {
-          console.warn(` Rotating Key #${i + 1} (${maskedKey}) failed: ${rotError?.message || rotError}`);
+          console.warn(` Rotating Key #${i + 1} (${maskedKey}) failed: ${sanitizeError(rotError)}`);
         }
       }
     }
@@ -584,7 +613,7 @@ export async function generateMeetingSummary(
 
         return cleanSummary(object);
       } catch (fallbackError: any) {
-        console.error("Fallback Model Key (GEMINI_FALL_BACK_KEY) failed:", fallbackError?.message || fallbackError);
+        console.error("Fallback Model Key (GEMINI_FALL_BACK_KEY) failed:", sanitizeError(fallbackError));
       }
     } else {
       console.warn("No Fallback Model Key configured (GEMINI_FALL_BACK_KEY missing).");
@@ -659,8 +688,8 @@ export async function processAndSaveTranscriptEmbeddings(meetingId: string, tran
     await db.insert(meetingChunks).values(chunkRows);
     appendDebugLog(`Successfully inserted ${chunkRows.length} chunks into Neon pgvector DB.`);
   } catch (err: any) {
-    appendDebugLog(`ERROR during generation/saving: ${err?.message || err}`);
-    console.error("Failed to generate and save transcript chunks to pgvector:", err);
+    appendDebugLog(`ERROR during generation/saving: ${sanitizeError(err)}`);
+    console.error("Failed to generate and save transcript chunks to pgvector:", sanitizeError(err));
   }
 }
 
@@ -717,7 +746,7 @@ export async function queryMeetingRAG(
         }
       }
     } catch (vecErr) {
-      console.warn("Vector search failed, falling back to text heuristics:", vecErr);
+      console.warn("Vector search failed, falling back to text heuristics:", sanitizeError(vecErr));
     }
   }
 
@@ -769,7 +798,7 @@ export async function queryMeetingRAG(
         retrievedSources,
       };
     } catch (err: any) {
-      console.warn(`RAG Key attempt #${i + 1} (${masked}) failed: ${err?.message || err}`);
+      console.warn(`RAG Key attempt #${i + 1} (${masked}) failed: ${sanitizeError(err)}`);
     }
   }
 

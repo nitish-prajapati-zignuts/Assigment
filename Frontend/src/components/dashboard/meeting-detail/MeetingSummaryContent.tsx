@@ -14,7 +14,13 @@ interface MeetingSummaryContentProps {
 
 function stripHtml(htmlStr?: string): string {
   if (!htmlStr) return "";
-  return htmlStr.replace(/<[^>]*>?/gm, "").trim();
+  let currentHtml = htmlStr;
+  let previousHtml;
+  do {
+    previousHtml = currentHtml;
+    currentHtml = currentHtml.replace(/<[^>]*>?/gm, "");
+  } while (currentHtml !== previousHtml);
+  return currentHtml.trim();
 }
 
 export function MeetingSummaryContent({ summaryData, isGenerating, onGenerateSummary }: MeetingSummaryContentProps) {

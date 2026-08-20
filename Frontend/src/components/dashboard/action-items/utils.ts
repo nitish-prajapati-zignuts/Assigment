@@ -13,9 +13,12 @@ export const stripHtml = (input: string | null | undefined): string => {
     str = str
       .replace(/<br\s*\/?>/gi, " ")
       .replace(/<\/(p|div|li|tr|h[1-6])>/gi, "\n")
-      .replace(/<[^>]+>/g, " ")
-      .replace(/&nbsp;/gi, " ")
-      .replace(/&amp;/gi, "&")
+    let previousStr;
+    do {
+      previousStr = str;
+      str = str.replace(/<[^>]+>/g, " ");
+    } while (str !== previousStr);
+    str = str
       .replace(/&lt;/gi, "<")
       .replace(/&gt;/gi, ">")
       .replace(/&quot;/gi, '"')
@@ -26,13 +29,13 @@ export const stripHtml = (input: string | null | undefined): string => {
       .replace(/&ldquo;/gi, '"')
       .replace(/&mdash;/gi, "—")
       .replace(/&ndash;/gi, "–")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&amp;/gi, "&")
       .replace(/[ \t]+/g, " ")
       .replace(/\n\s*\n+/g, "\n")
       .trim();
   } else {
     str = str
-      .replace(/&nbsp;/gi, " ")
-      .replace(/&amp;/gi, "&")
       .replace(/&lt;/gi, "<")
       .replace(/&gt;/gi, ">")
       .replace(/&quot;/gi, '"')
@@ -43,6 +46,8 @@ export const stripHtml = (input: string | null | undefined): string => {
       .replace(/&ldquo;/gi, '"')
       .replace(/&mdash;/gi, "—")
       .replace(/&ndash;/gi, "–")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&amp;/gi, "&")
       .replace(/[ \t]+/g, " ")
       .trim();
   }
