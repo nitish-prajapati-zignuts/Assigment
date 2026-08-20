@@ -16,8 +16,8 @@ export function appendDebugLog(message: string): void {
 
   try {
     const timestamp = new Date().toISOString();
-    const sanitizedMessage =
-      typeof message === "string" ? message.replace(/[\r\n]+/g, " ").replace(/[^\x20-\x7E\t]/g, "?") : "";
+    // Sanitize newlines to prevent log injection and satisfy CodeQL
+    const sanitizedMessage = message.replace(/[\r\n]/g, " ");
     console.log(`[RAG Debug] [${timestamp}] ${sanitizedMessage}`);
   } catch (err) {
     console.error("Failed to print debug logs:", err);

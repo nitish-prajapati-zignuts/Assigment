@@ -22,23 +22,9 @@ export const protect = (req: AuthenticatedRequest, res: Response, next: NextFunc
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith("Bearer ")) {
     token = authHeader.split(" ")[1];
-  } else if (req.headers.cookie) {
-    const cookies = req.headers.cookie.split(";").reduce(
-      (acc, current) => {
-        const [key, value] = current.trim().split("=");
-        if (key && value && key !== "__proto__" && key !== "constructor" && key !== "prototype") {
-          Object.defineProperty(acc, key, {
-            value: value,
-            writable: true,
-            enumerable: true,
-            configurable: true,
-          });
-        }
-        return acc;
-      },
-      {} as Record<string, string>
-    );
-    token = cookies["token"] ? decryptCookieValue(cookies["token"]) : undefined;
+  } else if (req.cookies) {
+    const rawToken = req.cookies.token;
+    token = rawToken ? decryptCookieValue(rawToken) : undefined;
   }
 
   if (!token) {
