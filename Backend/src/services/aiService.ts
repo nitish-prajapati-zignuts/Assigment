@@ -558,7 +558,7 @@ export async function generateMeetingSummary(
         });
         return cleanSummary({ ...object, templateStyle: template });
       } catch (primaryError: any) {
-        console.warn(`Primary Google Key failed: ${sanitizeError(primaryError)}. Proceeding to Key Rotation policy...`);
+        console.warn("Primary Google Key failed. Proceeding to Key Rotation policy...");
       }
     }
 
@@ -572,10 +572,9 @@ export async function generateMeetingSummary(
 
       for (let i = 0; i < rotationKeys.length; i++) {
         const apiKey = rotationKeys[i];
-        const maskedKey = apiKey.length > 8 ? `${apiKey.substring(0, 4)}...${apiKey.slice(-4)}` : "key";
 
         try {
-          console.log(`Rotating Key #${i + 1} (${maskedKey})...`);
+          console.log(`Rotating Key #${i + 1}...`);
           const google = createGoogleGenerativeAI({ apiKey });
           const { object } = await generateObject({
             model: google("gemini-3.5-flash-lite"),
@@ -584,7 +583,7 @@ export async function generateMeetingSummary(
           });
           return cleanSummary(object);
         } catch (rotError: any) {
-          console.warn(` Rotating Key #${i + 1} (${maskedKey}) failed: ${sanitizeError(rotError)}`);
+          console.warn(` Rotating Key #${i + 1} failed.`);
         }
       }
     }
@@ -607,7 +606,7 @@ export async function generateMeetingSummary(
 
         return cleanSummary(object);
       } catch (fallbackError: any) {
-        console.error("Fallback Model Key (GEMINI_FALL_BACK_KEY) failed:", sanitizeError(fallbackError));
+        console.error("Fallback Model Key (GEMINI_FALL_BACK_KEY) failed.");
       }
     } else {
       console.warn("No Fallback Model Key configured (GEMINI_FALL_BACK_KEY missing).");
@@ -779,7 +778,6 @@ export async function queryMeetingRAG(
 
   for (let i = 0; i < apiKeys.length; i++) {
     const apiKey = apiKeys[i];
-    const masked = apiKey.length > 8 ? `${apiKey.substring(0, 4)}...${apiKey.slice(-4)}` : "key";
     try {
       const google = createGoogleGenerativeAI({ apiKey });
       const { object } = await generateObject({
@@ -792,7 +790,7 @@ export async function queryMeetingRAG(
         retrievedSources,
       };
     } catch (err: any) {
-      console.warn(`RAG Key attempt #${i + 1} (${masked}) failed: ${sanitizeError(err)}`);
+      console.warn(`RAG Key attempt #${i + 1} failed.`);
     }
   }
 
