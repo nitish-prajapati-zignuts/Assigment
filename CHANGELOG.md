@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/compare/v1.5.0...v1.6.0) (2026-08-20)
+
+
+### Features
+
+* implement LangChain-based long-term memory system with vector store, automated meeting indexing, and chat session management ([9e908e1](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/commit/9e908e1a055223e414e4ddc23f5b00944bcf3ebf))
+
 # [1.5.0](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/compare/v1.4.1...v1.5.0) (2026-08-20)
 
 
