@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/compare/v1.4.0...v1.4.1) (2026-08-20)
+
+
+### Bug Fixes
+
+* reject log messages containing newlines to prevent injection and satisfy CodeQL requirements ([c3cd26a](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/commit/c3cd26ac0addbaf0a76c4d2096367c0d6dbc5d71))
+
 # [1.4.0](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/compare/v1.3.0...v1.4.0) (2026-08-17)
 
 
