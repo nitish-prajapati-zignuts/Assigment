@@ -23,18 +23,16 @@ function sanitizeError(err: any): string {
   const keysToMask = [
     process.env.GEMINI_API_KEY,
     process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-    process.env.GEMINI_FALL_BACK_KEY
+    process.env.GEMINI_FALL_BACK_KEY,
   ].filter(Boolean) as string[];
 
-  keysToMask.forEach(key => {
+  keysToMask.forEach((key) => {
     if (key && key.length > 5) {
       msg = msg.split(key).join("[API_KEY_MASKED]");
     }
   });
 
-  return msg
-    .replace(/AIzaSy[A-Za-z0-9_-]{35}/g, "[API_KEY_MASKED]")
-    .replace(/[a-zA-Z0-9_-]{39,40}/g, "[KEY_MASKED]");
+  return msg.replace(/AIzaSy[A-Za-z0-9_-]{35}/g, "[API_KEY_MASKED]").replace(/[a-zA-Z0-9_-]{39,40}/g, "[KEY_MASKED]");
 }
 
 /**
@@ -193,9 +191,7 @@ export function stripHtml(input: string | null | undefined): string {
   let str = input;
 
   if (/<[a-z][\s\S]*>/i.test(str)) {
-    str = str
-      .replace(/<br\s*\/?>/gi, " ")
-      .replace(/<\/(p|div|li|tr|h[1-6])>/gi, "\n")
+    str = str.replace(/<br\s*\/?>/gi, " ").replace(/<\/(p|div|li|tr|h[1-6])>/gi, "\n");
     let previousStr;
     do {
       previousStr = str;
@@ -562,9 +558,7 @@ export async function generateMeetingSummary(
         });
         return cleanSummary({ ...object, templateStyle: template });
       } catch (primaryError: any) {
-        console.warn(
-          `Primary Google Key failed: ${sanitizeError(primaryError)}. Proceeding to Key Rotation policy...`
-        );
+        console.warn(`Primary Google Key failed: ${sanitizeError(primaryError)}. Proceeding to Key Rotation policy...`);
       }
     }
 
