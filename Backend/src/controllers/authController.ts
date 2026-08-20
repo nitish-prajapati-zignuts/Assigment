@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import db from "../db";
 import { users } from "../db/schema";
 import { eq } from "drizzle-orm";
-import { generateToken } from "../utils/jwt";
+import { generateToken, encryptCookieValue } from "../utils/jwt";
 import { AuthenticatedRequest } from "../middleware/authMiddleware";
 import { asyncHandler } from "../middleware/errorHandler";
 import { logger } from "../utils/logger";
@@ -61,8 +61,7 @@ export const register = asyncHandler(async (req: Request, res: Response): Promis
       name: createdUser.name,
     });
 
-    // Set HTTP-only Cookie in response headers
-    res.cookie("token", token, COOKIE_OPTIONS);
+    res.cookie("token", encryptCookieValue(token), COOKIE_OPTIONS);
 
     logger.info("User registered successfully", { userId: createdUser.id, email: createdUser.email });
 
@@ -157,8 +156,7 @@ export const login = asyncHandler(async (req: Request, res: Response): Promise<v
     logger.error("Failed to record login session", sessErr as Error, { userId: user.id });
   }
 
-  // Set HTTP-only Cookie in response headers
-  res.cookie("token", token, COOKIE_OPTIONS);
+  res.cookie("token", encryptCookieValue(token), COOKIE_OPTIONS);
 
   logger.info("User logged in successfully", { userId: user.id, email: user.email, ipAddress });
 

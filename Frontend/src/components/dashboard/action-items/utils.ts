@@ -9,7 +9,7 @@ export const checkIsOverdue = (dueDate: string, status: string): boolean => {
 export const stripHtml = (input: string | null | undefined): string => {
   if (!input) return "";
   let str = input;
-  if (/<[a-z][\s\S]*>/i.test(str)) {
+  if (/<[a-z]/i.test(str)) {
     str = str.replace(/<br\s*\/?>/gi, " ").replace(/<\/(p|div|li|tr|h[1-6])>/gi, "\n");
     let previousStr;
     do {

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { verifyToken, JwtPayload } from "../utils/jwt";
+import { verifyToken, JwtPayload, decryptCookieValue } from "../utils/jwt";
 import { AuthenticationError } from "../utils/errors";
 import { logger } from "../utils/logger";
 
@@ -26,12 +26,12 @@ export const protect = (req: AuthenticatedRequest, res: Response, next: NextFunc
     const cookies = req.headers.cookie.split(";").reduce(
       (acc, current) => {
         const [key, value] = current.trim().split("=");
-        if (key && value) acc[key] = value;
+        if (key && value && key !== "__proto__" && key !== "constructor" && key !== "prototype") acc[key] = value;
         return acc;
       },
       {} as Record<string, string>
     );
-    token = cookies["token"];
+    token = cookies["token"] ? decryptCookieValue(cookies["token"]) : undefined;
   }
 
   if (!token) {
