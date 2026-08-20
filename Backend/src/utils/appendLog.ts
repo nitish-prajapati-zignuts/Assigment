@@ -14,11 +14,14 @@ export function appendDebugLog(message: string): void {
     return;
   }
 
+  // Reject log messages containing newlines to prevent log injection and satisfy CodeQL
+  if (/[\r\n]/.test(message)) {
+    return;
+  }
+
   try {
     const timestamp = new Date().toISOString();
-    // Sanitize newlines to prevent log injection and satisfy CodeQL
-    const sanitizedMessage = message.replace(/[\r\n]/g, " ");
-    console.log(`[RAG Debug] [${timestamp}] ${sanitizedMessage}`);
+    console.log(`[RAG Debug] [${timestamp}] ${message}`);
   } catch (err) {
     console.error("Failed to print debug logs:", err);
   }
