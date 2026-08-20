@@ -1,6 +1,7 @@
 import { generateText } from "ai";
 import { google, createGoogleGenerativeAI } from "@ai-sdk/google";
 import dotenv from "dotenv";
+import { stripHtml } from "./aiService";
 
 dotenv.config();
 
@@ -86,7 +87,7 @@ export function chunkMeetingContent(meeting: any): ContentChunk[] {
 
   // Index Transcript in ~300-word overlapping chunks
   if (meeting.transcript) {
-    const plainTranscript = meeting.transcript.replace(/<[^>]*>?/gm, "").trim();
+    const plainTranscript = stripHtml(meeting.transcript);
     const words = plainTranscript.split(/\s+/);
     const chunkSize = 250;
     const overlap = 40;

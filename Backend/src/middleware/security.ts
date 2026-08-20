@@ -99,7 +99,12 @@ function sanitizeObject(obj: any): any {
     const sanitized: any = {};
     for (const [key, value] of Object.entries(obj)) {
       if (key !== "__proto__" && key !== "constructor" && key !== "prototype") {
-        sanitized[key] = sanitizeObject(value);
+        Object.defineProperty(sanitized, key, {
+          value: sanitizeObject(value),
+          writable: true,
+          enumerable: true,
+          configurable: true,
+        });
       }
     }
     return sanitized;
