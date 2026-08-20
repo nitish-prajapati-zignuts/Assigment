@@ -190,7 +190,7 @@ export function stripHtml(input: string | null | undefined): string {
 
   let str = input;
 
-  if (/<[a-z][\s\S]*>/i.test(str)) {
+  if (/<[a-z]/i.test(str)) {
     str = str.replace(/<br\s*\/?>/gi, " ").replace(/<\/(p|div|li|tr|h[1-6])>/gi, "\n");
     let previousStr;
     do {
@@ -430,14 +430,16 @@ export function generateFallbackSummary(rawTranscript: string, title?: string): 
     keyDecisions: extractedDecisions,
     actionItems: extractedActionItems,
     speakerAnalytics: (() => {
-      const speakerCounts: Record<string, number> = {};
+      const speakerCounts: Record<string, number> = Object.create(null);
       let totalWords = 0;
 
       lines.forEach((line) => {
-        const match = line.match(/^([A-[a-zA-Z0-9\s_]+):/);
+        const match = line.match(/^([a-zA-Z0-9\s_]+):/);
         const name = match ? match[1].trim() : "Participant";
         const words = line.split(/\s+/).length;
-        speakerCounts[name] = (speakerCounts[name] || 0) + words;
+        if (name !== "__proto__" && name !== "constructor" && name !== "prototype") {
+          speakerCounts[name] = (speakerCounts[name] || 0) + words;
+        }
         totalWords += words;
       });
 

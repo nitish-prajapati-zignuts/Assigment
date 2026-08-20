@@ -98,7 +98,9 @@ function sanitizeObject(obj: any): any {
   if (obj !== null && typeof obj === "object") {
     const sanitized: any = {};
     for (const [key, value] of Object.entries(obj)) {
-      sanitized[key] = sanitizeObject(value);
+      if (key !== "__proto__" && key !== "constructor" && key !== "prototype") {
+        sanitized[key] = sanitizeObject(value);
+      }
     }
     return sanitized;
   }
