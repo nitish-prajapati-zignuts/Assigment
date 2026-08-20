@@ -430,7 +430,7 @@ export function generateFallbackSummary(rawTranscript: string, title?: string): 
     keyDecisions: extractedDecisions,
     actionItems: extractedActionItems,
     speakerAnalytics: (() => {
-      const speakerCounts: Record<string, number> = Object.create(null);
+      const speakerCounts = new Map<string, number>();
       let totalWords = 0;
 
       lines.forEach((line) => {
@@ -438,19 +438,19 @@ export function generateFallbackSummary(rawTranscript: string, title?: string): 
         const name = match ? match[1].trim() : "Participant";
         const words = line.split(/\s+/).length;
         if (name !== "__proto__" && name !== "constructor" && name !== "prototype") {
-          speakerCounts[name] = (speakerCounts[name] || 0) + words;
+          speakerCounts.set(name, (speakerCounts.get(name) || 0) + words);
         }
         totalWords += words;
       });
 
-      if (totalWords === 0 || Object.keys(speakerCounts).length === 0) {
+      if (totalWords === 0 || speakerCounts.size === 0) {
         return [
           { name: "Speaker 1", talkTimePercentage: 60, wordCount: 350 },
           { name: "Speaker 2", talkTimePercentage: 40, wordCount: 230 },
         ];
       }
 
-      return Object.entries(speakerCounts).map(([name, count]) => ({
+      return Array.from(speakerCounts.entries()).map(([name, count]) => ({
         name,
         wordCount: count,
         talkTimePercentage: Math.round((count / totalWords) * 100),

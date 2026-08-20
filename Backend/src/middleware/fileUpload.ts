@@ -114,7 +114,7 @@ function validateFileContent(file: any): void {
   const dangerousPatterns = [
     /<script/i,
     /javascript:/i,
-    /on\w+\s*=/i, // onclick=, onload=, etc.
+    /on\w{1,20}\s*=/i, // onclick=, onload=, etc.
     /\.exe/i,
     /\.bat/i,
     /\.cmd/i,

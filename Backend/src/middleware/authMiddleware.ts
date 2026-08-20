@@ -26,7 +26,14 @@ export const protect = (req: AuthenticatedRequest, res: Response, next: NextFunc
     const cookies = req.headers.cookie.split(";").reduce(
       (acc, current) => {
         const [key, value] = current.trim().split("=");
-        if (key && value && key !== "__proto__" && key !== "constructor" && key !== "prototype") acc[key] = value;
+        if (key && value && key !== "__proto__" && key !== "constructor" && key !== "prototype") {
+          Object.defineProperty(acc, key, {
+            value: value,
+            writable: true,
+            enumerable: true,
+            configurable: true,
+          });
+        }
         return acc;
       },
       {} as Record<string, string>
