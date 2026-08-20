@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/compare/v1.4.1...v1.5.0) (2026-08-20)
+
+
+### Features
+
+* add Cypress E2E testing framework and integrate into CI pipeline ([067e77d](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/commit/067e77d5d28c032a7c89883560e43946c8654e4c))
+
 ## [1.4.1](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/compare/v1.4.0...v1.4.1) (2026-08-20)
 
 
