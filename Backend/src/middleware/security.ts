@@ -91,31 +91,22 @@ export const sanitizeInput = (req: Request, res: Response, next: NextFunction) =
  * Recursively sanitize object by removing potentially harmful patterns
  */
 function sanitizeObject(obj: any): any {
-  if (Array.isArray(obj)) {
-    return obj.map(sanitizeObject);
-  }
+  if (obj === null || obj === undefined) return obj;
 
-  if (obj !== null && typeof obj === "object") {
-    const sanitized: any = {};
-    for (const [key, value] of Object.entries(obj)) {
-      if (key !== "__proto__" && key !== "constructor" && key !== "prototype") {
-        Object.defineProperty(sanitized, key, {
-          value: sanitizeObject(value),
-          writable: true,
-          enumerable: true,
-          configurable: true,
-        });
+  try {
+    const jsonStr = JSON.stringify(obj, (key, value) => {
+      if (key === "__proto__" || key === "constructor" || key === "prototype") {
+        return undefined;
       }
-    }
-    return sanitized;
+      if (typeof value === "string") {
+        return xss(value);
+      }
+      return value;
+    });
+    return jsonStr ? JSON.parse(jsonStr) : obj;
+  } catch (e) {
+    return obj;
   }
-
-  if (typeof obj === "string") {
-    // Sanitize string using the well-tested xss library
-    obj = xss(obj);
-  }
-
-  return obj;
 }
 
 /**
