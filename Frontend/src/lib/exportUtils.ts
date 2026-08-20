@@ -5,7 +5,13 @@ import { Meeting, ActionItem } from "@/types/meeting";
  */
 function stripHtml(html: string): string {
   if (!html) return "";
-  return html.replace(/<[^>]*>?/gm, "").trim();
+  let currentHtml = html;
+  let previousHtml;
+  do {
+    previousHtml = currentHtml;
+    currentHtml = currentHtml.replace(/<[^>]*>?/gm, "");
+  } while (currentHtml !== previousHtml);
+  return currentHtml.trim();
 }
 
 /**

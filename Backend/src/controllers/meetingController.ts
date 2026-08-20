@@ -86,7 +86,7 @@ export const getMeetings = asyncHandler(async (req: AuthenticatedRequest, res: R
       .where(and(eq(meetings.isArchived, isArchived ?? false), eq(meetings.isDeleted, isDeleted ?? false)))
       .groupBy(meetings.id)
       .orderBy(desc(meetings.createdAt));
-    appendDebugLog(JSON.stringify(allMeetings));
+    appendDebugLog(`Fetched ${allMeetings.length} meetings`);
 
     // Filter meetings where user is a participant
     let userMeetings = allMeetings.filter(
