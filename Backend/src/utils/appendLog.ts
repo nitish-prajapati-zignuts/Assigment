@@ -16,9 +16,8 @@ export function appendDebugLog(message: string): void {
 
   try {
     const timestamp = new Date().toISOString();
-    const sanitizedMessage = typeof message === "string"
-      ? message.replace(/[\r]/g, "").replace(/[^\x20-\x7E\n\t]/g, "?")
-      : "";
+    const sanitizedMessage =
+      typeof message === "string" ? message.replace(/[\r]/g, "").replace(/[^\x20-\x7E\n\t]/g, "?") : "";
     console.log(`[RAG Debug] [${timestamp}] ${sanitizedMessage}`);
   } catch (err) {
     console.error("Failed to print debug logs:", err);
