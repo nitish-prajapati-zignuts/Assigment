@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/compare/v1.9.0...v1.10.0) (2026-08-21)
+
+
+### Features
+
+* expand swagger documentation with comprehensive action items and auth service schemas ([a844170](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/commit/a8441708bcf5a3ad3f9f4b40473fb13e2c60f194))
+
 # [1.9.0](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/compare/v1.8.0...v1.9.0) (2026-08-21)
 
 
