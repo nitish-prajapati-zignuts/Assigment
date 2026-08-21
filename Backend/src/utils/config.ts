@@ -39,6 +39,9 @@ const envSchema = z.object({
     .string()
     .transform((val) => val === "true")
     .default(false),
+  APP_VERSION: z.string().default("1.10.0"),
+  REDIS_HOST: z.string().default("127.0.0.1"),
+  REDIS_PORT: z.string().regex(/^\d+$/).default("6379").transform(Number),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

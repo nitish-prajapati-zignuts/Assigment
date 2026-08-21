@@ -126,8 +126,9 @@ export const meetings = pgTable(
     index("meetings_date_idx").on(table.date),
     index("meetings_type_idx").on(table.type),
     index("meetings_created_at_idx").on(table.createdAt),
-    // For searching by participant email (used with CONTAINS operator)
-    index("meetings_participants_idx").on(table.participants),
+    index("meetings_archived_created_idx").on(table.isArchived, table.isDeleted, table.createdAt),
+    // GIN index for searching by participant email using JSONB containment (@>) operator
+    index("meetings_participants_gin_idx").using("gin", table.participants),
   ]
 );
 
@@ -167,6 +168,7 @@ export const actionItems = pgTable(
     index("action_items_meeting_status_idx").on(table.meetingId, table.status),
     // Composite index for common queries (owner + status)
     index("action_items_owner_status_idx").on(table.owner, table.status),
+    index("action_items_archived_created_idx").on(table.isArchived, table.createdAt),
   ]
 );
 

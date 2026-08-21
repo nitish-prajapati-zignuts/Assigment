@@ -6,8 +6,8 @@
 import xss from "xss";
 import { Request, Response, NextFunction } from "express";
 import { logger } from "../utils/logger";
-import { db } from "../db";
-import { requestLogs } from "../db/schema";
+import { config } from "../utils/config";
+import { logQueue } from "../services/logQueue";
 
 /**
  * Security Headers Middleware
@@ -39,6 +39,9 @@ export const securityHeaders = (req: Request, res: Response, next: NextFunction)
   if (process.env.NODE_ENV === "production") {
     res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
   }
+
+  // App Version Header
+  res.setHeader("X-App-Version", config.APP_VERSION);
 
   next();
 };
@@ -75,20 +78,28 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
       ...(serviceId && { serviceId }),
     });
 
-    // Write request log to database asynchronously
-    db.insert(requestLogs)
-      .values({
-        method,
-        path,
-        status,
-        duration: durationStr,
-        ipAddress: ip,
-        userAgent,
-        userId,
-        serviceId,
-      })
+    // Queue the request log for asynchronous processing with BullMQ
+    logQueue
+      .add(
+        "store",
+        {
+          method,
+          path,
+          status,
+          duration: durationStr,
+          ipAddress: ip,
+          userAgent,
+          userId,
+          serviceId,
+          createdAt: new Date().toISOString(),
+        },
+        {
+          removeOnComplete: 200, // Keep last 200 completed jobs visible in Redis and Bull Board
+          removeOnFail: 200, // Keep last 200 failed jobs for diagnostics
+        }
+      )
       .catch((err) => {
-        logger.error("Failed to write request log to database", err);
+        logger.error("Failed to queue request log to BullMQ", err);
       });
 
     return originalSend.call(this, data);

@@ -1,41 +1,67 @@
 import { Response } from "express";
 import db from "../db";
 import { meetings, actionItems } from "../db/schema";
+import { eq, and, or, inArray, sql } from "drizzle-orm";
 import { AuthenticatedRequest } from "../middleware/authMiddleware";
 import { asyncHandler } from "../middleware/errorHandler";
 import { logger } from "../utils/logger";
 import { ValidationError, InternalServerError } from "../utils/errors";
+import { cache, cacheKeys } from "../utils/cache";
 
 /**
  * GET /api/dashboard/stats
- * Returns summary metrics and recent meetings for dashboard overview
+ * Returns summary metrics and recent meetings for dashboard overview with Redis caching and SQL pushdown.
  */
 export const getDashboardStats = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const currentUserEmail = req.user?.email?.toLowerCase();
+  const userId = req.user?.userId;
 
   if (!currentUserEmail) {
     throw new ValidationError("User email is required");
   }
 
   try {
-    // 1. Fetch user's accessible meetings
-    const allMeetings = await db.select().from(meetings);
-    const userMeetings = allMeetings.filter(
-      (m: any) =>
-        Array.isArray(m.participants) &&
-        m.participants.some((p: string) => p.toLowerCase() === currentUserEmail) &&
-        !m.isArchived
-    );
+    // Check Redis / In-memory cache first
+    const cacheKey = cacheKeys.dashboard(currentUserEmail);
+    const cachedStats = await cache.get<any>(cacheKey);
+    if (cachedStats) {
+      res.json(cachedStats);
+      return;
+    }
 
-    const userMeetingIds = new Set(userMeetings.map((m: { id: string }) => m.id));
+    // 1. Fetch user's accessible meetings using SQL JSONB containment
+    const userMeetings = await db
+      .select()
+      .from(meetings)
+      .where(
+        and(
+          sql`${meetings.participants} @> ${JSON.stringify([currentUserEmail])}::jsonb`,
+          eq(meetings.isArchived, false),
+          eq(meetings.isDeleted, false)
+        )
+      );
 
-    // 2. Fetch accessible action items
-    const allItems = await db.select().from(actionItems);
-    const userActionItems = allItems.filter((item) => {
-      const isMeetingParticipant = userMeetingIds.has(item.meetingId);
-      const isUserAssigned = item.owner?.toLowerCase() === currentUserEmail;
-      return (isMeetingParticipant || isUserAssigned) && !item.isArchived;
-    });
+    const userMeetingIds = userMeetings.map((m) => m.id);
+
+    // 2. Fetch accessible action items using SQL filters
+    let userActionItems: (typeof actionItems.$inferSelect)[] = [];
+
+    const actionConditions = [eq(actionItems.isArchived, false)];
+    const accessConditions = [sql`LOWER(${actionItems.owner}) = ${currentUserEmail}`];
+
+    if (userId) {
+      accessConditions.push(eq(actionItems.userId, userId));
+    }
+    if (userMeetingIds.length > 0) {
+      accessConditions.push(inArray(actionItems.meetingId, userMeetingIds));
+    }
+
+    actionConditions.push(or(...accessConditions)!);
+
+    userActionItems = await db
+      .select()
+      .from(actionItems)
+      .where(and(...actionConditions));
 
     // 3. Compute Metrics
     const today = new Date().toISOString().split("T")[0];
@@ -70,7 +96,6 @@ export const getDashboardStats = asyncHandler(async (req: AuthenticatedRequest, 
     // A. Meetings Timeline (Grouped by month/date string)
     const timelineMap: Record<string, { date: string; meetingsCount: number; transcriptsCount: number }> = {};
 
-    // Sort meetings chronologically
     const sortedMeetings = [...userMeetings].sort(
       (a, b) => new Date(a.createdAt || a.date).getTime() - new Date(b.createdAt || b.date).getTime()
     );
@@ -143,7 +168,7 @@ export const getDashboardStats = asyncHandler(async (req: AuthenticatedRequest, 
 
     logger.debug("Fetched dashboard stats & chart analytics", { userEmail: currentUserEmail });
 
-    res.json({
+    const payload = {
       metrics: {
         totalMeetings,
         totalActionItems,
@@ -160,7 +185,12 @@ export const getDashboardStats = asyncHandler(async (req: AuthenticatedRequest, 
         actionItemsPriorityDistribution,
         keyDecisionsBreakdown,
       },
-    });
+    };
+
+    // Cache the result for 60 seconds
+    await cache.set(cacheKey, payload, 60 * 1000);
+
+    res.json(payload);
   } catch (error) {
     logger.error("Error fetching dashboard stats", error as Error, { userEmail: currentUserEmail });
     throw new InternalServerError("Failed to fetch dashboard statistics");

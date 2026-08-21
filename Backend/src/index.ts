@@ -10,6 +10,7 @@ generateDocs();
 import express, { Request, Response } from "express";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
+import cookieParser from "cookie-parser";
 import { config, isDevelopment } from "./utils/config";
 import { logger } from "./utils/logger";
 import { errorHandler, notFoundHandler, asyncHandler } from "./middleware/errorHandler";
@@ -17,10 +18,16 @@ import { securityHeaders, requestLogger, sanitizeInput, disablePoweredBy } from 
 import { generalRateLimiter, authRateLimiter, apiRateLimiter } from "./middleware/rateLimiter";
 import { csrfTokenGenerator, csrfProtect } from "./middleware/csrf";
 import { initializeJobHandlers } from "./services/jobHandlers";
-import cookieParser from "cookie-parser";
+import serviceRoutes from "./routes/serviceRoutes";
+
+// Bull Board imports
+import { createBullBoard } from "@bull-board/api";
+import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
+import { ExpressAdapter } from "@bull-board/express";
+import { logQueue } from "./services/logQueue";
+import { jobQueue } from "./services/jobQueue";
 
 const swaggerDocument = require("./swagger.json");
-import serviceRoutes from "./routes/serviceRoutes";
 
 // Initialize job queue handlers
 initializeJobHandlers();
@@ -47,6 +54,19 @@ app.use(
     maxAge: 86400,
   })
 );
+
+// ============================================
+// BULL BOARD QUEUE MONITORING DASHBOARD
+// ============================================
+const bullBoardAdapter = new ExpressAdapter();
+bullBoardAdapter.setBasePath("/admin/queues");
+
+createBullBoard({
+  queues: [new BullMQAdapter(logQueue), new BullMQAdapter(jobQueue.getNativeQueue())],
+  serverAdapter: bullBoardAdapter,
+});
+
+app.use("/admin/queues", bullBoardAdapter.getRouter());
 
 // ============================================
 // BODY PARSING & REQUEST MIDDLEWARE
@@ -86,6 +106,7 @@ app.get(
     res.json({
       status: "ok",
       message: "Server is healthy",
+      version: config.APP_VERSION,
       environment: config.NODE_ENV,
       timestamp: new Date().toISOString(),
     });
@@ -98,7 +119,7 @@ app.get(
 if (isDevelopment()) {
   app.get(
     "/api/diagnostics",
-    asyncHandler((req: Request, res: Response) => {
+    asyncHandler(async (req: Request, res: Response) => {
       const { jobQueue } = require("./services/jobQueue");
       res.json({
         server: {
@@ -107,7 +128,8 @@ if (isDevelopment()) {
           uptime: Math.floor(process.uptime()),
           memory: process.memoryUsage(),
         },
-        jobQueue: jobQueue.getStats(),
+        jobQueue: await jobQueue.getStats(),
+        queueDashboard: `http://localhost:${PORT}/admin/queues`,
       });
     })
   );
@@ -129,10 +151,11 @@ app.get(
   asyncHandler((req: Request, res: Response) => {
     res.json({
       message: "Meeting Management API",
-      version: "1.0.0",
+      version: config.APP_VERSION,
       environment: config.NODE_ENV,
       endpoints: {
         health: "GET /health",
+        queueDashboard: "GET /admin/queues",
         diagnostics: isDevelopment() ? "GET /api/diagnostics" : undefined,
         serviceGateway: {
           dispatch: "POST /api/service",
@@ -158,5 +181,6 @@ app.listen(PORT, () => {
     port: PORT,
     environment: config.NODE_ENV,
     corsOrigins: corsOrigins,
+    queueDashboard: `http://localhost:${PORT}/admin/queues`,
   });
 });

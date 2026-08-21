@@ -79,7 +79,7 @@ export interface ServiceDefinition {
 // Job status handler
 const getJobStatus = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const jobId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-  const job = jobQueue.getJob(jobId);
+  const job = await jobQueue.getJob(jobId);
 
   if (!job) {
     throw new NotFoundError("Job");

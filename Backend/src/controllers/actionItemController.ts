@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import db from "../db";
 import { actionItems, users, meetings } from "../db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and, or, inArray, desc, sql } from "drizzle-orm";
 import { createNotificationLog } from "./notificationController";
 import { AuthenticatedRequest } from "../middleware/authMiddleware";
 import { asyncHandler } from "../middleware/errorHandler";
@@ -11,73 +11,100 @@ import { getPaginationOffset, calculatePagination, buildPaginatedResponse } from
 import { ActionItemQueryInput, CreateActionItemInput, UpdateActionItemInput } from "../utils/validation";
 import { indexActionItemMemory } from "../services/langchain/memoryIndexer";
 import { deleteUserMemoryBySource } from "../services/langchain/vectorStore";
+import { invalidateCache } from "../utils/cache";
 
 /**
  * GET /api/action-items
  * Retrieves a filtered and paginated list of action items accessible to the authenticated user.
- * Uses database indexes for efficient filtering.
+ * Uses database SQL filters and indexes for maximum performance.
  */
 export const getActionItems = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-  const { meetingId, status, priority, page, limit, sortBy, sortOrder } = req.query as unknown as ActionItemQueryInput;
+  const {
+    meetingId,
+    status,
+    priority,
+    page = 1,
+    limit = 10,
+    sortBy,
+    sortOrder,
+  } = req.query as unknown as ActionItemQueryInput;
   const currentUserEmail = req.user?.email?.toLowerCase();
+  const userId = req.user?.userId;
 
   if (!currentUserEmail) {
     throw new ValidationError("User email is required");
   }
 
   try {
-    // Fetch user's accessible meetings (use indexes)
-    const allMeetings = await db.select().from(meetings);
-    const userMeetingIds = new Set(
-      allMeetings
-        .filter(
-          (m: { participants: any[] }) =>
-            Array.isArray(m.participants) && m.participants.some((p: string) => p.toLowerCase() === currentUserEmail)
+    // 1. Fetch user's accessible meeting IDs using PostgreSQL JSONB containment
+    const accessibleMeetings = await db
+      .select({ id: meetings.id })
+      .from(meetings)
+      .where(
+        and(
+          sql`${meetings.participants} @> ${JSON.stringify([currentUserEmail])}::jsonb`,
+          eq(meetings.isArchived, false),
+          eq(meetings.isDeleted, false)
         )
-        .map((m: { id: any }) => m.id)
-    );
+      );
 
-    // Fetch all action items (in production, filter at DB level using indexes)
-    const allItems = await db.select().from(actionItems);
+    const userMeetingIds = accessibleMeetings.map((m) => m.id);
 
-    // Filter items: Belongs to accessible meeting OR assigned to user, and not archived
-    let filtered = allItems.filter((item) => {
-      const isMeetingParticipant = userMeetingIds.has(item.meetingId);
-      const itemOwnerLow = item.owner?.toLowerCase() || "";
-      const isUserAssigned = currentUserEmail && itemOwnerLow === currentUserEmail;
+    // 2. Build where conditions for action items
+    const conditions = [eq(actionItems.isArchived, false)];
 
-      return (isMeetingParticipant || isUserAssigned) && !item.isArchived;
-    });
+    // Access control: User can view if item is in an accessible meeting OR assigned to them
+    const accessConditions = [sql`LOWER(${actionItems.owner}) = ${currentUserEmail}`];
+    if (userId) {
+      accessConditions.push(eq(actionItems.userId, userId));
+    }
+    if (userMeetingIds.length > 0) {
+      accessConditions.push(inArray(actionItems.meetingId, userMeetingIds));
+    }
 
-    // Apply additional filters
+    conditions.push(or(...accessConditions)!);
+
+    // Additional filters
     if (meetingId) {
-      filtered = filtered.filter((item: { meetingId: string }) => item.meetingId === meetingId);
+      conditions.push(eq(actionItems.meetingId, meetingId));
+    }
+    if (status && (status as string) !== "All") {
+      conditions.push(sql`LOWER(${actionItems.status}) = ${status.toLowerCase()}`);
+    }
+    if (priority && (priority as string) !== "All") {
+      conditions.push(sql`LOWER(${actionItems.priority}) = ${priority.toLowerCase()}`);
     }
 
-    if (status) {
-      filtered = filtered.filter(
-        (item: { status: string | null }) => item.status?.toLowerCase() === status.toLowerCase()
-      );
-    }
+    const whereClause = and(...conditions);
 
-    if (priority) {
-      filtered = filtered.filter(
-        (item: { priority: string | null }) => item.priority?.toLowerCase() === priority.toLowerCase()
-      );
-    }
+    // 3. Parallel query for paginated results + total count
+    const offset = getPaginationOffset(Number(page) || 1, Number(limit) || 10);
+    const numLimit = Number(limit) || 10;
+    const numPage = Number(page) || 1;
 
-    // Calculate pagination
-    const offset = getPaginationOffset(page, limit);
-    const total = filtered.length;
-    const paginatedItems = filtered.slice(offset, offset + limit);
-    const pagination = calculatePagination(page, limit, total);
+    const [paginatedItems, countResult] = await Promise.all([
+      db
+        .select()
+        .from(actionItems)
+        .where(whereClause)
+        .orderBy(desc(actionItems.createdAt))
+        .limit(numLimit)
+        .offset(offset),
+      db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(actionItems)
+        .where(whereClause),
+    ]);
 
-    logger.debug("Fetched action items", {
+    const total = countResult[0]?.count || 0;
+    const pagination = calculatePagination(numPage, numLimit, total);
+
+    logger.debug("Fetched action items via SQL pushdown", {
       userEmail: currentUserEmail,
       count: paginatedItems.length,
       total,
-      page,
-      limit,
+      page: numPage,
+      limit: numLimit,
     });
 
     res.json(buildPaginatedResponse(paginatedItems, pagination));
@@ -172,7 +199,7 @@ export const getActionItemById = asyncHandler(async (req: AuthenticatedRequest, 
 export const getActionItemsLeaderboard = asyncHandler(
   async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-      const allItems = await db.select().from(actionItems);
+      const allItems = await db.select().from(actionItems).where(eq(actionItems.isArchived, false));
 
       const map = new Map<string, { total: number; completed: number; inProgress: number; blocked: number }>();
 
@@ -232,6 +259,7 @@ export const getActionItemsLeaderboard = asyncHandler(
  */
 export const createActionItem = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const { task, owner, dueDate, priority, status, meetingId } = req.body as CreateActionItemInput;
+  const userEmail = req.user?.email;
 
   try {
     // Verify meeting exists
@@ -244,7 +272,7 @@ export const createActionItem = asyncHandler(async (req: AuthenticatedRequest, r
     // Attempt user matching from email
     let matchedUserId: string | null = null;
     if (owner && owner !== "Unassigned") {
-      const userResult = await db.select().from(users).where(eq(users.email, owner.toLowerCase().trim()));
+      const userResult = await db.select().from(users).where(eq(users.email, owner.toLowerCase().trim())).limit(1);
 
       if (userResult.length > 0) {
         matchedUserId = userResult[0].id;
@@ -272,6 +300,11 @@ export const createActionItem = asyncHandler(async (req: AuthenticatedRequest, r
       await indexActionItemMemory(inserted[0]);
     }
 
+    // Invalidate dashboard cache
+    if (userEmail) {
+      invalidateCache.dashboard(userEmail);
+    }
+
     logger.info("Action item created and memory indexed", {
       itemId: newItemId,
       meetingId,
@@ -280,7 +313,6 @@ export const createActionItem = asyncHandler(async (req: AuthenticatedRequest, r
 
     createNotificationLog({
       userId: req.user?.userId || (req.user as any)?.id,
-
       title: "Action Item Created",
       message: `Task "${task}" assigned to ${owner || "Unassigned"}.`,
       type: "general",
@@ -300,6 +332,7 @@ export const createActionItem = asyncHandler(async (req: AuthenticatedRequest, r
 export const updateActionItem = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const targetId = String(req.params.id);
   const { task, owner, dueDate, priority, status } = req.body as UpdateActionItemInput;
+  const userEmail = req.user?.email;
 
   try {
     const existing = await db.select().from(actionItems).where(eq(actionItems.id, targetId));
@@ -311,7 +344,7 @@ export const updateActionItem = asyncHandler(async (req: AuthenticatedRequest, r
     // Attempt user re-matching if owner changes
     let updatedUserId = existing[0].userId;
     if (owner && owner !== existing[0].owner && owner !== "Unassigned") {
-      const userResult = await db.select().from(users).where(eq(users.email, owner.toLowerCase().trim()));
+      const userResult = await db.select().from(users).where(eq(users.email, owner.toLowerCase().trim())).limit(1);
 
       if (userResult.length > 0) {
         updatedUserId = userResult[0].id;
@@ -337,11 +370,15 @@ export const updateActionItem = asyncHandler(async (req: AuthenticatedRequest, r
       await indexActionItemMemory(updated[0]);
     }
 
+    // Invalidate dashboard cache
+    if (userEmail) {
+      invalidateCache.dashboard(userEmail);
+    }
+
     logger.info("Action item updated and memory re-indexed", { itemId: targetId });
 
     createNotificationLog({
       userId: req.user?.userId || (req.user as any)?.id,
-
       title: status ? `Task Status: ${status}` : "Task Updated",
       message: `Task "${updated[0].task}" was updated.`,
       type: status === "Completed" ? "general" : "overdue_task",
@@ -360,6 +397,7 @@ export const updateActionItem = asyncHandler(async (req: AuthenticatedRequest, r
  */
 export const deleteActionItem = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const targetId = String(req.params.id);
+  const userEmail = req.user?.email;
 
   try {
     const deleted = await db.delete(actionItems).where(eq(actionItems.id, targetId)).returning();
@@ -371,12 +409,16 @@ export const deleteActionItem = asyncHandler(async (req: AuthenticatedRequest, r
     // Delete memory chunk
     await deleteUserMemoryBySource(targetId);
 
+    // Invalidate dashboard cache
+    if (userEmail) {
+      invalidateCache.dashboard(userEmail);
+    }
+
     logger.info("Action item deleted and memory cleared", { itemId: targetId });
 
     createNotificationLog({
       userId: req.user?.userId || (req.user as any)?.id,
       title: "Action Item Deleted",
-
       message: `Task "${deleted[0].task}" was permanently removed.`,
       type: "general",
     });

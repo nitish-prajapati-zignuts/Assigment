@@ -1,9 +1,6 @@
-/**
- * Job Queue System for Async Processing
- * Implements a simple in-memory queue for background task processing
- * In production, use Bull (Redis-based) or similar for persistence and scalability
- */
-
+import { Queue, Worker } from "bullmq";
+import IORedis from "ioredis";
+import { config } from "../utils/config";
 import { logger } from "../utils/logger";
 
 export type JobStatus = "pending" | "processing" | "completed" | "failed";
@@ -26,17 +23,30 @@ export interface JobHandler<T = any> {
   (data: T): Promise<any>;
 }
 
-/**
- * Simple in-memory job queue
- * For production, integrate with Bull + Redis
- */
+// Reusable Redis connection
+const redisConnection = new IORedis({
+  host: config.REDIS_HOST,
+  port: config.REDIS_PORT,
+  maxRetriesPerRequest: null,
+});
+
 class JobQueue {
-  private jobs: Map<string, Job> = new Map();
+  private queue: Queue;
+  private worker: Worker | null = null;
   private handlers: Map<string, JobHandler> = new Map();
-  private queue: string[] = []; // Array of job IDs
-  private isProcessing = false;
-  private maxConcurrent = 3;
-  private activeJobs = 0;
+
+  constructor() {
+    this.queue = new Queue("syncra-jobs", {
+      connection: redisConnection,
+    });
+  }
+
+  /**
+   * Return underlying BullMQ Queue for UI dashboard adapters
+   */
+  getNativeQueue(): Queue {
+    return this.queue;
+  }
 
   /**
    * Register a job handler
@@ -44,188 +54,155 @@ class JobQueue {
   registerHandler<T>(type: string, handler: JobHandler<T>): void {
     this.handlers.set(type, handler);
     logger.debug(`Job handler registered: ${type}`);
+
+    // Lazily start the worker when the first handler is registered
+    if (!this.worker) {
+      this.startWorker();
+    }
+  }
+
+  /**
+   * Start the BullMQ worker
+   */
+  private startWorker(): void {
+    this.worker = new Worker(
+      "syncra-jobs",
+      async (bullJob) => {
+        const handler = this.handlers.get(bullJob.name);
+        if (!handler) {
+          throw new Error(`No handler registered for job type: ${bullJob.name}`);
+        }
+        return await handler(bullJob.data);
+      },
+      {
+        connection: redisConnection,
+        concurrency: 3, // Keep the same concurrent job count as original (maxConcurrent = 3)
+      }
+    );
+
+    this.worker.on("active", (job) => {
+      logger.info(`Processing job: ${job.name}`, {
+        jobId: job.id,
+        attempt: job.attemptsMade + 1,
+      });
+    });
+
+    this.worker.on("completed", (job) => {
+      logger.info(`Job completed: ${job.name}`, {
+        jobId: job.id,
+      });
+    });
+
+    this.worker.on("failed", (job, err) => {
+      logger.error(`Job failed: ${job?.name}`, err, {
+        jobId: job?.id,
+      });
+    });
   }
 
   /**
    * Add a job to the queue
    */
   async addJob<T>(type: string, data: T, maxAttempts = 3): Promise<string> {
-    const jobId = `job-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const bullJob = await this.queue.add(type, data, {
+      attempts: maxAttempts,
+      backoff: {
+        type: "exponential",
+        delay: 1000,
+      },
+      removeOnComplete: false, // Keep completed jobs so getJob can query them
+      removeOnFail: false, // Keep failed jobs so getJob can query them
+    });
 
-    const job: Job<T> = {
-      id: jobId,
-      type,
-      status: "pending",
-      data,
-      attempts: 0,
-      maxAttempts,
-      createdAt: new Date(),
-    };
-
-    this.jobs.set(jobId, job);
-    this.queue.push(jobId);
-
-    logger.debug(`Job queued: ${type}`, { jobId });
-
-    // Start processing if not already processing
-    if (!this.isProcessing) {
-      this.processQueue();
-    }
-
-    return jobId;
+    logger.debug(`Job queued: ${type}`, { jobId: bullJob.id });
+    return bullJob.id || "";
   }
 
   /**
    * Get job status
    */
-  getJob(jobId: string): Job | undefined {
-    return this.jobs.get(jobId);
-  }
+  async getJob(jobId: string): Promise<Job | undefined> {
+    const bullJob = await this.queue.getJob(jobId);
+    if (!bullJob) return undefined;
 
-  /**
-   * Get all jobs by type
-   */
-  getJobsByType(type: string): Job[] {
-    return Array.from(this.jobs.values()).filter((job) => job.type === type);
-  }
-
-  /**
-   * Get jobs by status
-   */
-  getJobsByStatus(status: JobStatus): Job[] {
-    return Array.from(this.jobs.values()).filter((job) => job.status === status);
-  }
-
-  /**
-   * Process the queue
-   */
-  private async processQueue(): Promise<void> {
-    if (this.isProcessing) return;
-
-    this.isProcessing = true;
-
-    while (this.queue.length > 0 || this.activeJobs > 0) {
-      // Fill up to maxConcurrent
-      while (this.activeJobs < this.maxConcurrent && this.queue.length > 0) {
-        const jobId = this.queue.shift();
-        if (jobId) {
-          this.activeJobs++;
-          this.processJob(jobId).finally(() => {
-            this.activeJobs--;
-          });
-        }
-      }
-
-      // Wait a bit before checking again
-      if (this.queue.length > 0 || this.activeJobs > 0) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
+    const state = await bullJob.getState();
+    let status: JobStatus = "pending";
+    if (state === "active") {
+      status = "processing";
+    } else if (state === "completed") {
+      status = "completed";
+    } else if (state === "failed") {
+      status = "failed";
     }
 
-    this.isProcessing = false;
-    logger.debug("Job queue processing completed");
+    return {
+      id: bullJob.id || "",
+      type: bullJob.name,
+      status,
+      data: bullJob.data,
+      result: bullJob.returnvalue,
+      error: bullJob.failedReason,
+      attempts: bullJob.attemptsMade,
+      maxAttempts: bullJob.opts.attempts || 3,
+      createdAt: new Date(bullJob.timestamp),
+      startedAt: bullJob.processedOn ? new Date(bullJob.processedOn) : undefined,
+      completedAt: bullJob.finishedOn ? new Date(bullJob.finishedOn) : undefined,
+    };
   }
 
   /**
-   * Process a single job
+   * Mock getJobsByType
    */
-  private async processJob(jobId: string): Promise<void> {
-    const job = this.jobs.get(jobId);
-    if (!job) return;
+  async getJobsByType(type: string): Promise<Job[]> {
+    const bullJobs = await this.queue.getJobs(["waiting", "active", "completed", "failed"]);
+    const mapped: Job[] = [];
+    for (const job of bullJobs) {
+      if (job.name === type) {
+        const state = await job.getState();
+        let status: JobStatus = "pending";
+        if (state === "active") status = "processing";
+        else if (state === "completed") status = "completed";
+        else if (state === "failed") status = "failed";
 
-    try {
-      job.status = "processing";
-      job.startedAt = new Date();
-      job.attempts++;
-
-      logger.info(`Processing job: ${job.type}`, {
-        jobId,
-        attempt: job.attempts,
-        maxAttempts: job.maxAttempts,
-      });
-
-      const handler = this.handlers.get(job.type);
-      if (!handler) {
-        throw new Error(`No handler registered for job type: ${job.type}`);
-      }
-
-      const result = await handler(job.data);
-
-      job.result = result;
-      job.status = "completed";
-      job.completedAt = new Date();
-
-      logger.info(`Job completed: ${job.type}`, {
-        jobId,
-        duration: job.completedAt.getTime() - job.startedAt!.getTime(),
-      });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-
-      logger.error(`Job failed: ${job.type}`, error as Error, {
-        jobId,
-        attempt: job.attempts,
-        maxAttempts: job.maxAttempts,
-      });
-
-      if (job.attempts < job.maxAttempts) {
-        // Retry with exponential backoff
-        job.status = "pending";
-        const backoffMs = Math.pow(2, job.attempts - 1) * 1000; // 1s, 2s, 4s, etc.
-        await new Promise((resolve) => setTimeout(resolve, backoffMs));
-        this.queue.push(jobId);
-      } else {
-        job.status = "failed";
-        job.error = errorMessage;
-        job.completedAt = new Date();
+        mapped.push({
+          id: job.id || "",
+          type: job.name,
+          status,
+          data: job.data,
+          result: job.returnvalue,
+          error: job.failedReason,
+          attempts: job.attemptsMade,
+          maxAttempts: job.opts.attempts || 3,
+          createdAt: new Date(job.timestamp),
+          startedAt: job.processedOn ? new Date(job.processedOn) : undefined,
+          completedAt: job.finishedOn ? new Date(job.finishedOn) : undefined,
+        });
       }
     }
+    return mapped;
   }
 
   /**
-   * Clear old completed jobs to prevent memory leak
+   * cleanup - no-op for BullMQ as we can use BullMQ built-in cleaning
    */
-  cleanup(maxAgeMs = 24 * 60 * 60 * 1000): void {
-    const now = Date.now();
-    let removed = 0;
-
-    for (const [jobId, job] of this.jobs.entries()) {
-      if ((job.status === "completed" || job.status === "failed") && now - job.createdAt.getTime() > maxAgeMs) {
-        this.jobs.delete(jobId);
-        removed++;
-      }
-    }
-
-    if (removed > 0) {
-      logger.debug(`Cleaned up ${removed} old jobs`);
-    }
-  }
+  cleanup(): void {}
 
   /**
    * Get queue statistics
    */
-  getStats() {
-    const allJobs = Array.from(this.jobs.values());
-
+  async getStats() {
+    const counts = await this.queue.getJobCounts();
     return {
-      total: allJobs.length,
-      pending: allJobs.filter((j) => j.status === "pending").length,
-      processing: allJobs.filter((j) => j.status === "processing").length,
-      completed: allJobs.filter((j) => j.status === "completed").length,
-      failed: allJobs.filter((j) => j.status === "failed").length,
-      queueLength: this.queue.length,
-      activeJobs: this.activeJobs,
+      total: counts.waiting + counts.active + counts.completed + counts.failed + counts.delayed,
+      pending: counts.waiting + counts.delayed,
+      processing: counts.active,
+      completed: counts.completed,
+      failed: counts.failed,
+      queueLength: counts.waiting,
+      activeJobs: counts.active,
     };
   }
 }
 
 // Singleton instance
 export const jobQueue = new JobQueue();
-
-// Auto-cleanup every hour
-setInterval(
-  () => {
-    jobQueue.cleanup();
-  },
-  60 * 60 * 1000
-);

@@ -1,9 +1,9 @@
 /**
- * In-Memory Caching Utility
- * Provides a simple cache for frequently accessed data
- * In production, use Redis for distributed caching
+ * Hybrid Redis & In-Memory Caching Utility
+ * Provides fast, distributed and fallback in-memory caching for frequently accessed hot data.
  */
 
+import { redisConnection } from "../services/logQueue";
 import { logger } from "./logger";
 
 export interface CacheEntry<T> {
@@ -13,13 +13,14 @@ export interface CacheEntry<T> {
 
 class Cache {
   private store: Map<string, CacheEntry<any>> = new Map();
-  private defaultTTL: number = 5 * 60 * 1000; // 5 minutes
+  private defaultTTL: number = 2 * 60 * 1000; // 2 minutes default
 
   /**
-   * Set a value in cache
+   * Set a value in cache (Redis with in-memory mirror)
    */
-  set<T>(key: string, value: T, ttlMs?: number): void {
+  async set<T>(key: string, value: T, ttlMs?: number): Promise<void> {
     const ttl = ttlMs ?? this.defaultTTL;
+    const ttlSeconds = Math.max(1, Math.floor(ttl / 1000));
     const expiresAt = Date.now() + ttl;
 
     this.store.set(key, {
@@ -29,42 +30,64 @@ class Cache {
 
     logger.debug("Cache SET", { key, ttlMs: ttl });
 
-    // Schedule cleanup
+    try {
+      if (redisConnection && redisConnection.status === "ready") {
+        await redisConnection.set(key, JSON.stringify(value), "EX", ttlSeconds);
+      }
+    } catch (err) {
+      logger.debug("Redis cache SET fallback to memory", { key });
+    }
+
+    // Schedule in-memory cleanup
     setTimeout(() => {
-      this.delete(key);
+      this.delete(key).catch(() => {});
     }, ttl);
   }
 
   /**
-   * Get a value from cache
+   * Get a value from cache (Memory first, then Redis)
    */
-  get<T>(key: string): T | null {
+  async get<T>(key: string): Promise<T | null> {
+    // 1. Check in-memory store
     const entry = this.store.get(key);
-
-    if (!entry) {
-      logger.debug("Cache MISS", { key });
-      return null;
+    if (entry) {
+      if (Date.now() <= entry.expiresAt) {
+        logger.debug("Cache HIT (memory)", { key });
+        return entry.value as T;
+      }
+      this.store.delete(key);
     }
 
-    // Check expiration
-    if (Date.now() > entry.expiresAt) {
-      this.delete(key);
-      logger.debug("Cache EXPIRED", { key });
-      return null;
+    // 2. Check Redis
+    try {
+      if (redisConnection && redisConnection.status === "ready") {
+        const raw = await redisConnection.get(key);
+        if (raw) {
+          logger.debug("Cache HIT (redis)", { key });
+          const parsed = JSON.parse(raw) as T;
+          this.store.set(key, { value: parsed, expiresAt: Date.now() + 60000 });
+          return parsed;
+        }
+      }
+    } catch (err) {
+      logger.debug("Redis cache GET fallback to memory", { key });
     }
 
-    logger.debug("Cache HIT", { key });
-    return entry.value as T;
+    logger.debug("Cache MISS", { key });
+    return null;
   }
 
   /**
    * Delete a value from cache
    */
-  delete(key: string): boolean {
-    const existed = this.store.has(key);
-    if (existed) {
-      this.store.delete(key);
-      logger.debug("Cache DELETE", { key });
+  async delete(key: string): Promise<boolean> {
+    const existed = this.store.delete(key);
+    try {
+      if (redisConnection && redisConnection.status === "ready") {
+        await redisConnection.del(key);
+      }
+    } catch (err) {
+      logger.debug("Redis cache DELETE error", { key });
     }
     return existed;
   }
@@ -72,24 +95,32 @@ class Cache {
   /**
    * Clear all cache
    */
-  clear(): void {
-    const size = this.store.size;
+  async clear(): Promise<void> {
     this.store.clear();
-    logger.debug("Cache CLEAR", { entries: size });
+    try {
+      if (redisConnection && redisConnection.status === "ready") {
+        const keys = await redisConnection.keys("syncra:cache:*");
+        if (keys.length > 0) {
+          await redisConnection.del(...keys);
+        }
+      }
+    } catch (err) {
+      logger.debug("Redis cache CLEAR error");
+    }
   }
 
   /**
    * Get or compute a value
    */
   async getOrCompute<T>(key: string, compute: () => Promise<T>, ttlMs?: number): Promise<T> {
-    const cached = this.get<T>(key);
+    const cached = await this.get<T>(key);
     if (cached !== null) {
       return cached;
     }
 
     logger.debug("Cache COMPUTE", { key });
     const value = await compute();
-    this.set(key, value, ttlMs);
+    await this.set(key, value, ttlMs);
     return value;
   }
 
@@ -114,99 +145,28 @@ export const cache = new Cache();
  * Cache key builders for common scenarios
  */
 export const cacheKeys = {
-  users: () => "users:all",
-  userById: (id: string) => `user:${id}`,
-  userByEmail: (email: string) => `user:email:${email}`,
-  meetings: (userId: string, page: number, limit: number) => `meetings:${userId}:${page}:${limit}`,
-  meetingById: (id: string) => `meeting:${id}`,
-  actionItems: (userId: string, page: number, limit: number) => `action_items:${userId}:${page}:${limit}`,
-  actionItemById: (id: string) => `action_item:${id}`,
-  actionItemsByMeeting: (meetingId: string) => `action_items:meeting:${meetingId}`,
+  dashboard: (email: string) => `syncra:cache:dashboard:${email.toLowerCase()}`,
+  settings: (userId: string) => `syncra:cache:settings:${userId}`,
+  userByEmail: (email: string) => `syncra:cache:user:email:${email.toLowerCase()}`,
+  notifications: (userId: string) => `syncra:cache:notifications:${userId}`,
 };
 
 /**
  * Cache invalidation helpers
  */
 export const invalidateCache = {
-  users: () => {
-    cache.delete(cacheKeys.users());
-    logger.debug("Cache invalidated: users");
+  dashboard: (email: string) => {
+    cache.delete(cacheKeys.dashboard(email));
   },
-
-  user: (id: string, email?: string) => {
-    cache.delete(cacheKeys.userById(id));
+  user: (userId: string, email?: string) => {
+    cache.delete(cacheKeys.settings(userId));
+    cache.delete(cacheKeys.notifications(userId));
     if (email) {
+      cache.delete(cacheKeys.dashboard(email));
       cache.delete(cacheKeys.userByEmail(email));
     }
-    logger.debug("Cache invalidated: user", { id });
   },
-
-  meetings: (userId: string) => {
-    // Invalidate all meeting cache entries for this user
-    const stats = cache.getStats();
-    stats.entries.forEach((entry) => {
-      if (entry.key.startsWith(`meetings:${userId}:`)) {
-        cache.delete(entry.key);
-      }
-    });
-    logger.debug("Cache invalidated: meetings", { userId });
-  },
-
-  meeting: (id: string, ownerEmail?: string) => {
-    cache.delete(cacheKeys.meetingById(id));
-    logger.debug("Cache invalidated: meeting", { id });
-  },
-
-  actionItems: (userId: string, meetingId?: string) => {
-    // Invalidate all action item cache entries
-    const stats = cache.getStats();
-    stats.entries.forEach((entry) => {
-      if (
-        entry.key.startsWith(`action_items:${userId}:`) ||
-        (meetingId && entry.key === cacheKeys.actionItemsByMeeting(meetingId))
-      ) {
-        cache.delete(entry.key);
-      }
-    });
-    logger.debug("Cache invalidated: action items", { userId, meetingId });
-  },
-
-  actionItem: (id: string) => {
-    cache.delete(cacheKeys.actionItemById(id));
-    logger.debug("Cache invalidated: action item", { id });
-  },
-
   all: () => {
     cache.clear();
-    logger.debug("Cache invalidated: all");
   },
-};
-
-/**
- * Cache middleware for GET requests
- */
-export const cacheMiddleware = (keyBuilder: (req: any) => string, ttlMs?: number) => {
-  return async (req: any, res: any, next: any) => {
-    // Only cache GET requests
-    if (req.method !== "GET") {
-      return next();
-    }
-
-    const key = keyBuilder(req);
-    const cached = cache.get(key);
-
-    if (cached !== null) {
-      logger.debug("Serving from cache", { key });
-      return res.json(cached);
-    }
-
-    // Intercept res.json to cache response
-    const originalJson = res.json.bind(res);
-    res.json = (data: any) => {
-      cache.set(key, data, ttlMs);
-      return originalJson(data);
-    };
-
-    next();
-  };
 };

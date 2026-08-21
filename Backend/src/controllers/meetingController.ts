@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import db from "../db";
 import { meetings, actionItems, users, MeetingSummary, meetingChunks } from "../db/schema";
-import { eq, and, inArray, desc, getTableColumns, sql } from "drizzle-orm";
+import { eq, and, or, inArray, desc, getTableColumns, sql } from "drizzle-orm";
 import { generateMeetingSummary } from "../services/aiService";
 import { AuthenticatedRequest } from "../middleware/authMiddleware";
 import { asyncHandler } from "../middleware/errorHandler";
@@ -15,6 +15,7 @@ import { queryMeetingRAG } from "../services/aiService";
 import { appendDebugLog } from "../utils/appendLog";
 import { indexMeetingMemory } from "../services/langchain/memoryIndexer";
 import { deleteUserMemoryBySource } from "../services/langchain/vectorStore";
+import { invalidateCache } from "../utils/cache";
 
 /**
  * Helper function that synchronizes extracted AI action items into the relational PostgreSQL `action_items` DB table.
@@ -72,7 +73,7 @@ const syncActionItemsToDb = async (meetingId: string, summary: MeetingSummary | 
  * Uses database indexes for efficient querying.
  */
 export const getMeetings = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-  const { search, type, page, limit, sortBy, sortOrder, isArchived, isDeleted } = req.query as any;
+  const { search, type, page = 1, limit = 10, sortBy, sortOrder, isArchived, isDeleted } = req.query as any;
   const userEmail = req.user?.email?.toLowerCase();
 
   if (!userEmail) {
@@ -80,59 +81,61 @@ export const getMeetings = asyncHandler(async (req: AuthenticatedRequest, res: R
   }
 
   try {
-    // Fetch all meetings ordered by createdAt descending (newest first)
-    const allMeetings = await db
-      .select({ ...getTableColumns(meetings), hasChunks: sql<boolean>`COUNT(${meetingChunks.id}) > 0` })
-      .from(meetings)
-      .leftJoin(meetingChunks, eq(meetingChunks.meetingId, meetings.id))
-      .where(and(eq(meetings.isArchived, isArchived ?? false), eq(meetings.isDeleted, isDeleted ?? false)))
-      .groupBy(meetings.id)
-      .orderBy(desc(meetings.createdAt));
-    appendDebugLog(`Fetched ${allMeetings.length} meetings`);
+    const conditions = [
+      sql`${meetings.participants} @> ${JSON.stringify([userEmail])}::jsonb`,
+      eq(meetings.isArchived, isArchived === true || isArchived === "true"),
+      eq(meetings.isDeleted, isDeleted === true || isDeleted === "true"),
+    ];
 
-    // Filter meetings where user is a participant
-    let userMeetings = allMeetings.filter(
-      (m: { participants: any[] }) =>
-        Array.isArray(m.participants) && m.participants.some((p: string) => p.toLowerCase() === userEmail)
-    );
+    if (type && (type as string) !== "All") {
+      conditions.push(eq(meetings.type, type));
+    }
 
-    let filtered = userMeetings;
-
-    // Apply search filter
-    if (search) {
-      const q = search.toLowerCase();
-      filtered = filtered.filter(
-        (m) =>
-          m.title.toLowerCase().includes(q) ||
-          m.transcript?.toLowerCase().includes(q) ||
-          m.participants.some((p: string) => p.toLowerCase().includes(q))
+    if (search && typeof search === "string" && search.trim().length > 0) {
+      const searchPattern = `%${search.toLowerCase().trim()}%`;
+      conditions.push(
+        or(
+          sql`LOWER(${meetings.title}) LIKE ${searchPattern}`,
+          sql`LOWER(${meetings.transcript}) LIKE ${searchPattern}`,
+          sql`${meetings.participants}::text ILIKE ${searchPattern}`
+        )!
       );
     }
 
-    // Apply type filter
-    if (type && (type as string) !== "All") {
-      filtered = filtered.filter((m: { type: string }) => m.type === type);
-    }
+    const whereClause = and(...conditions);
+    const numLimit = Number(limit) || 10;
+    const numPage = Number(page) || 1;
+    const offset = getPaginationOffset(numPage, numLimit);
 
-    // Ensure strict sorting by createdAt descending (newest first)
-    filtered.sort((a, b) => {
-      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return timeB - timeA;
-    });
+    // Parallelize paginated query and total count query
+    const [paginatedItems, countResult] = await Promise.all([
+      db
+        .select({
+          ...getTableColumns(meetings),
+          hasChunks: sql<boolean>`COUNT(${meetingChunks.id}) > 0`,
+        })
+        .from(meetings)
+        .leftJoin(meetingChunks, eq(meetingChunks.meetingId, meetings.id))
+        .where(whereClause)
+        .groupBy(meetings.id)
+        .orderBy(desc(meetings.createdAt))
+        .limit(numLimit)
+        .offset(offset),
+      db
+        .select({ count: sql<number>`count(DISTINCT ${meetings.id})::int` })
+        .from(meetings)
+        .where(whereClause),
+    ]);
 
-    // Calculate pagination
-    const offset = getPaginationOffset(page, limit);
-    const total = filtered.length;
-    const paginatedItems = filtered.slice(offset, offset + limit);
-    const pagination = calculatePagination(page, limit, total);
+    const total = countResult[0]?.count || 0;
+    const pagination = calculatePagination(numPage, numLimit, total);
 
-    logger.debug("Fetched meetings", {
+    logger.debug("Fetched meetings via SQL pushdown", {
       userEmail,
       count: paginatedItems.length,
       total,
-      page,
-      limit,
+      page: numPage,
+      limit: numLimit,
     });
 
     res.json(buildPaginatedResponse(paginatedItems, pagination));

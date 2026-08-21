@@ -6,8 +6,30 @@ import { AuthenticatedRequest } from "../middleware/authMiddleware";
 import { asyncHandler } from "../middleware/errorHandler";
 import { NotFoundError, ValidationError, InternalServerError } from "../utils/errors";
 import { logger } from "../utils/logger";
+import { cache, cacheKeys, invalidateCache } from "../utils/cache";
 
 const DEFAULT_PROMPT = "Focus heavily on technical decisions, code deliverables, and explicit action item due dates.";
+
+/**
+ * Helper to resolve user ID without unnecessary DB queries
+ */
+async function resolveUserId(req: AuthenticatedRequest): Promise<string> {
+  const tokenUserId = req.user?.userId || (req.user as any)?.id;
+  if (tokenUserId) {
+    return tokenUserId;
+  }
+
+  const userEmail = req.user?.email;
+  if (!userEmail) {
+    throw new ValidationError("User authentication required");
+  }
+
+  const foundUsers = await db.select().from(users).where(eq(users.email, userEmail.toLowerCase())).limit(1);
+  if (foundUsers.length === 0) {
+    throw new NotFoundError("User account");
+  }
+  return foundUsers[0].id;
+}
 
 /**
  * GET /api/settings
@@ -16,21 +38,24 @@ const DEFAULT_PROMPT = "Focus heavily on technical decisions, code deliverables,
  */
 export const getUserSettings = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const userEmail = req.user?.email;
-
   if (!userEmail) {
     throw new ValidationError("User authentication required");
   }
 
-  // Find user by email to get user ID
-  const foundUsers = await db.select().from(users).where(eq(users.email, userEmail.toLowerCase()));
-  if (foundUsers.length === 0) {
-    throw new NotFoundError("User account");
+  const userId = await resolveUserId(req);
+
+  // Check cache first
+  const cacheKey = cacheKeys.settings(userId);
+  const cached = await cache.get(cacheKey);
+  if (cached) {
+    res.json(cached);
+    return;
   }
-  const userId = foundUsers[0].id;
 
   const existingSettings = await db.select().from(userSettings).where(eq(userSettings.userId, userId));
 
   if (existingSettings.length > 0) {
+    await cache.set(cacheKey, existingSettings[0], 5 * 60 * 1000);
     res.json(existingSettings[0]);
     return;
   }
@@ -50,6 +75,8 @@ export const getUserSettings = asyncHandler(async (req: AuthenticatedRequest, re
 
   const inserted = await db.insert(userSettings).values(defaultRow).returning();
   logger.info("Created default user settings record", { userId, userEmail });
+
+  await cache.set(cacheKey, inserted[0], 5 * 60 * 1000);
   res.json(inserted[0]);
 });
 
@@ -73,11 +100,7 @@ export const updateUserSettings = asyncHandler(async (req: AuthenticatedRequest,
     throw new ValidationError("User authentication required");
   }
 
-  const foundUsers = await db.select().from(users).where(eq(users.email, userEmail.toLowerCase()));
-  if (foundUsers.length === 0) {
-    throw new NotFoundError("User account");
-  }
-  const userId = foundUsers[0].id;
+  const userId = await resolveUserId(req);
 
   const updatedData = {
     summaryLength: summaryLength || "Medium",
@@ -104,6 +127,9 @@ export const updateUserSettings = asyncHandler(async (req: AuthenticatedRequest,
 
   logger.info("Updated user settings", { userId, userEmail });
 
+  // Invalidate cache
+  await invalidateCache.user(userId, userEmail);
+
   const { createNotificationLog } = await import("./notificationController");
   createNotificationLog({
     userId,
@@ -126,11 +152,7 @@ export const getUserSessions = asyncHandler(async (req: AuthenticatedRequest, re
     throw new ValidationError("User authentication required");
   }
 
-  const foundUsers = await db.select().from(users).where(eq(users.email, userEmail.toLowerCase()));
-  if (foundUsers.length === 0) {
-    throw new NotFoundError("User account");
-  }
-  const userId = foundUsers[0].id;
+  const userId = await resolveUserId(req);
 
   const { userSessions } = await import("../db/schema");
   const sessions = await db.select().from(userSessions).where(eq(userSessions.userId, userId));
