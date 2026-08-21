@@ -166,37 +166,6 @@ export default function LoginPage() {
           transition={{ duration: 0.5, ease: "easeOut" }}
           className="w-full max-w-md space-y-6 relative z-10"
         >
-          {/* Branding Header */}
-          <div className="flex flex-col items-center space-y-3 text-center">
-            <motion.div
-              whileHover={{ scale: 1.05, rotate: 6 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 via-violet-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30 ring-1 ring-white/20"
-            >
-              {/* Modern Syncra branding SVG logo */}
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-7 w-7 text-white">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-                <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-                <path
-                  d="M2 12L12 17L22 12"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinejoin="round"
-                  opacity="0.6"
-                />
-              </svg>
-            </motion.div>
-            <div className="space-y-1">
-              <div className="flex items-center justify-center gap-1.5">
-                <h1 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-white">Syncra AI</h1>
-                <Sparkles className="h-4 w-4 text-indigo-500 animate-pulse" />
-              </div>
-              <p className="text-xs font-medium text-zinc-550 dark:text-zinc-400">
-                AI-Powered Meeting Summaries & Central Action Tracker
-              </p>
-            </div>
-          </div>
-
           {/* Form Card — Glass with gradient border */}
           <div className="gradient-border-wrap rounded-3xl p-[1px]">
             <Card className="border-0 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl shadow-xl shadow-indigo-500/5 text-zinc-900 dark:text-zinc-100 rounded-3xl overflow-hidden">
@@ -250,7 +219,7 @@ export default function LoginPage() {
                         Password
                       </Label>
                       <Link
-                        href="#"
+                        href="/forgot-password"
                         className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline transition-colors"
                       >
                         Forgot password?

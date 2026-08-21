@@ -57,6 +57,8 @@ export const SERVICE_IDS = {
     ME: "auth.me",
     USERS: "auth.users",
     CHANGE_PASSWORD: "auth.changePassword",
+    GENERATE_MAGIC_LINK: "auth.generateMagicLink",
+    RESET_PASSWORD_WITH_TOKEN: "auth.resetPasswordWithToken",
   },
 } as const;
 

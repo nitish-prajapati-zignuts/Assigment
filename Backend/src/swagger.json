@@ -182,6 +182,34 @@
           }
         }
       },
+      "AuthGenerateMagicLinkRequest": {
+        "type": "object",
+        "required": ["serviceId", "payload"],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": ["auth.generateMagicLink"]
+          },
+          "payload": {
+            "type": "object",
+            "description": "Payload structure"
+          }
+        }
+      },
+      "AuthResetPasswordWithTokenRequest": {
+        "type": "object",
+        "required": ["serviceId", "payload"],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": ["auth.resetPasswordWithToken"]
+          },
+          "payload": {
+            "type": "object",
+            "description": "Payload structure"
+          }
+        }
+      },
       "MeetingsListRequest": {
         "type": "object",
         "required": ["serviceId"],
@@ -737,6 +765,12 @@
                   },
                   {
                     "$ref": "#/components/schemas/AuthChangePasswordRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/AuthGenerateMagicLinkRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/AuthResetPasswordWithTokenRequest"
                   },
                   {
                     "$ref": "#/components/schemas/MeetingsListRequest"

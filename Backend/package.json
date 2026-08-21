@@ -39,6 +39,7 @@
     "jsonwebtoken": "^9.0.3",
     "langchain": "^1.5.10",
     "pgvector": "^0.3.0",
+    "resend": "^6.21.0",
     "swagger-ui-express": "^5.0.1",
     "xss": "^1.0.15",
     "zod": "^4.4.3"

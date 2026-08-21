@@ -70,3 +70,45 @@ export const hashSharePassword = async (password: string): Promise<string> => {
 export const compareSharePassword = async (rawPassword: string, hashedPassword: string): Promise<boolean> => {
   return bcrypt.compare(rawPassword, hashedPassword);
 };
+
+export const encryptCurrentTokenDetails = (emailId: string): string => {
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv(ALGORITHM, ENCRYPTION_KEY, iv);
+
+  const payload = {
+    emailId,
+    expiresAt: Date.now() + 2 * 60 * 60 * 1000, // Expires in 2 hours
+  };
+
+  const encrypted = Buffer.concat([cipher.update(JSON.stringify(payload), "utf8"), cipher.final()]);
+
+  const tag = cipher.getAuthTag();
+
+  const combined = Buffer.concat([iv, tag, encrypted]);
+  return combined.toString("base64url");
+};
+
+export interface MagicLinkTokenPayload {
+  emailId: string;
+  expiresAt: number;
+}
+
+export const decryptCurrentTokenDetails = (token: string): MagicLinkTokenPayload | null => {
+  try {
+    const combined = Buffer.from(token, "base64url");
+    if (combined.length < 28) return null; // 12 iv + 16 tag minimum
+
+    const iv = combined.subarray(0, 12);
+    const tag = combined.subarray(12, 28);
+    const encryptedText = combined.subarray(28);
+
+    const decipher = crypto.createDecipheriv(ALGORITHM, ENCRYPTION_KEY, iv);
+    decipher.setAuthTag(tag);
+
+    const decrypted = Buffer.concat([decipher.update(encryptedText), decipher.final()]);
+
+    return JSON.parse(decrypted.toString("utf8")) as MagicLinkTokenPayload;
+  } catch (error) {
+    return null;
+  }
+};

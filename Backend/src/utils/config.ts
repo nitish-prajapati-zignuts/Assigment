@@ -6,12 +6,18 @@
 import { z } from "zod";
 import { logger } from "./logger";
 
+export type currentEnviromentType = "Production" | "Test" | "Development";
+
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  DEVELOPMENT_DEPLOYMENT_URI: z.string(),
+  TEST_DEPLOYMENT_URI: z.string(),
+  PRODUCTION_DEPLOYMENT_URI: z.string(),
   PORT: z.string().regex(/^\d+$/).default("5000").transform(Number),
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
   JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters for production").default(""),
   JWT_EXPIRES_IN: z.string().default("7d"),
+  RESEND_EMAIL_API: z.string(),
   GOOGLE_GENERATIVE_AI_API_KEY: z.string().optional(),
   GEMINI_FALL_BACK_KEY: z.string().optional(),
   GEMINI_API_KEYS: z.string().optional(), // Comma-separated string for Rotation Policy Implementation (RPI)
@@ -91,3 +97,14 @@ export const getEnv = (key: keyof EnvConfig, fallback?: string): string => {
 export const isProduction = () => config.NODE_ENV === "production";
 export const isDevelopment = () => config.NODE_ENV === "development";
 export const isTest = () => config.NODE_ENV === "test";
+export const getCurrentEnviroment = (): currentEnviromentType => {
+  if (isProduction()) {
+    return "Production";
+  }
+
+  if (isTest()) {
+    return "Test";
+  }
+
+  return "Development";
+};

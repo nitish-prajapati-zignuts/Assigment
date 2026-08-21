@@ -1,6 +1,15 @@
 import { ZodSchema } from "zod";
 import { Request, Response } from "express";
-import { register, login, logout, getUsers, getMe, changePassword } from "../controllers/authController";
+import {
+  register,
+  login,
+  logout,
+  getUsers,
+  getMe,
+  changePassword,
+  generateMagicLink,
+  resetPasswordWithToken,
+} from "../controllers/authController";
 import {
   getMeetings,
   getMeetingById,
@@ -52,6 +61,8 @@ import {
   createActionItemSchema,
   updateActionItemSchema,
   actionItemQuerySchema,
+  forgotPassword,
+  resetPasswordWithTokenSchema,
 } from "../utils/validation";
 
 export interface ServiceDefinition {
@@ -120,6 +131,18 @@ export const serviceRegistry: Record<string, ServiceDefinition> = {
     handler: changePassword,
     requiresAuth: true,
     validation: { body: updatePasswordSchema },
+  },
+  "auth.generateMagicLink": {
+    serviceId: "auth.generateMagicLink",
+    handler: generateMagicLink,
+    requiresAuth: false,
+    validation: { body: forgotPassword },
+  },
+  "auth.resetPasswordWithToken": {
+    serviceId: "auth.resetPasswordWithToken",
+    handler: resetPasswordWithToken,
+    requiresAuth: false,
+    validation: { body: resetPasswordWithTokenSchema },
   },
 
   // Meetings Services

@@ -10,6 +10,8 @@ import { logger } from "../utils/logger";
 import { AuthenticationError, ConflictError, ValidationError, InternalServerError } from "../utils/errors";
 import { RegisterInput, LoginInput } from "../utils/validation";
 import { createNotificationLog } from "./notificationController";
+import { encryptCurrentTokenDetails, decryptCurrentTokenDetails } from "../utils/shareUtils";
+import { emailService } from "../services/emailService";
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
@@ -274,4 +276,88 @@ export const logout = asyncHandler(async (req: Request, res: Response): Promise<
   logger.info("User logged out successfully", { userId: (req as any).user?.userId });
 
   res.json({ message: "Logout successful" });
+});
+
+export const generateMagicLink = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      res.json({ message: "Email is Required" });
+      return;
+    }
+    const generateToken = encryptCurrentTokenDetails(email);
+
+    const isMailSend = await emailService(email, generateToken);
+
+    if (!isMailSend) {
+      throw new InternalServerError("Failed to send password reset email. Please try again later.");
+    }
+
+    res.json({
+      message: "Link is Sent to your email",
+      data: {
+        data: email,
+      },
+    });
+  } catch (error) {
+    logger.error("Failed to Generate the Magic Link", error as Error);
+    throw new InternalServerError("Failed to Generate the Magic Link");
+  }
+});
+
+export const resetPasswordWithToken = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { token, password, confirmPassword } = req.body;
+
+    if (!token || !password || !confirmPassword) {
+      throw new ValidationError("Token, password, and confirmPassword are required");
+    }
+
+    if (password !== confirmPassword) {
+      throw new ValidationError("Passwords do not match");
+    }
+
+    const decryptedPayload = decryptCurrentTokenDetails(token);
+    if (!decryptedPayload) {
+      throw new ValidationError("Invalid or tampered password reset token");
+    }
+
+    if (decryptedPayload.expiresAt < Date.now()) {
+      throw new ValidationError("Password reset token has expired");
+    }
+
+    // Verify user exists
+    const userResult = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, decryptedPayload.emailId.toLowerCase().trim()));
+    if (userResult.length === 0) {
+      throw new ValidationError("User associated with this token was not found");
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    await db
+      .update(users)
+      .set({ password: hashedPassword })
+      .where(eq(users.email, decryptedPayload.emailId.toLowerCase().trim()));
+
+    // Log security notification
+    await createNotificationLog({
+      userId: userResult[0].id,
+      title: "Password Changed Successfully 🔑",
+      message: "Your password was recently reset using a magic link.",
+      type: "security_access",
+    });
+
+    res.json({ message: "Password reset successful" });
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      throw error;
+    }
+    logger.error("Failed to reset password with token", error as Error);
+    throw new InternalServerError("Failed to reset password");
+  }
 });
