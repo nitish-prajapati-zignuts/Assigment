@@ -30,7 +30,7 @@ class Logger {
       const reset = "\x1b[0m";
       const gray = "\x1b[90m";
       const bold = "\x1b[1m";
-      
+
       let levelColor = "";
       switch (entry.level) {
         case "debug":
