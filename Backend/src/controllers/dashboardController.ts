@@ -10,7 +10,7 @@ import { cache, cacheKeys } from "../utils/cache";
 
 /**
  * GET /api/dashboard/stats
- * Returns summary metrics and recent meetings for dashboard overview with Redis caching and SQL pushdown.
+ * Returns summary metrics and recent meetings for dashboard overview with centralized Redis caching and SQL pushdown.
  */
 export const getDashboardStats = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   const currentUserEmail = req.user?.email?.toLowerCase();
@@ -21,174 +21,174 @@ export const getDashboardStats = asyncHandler(async (req: AuthenticatedRequest, 
   }
 
   try {
-    // Check Redis / In-memory cache first
-    const cacheKey = cacheKeys.dashboard(currentUserEmail);
-    const cachedStats = await cache.get<any>(cacheKey);
-    if (cachedStats) {
-      res.json(cachedStats);
-      return;
-    }
+    const payload = await cache.getOrComputeWithHeader(
+      res,
+      cacheKeys.dashboard(currentUserEmail),
+      async () => {
+        // 1. Fetch user's accessible meetings using SQL JSONB containment
+        const userMeetings = await db
+          .select()
+          .from(meetings)
+          .where(
+            and(
+              sql`${meetings.participants} @> ${JSON.stringify([currentUserEmail])}::jsonb`,
+              eq(meetings.isArchived, false),
+              eq(meetings.isDeleted, false)
+            )
+          );
 
-    // 1. Fetch user's accessible meetings using SQL JSONB containment
-    const userMeetings = await db
-      .select()
-      .from(meetings)
-      .where(
-        and(
-          sql`${meetings.participants} @> ${JSON.stringify([currentUserEmail])}::jsonb`,
-          eq(meetings.isArchived, false),
-          eq(meetings.isDeleted, false)
-        )
-      );
+        const userMeetingIds = userMeetings.map((m) => m.id);
 
-    const userMeetingIds = userMeetings.map((m) => m.id);
+        // 2. Fetch accessible action items using SQL filters
+        const actionConditions = [eq(actionItems.isArchived, false)];
+        const accessConditions = [sql`LOWER(${actionItems.owner}) = ${currentUserEmail}`];
 
-    // 2. Fetch accessible action items using SQL filters
-    let userActionItems: (typeof actionItems.$inferSelect)[] = [];
+        if (userId) {
+          accessConditions.push(eq(actionItems.userId, userId));
+        }
+        if (userMeetingIds.length > 0) {
+          accessConditions.push(inArray(actionItems.meetingId, userMeetingIds));
+        }
 
-    const actionConditions = [eq(actionItems.isArchived, false)];
-    const accessConditions = [sql`LOWER(${actionItems.owner}) = ${currentUserEmail}`];
+        actionConditions.push(or(...accessConditions)!);
 
-    if (userId) {
-      accessConditions.push(eq(actionItems.userId, userId));
-    }
-    if (userMeetingIds.length > 0) {
-      accessConditions.push(inArray(actionItems.meetingId, userMeetingIds));
-    }
+        const userActionItems = await db
+          .select()
+          .from(actionItems)
+          .where(and(...actionConditions));
 
-    actionConditions.push(or(...accessConditions)!);
+        // 3. Compute Metrics
+        const today = new Date().toISOString().split("T")[0];
 
-    userActionItems = await db
-      .select()
-      .from(actionItems)
-      .where(and(...actionConditions));
+        const totalMeetings = userMeetings.length;
+        const totalActionItems = userActionItems.length;
 
-    // 3. Compute Metrics
-    const today = new Date().toISOString().split("T")[0];
+        const openActionItems = userActionItems.filter((item) => {
+          const s = item.status?.toLowerCase() || "";
+          return s === "open" || s === "pending" || s === "in progress" || s === "in_progress";
+        }).length;
 
-    const totalMeetings = userMeetings.length;
-    const totalActionItems = userActionItems.length;
+        const completedActionItems = userActionItems.filter(
+          (item) => item.status?.toLowerCase() === "completed"
+        ).length;
 
-    const openActionItems = userActionItems.filter((item) => {
-      const s = item.status?.toLowerCase() || "";
-      return s === "open" || s === "pending" || s === "in progress" || s === "in_progress";
-    }).length;
+        const overdueActionItems = userActionItems.filter((item) => {
+          if (!item.dueDate || item.dueDate === "Not specified" || item.status?.toLowerCase() === "completed") {
+            return false;
+          }
+          return item.dueDate < today;
+        }).length;
 
-    const completedActionItems = userActionItems.filter((item) => item.status?.toLowerCase() === "completed").length;
+        const blockedActionItems = userActionItems.filter((item) => item.status?.toLowerCase() === "blocked").length;
 
-    const overdueActionItems = userActionItems.filter((item) => {
-      if (!item.dueDate || item.dueDate === "Not specified" || item.status?.toLowerCase() === "completed") {
-        return false;
-      }
-      return item.dueDate < today;
-    }).length;
+        const savedTranscripts = userMeetings.filter((m) => m.transcript && m.transcript.trim().length > 0).length;
 
-    const blockedActionItems = userActionItems.filter((item) => item.status?.toLowerCase() === "blocked").length;
+        // 4. Top 4 Recent Meetings
+        const recentMeetings = [...userMeetings]
+          .sort((a, b) => new Date(b.createdAt || b.date).getTime() - new Date(a.createdAt || a.date).getTime())
+          .slice(0, 4);
 
-    const savedTranscripts = userMeetings.filter((m) => m.transcript && m.transcript.trim().length > 0).length;
+        // 5. Compute Analytics Chart Data
+        const timelineMap: Record<string, { date: string; meetingsCount: number; transcriptsCount: number }> = {};
 
-    // 4. Top 4 Recent Meetings
-    const recentMeetings = [...userMeetings]
-      .sort((a, b) => new Date(b.createdAt || b.date).getTime() - new Date(a.createdAt || a.date).getTime())
-      .slice(0, 4);
+        const sortedMeetings = [...userMeetings].sort(
+          (a, b) => new Date(a.createdAt || a.date).getTime() - new Date(b.createdAt || b.date).getTime()
+        );
 
-    // 5. Compute Analytics Chart Data
-    // A. Meetings Timeline (Grouped by month/date string)
-    const timelineMap: Record<string, { date: string; meetingsCount: number; transcriptsCount: number }> = {};
+        sortedMeetings.forEach((m) => {
+          const d = m.createdAt ? new Date(m.createdAt) : new Date(m.date);
+          const dateKey = isNaN(d.getTime())
+            ? m.date
+            : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
-    const sortedMeetings = [...userMeetings].sort(
-      (a, b) => new Date(a.createdAt || a.date).getTime() - new Date(b.createdAt || b.date).getTime()
-    );
-
-    sortedMeetings.forEach((m) => {
-      const d = m.createdAt ? new Date(m.createdAt) : new Date(m.date);
-      const dateKey = isNaN(d.getTime()) ? m.date : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-
-      if (!timelineMap[dateKey]) {
-        timelineMap[dateKey] = { date: dateKey, meetingsCount: 0, transcriptsCount: 0 };
-      }
-      timelineMap[dateKey].meetingsCount += 1;
-      if (m.transcript && m.transcript.trim().length > 0) {
-        timelineMap[dateKey].transcriptsCount += 1;
-      }
-    });
-
-    const meetingsTimeline = Object.values(timelineMap);
-
-    // B. Action Items Status Distribution
-    const statusCounts: Record<string, number> = {
-      Open: 0,
-      "In Progress": 0,
-      Completed: 0,
-      Blocked: 0,
-      Pending: 0,
-    };
-
-    userActionItems.forEach((item) => {
-      const st = item.status || "Pending";
-      const matchedKey = Object.keys(statusCounts).find((k) => k.toLowerCase() === st.toLowerCase()) || "Open";
-      statusCounts[matchedKey] = (statusCounts[matchedKey] || 0) + 1;
-    });
-
-    const actionItemsStatusDistribution = Object.entries(statusCounts)
-      .filter(([_, value]) => value > 0)
-      .map(([name, value]) => ({ name, value }));
-
-    // C. Action Items Priority Distribution
-    const priorityCounts: Record<string, number> = {
-      Low: 0,
-      Medium: 0,
-      High: 0,
-      Urgent: 0,
-    };
-
-    userActionItems.forEach((item) => {
-      const pr = item.priority || "Medium";
-      const matchedKey = Object.keys(priorityCounts).find((k) => k.toLowerCase() === pr.toLowerCase()) || "Medium";
-      priorityCounts[matchedKey] = (priorityCounts[matchedKey] || 0) + 1;
-    });
-
-    const actionItemsPriorityDistribution = Object.entries(priorityCounts).map(([name, value]) => ({ name, value }));
-
-    // D. Key Decisions Categories Breakdown
-    const decisionCategoriesMap: Record<string, number> = {};
-    userMeetings.forEach((m) => {
-      if (m.summary && Array.isArray(m.summary.keyDecisions)) {
-        m.summary.keyDecisions.forEach((kd) => {
-          const cat = kd.category || "General Decision";
-          decisionCategoriesMap[cat] = (decisionCategoriesMap[cat] || 0) + 1;
+          if (!timelineMap[dateKey]) {
+            timelineMap[dateKey] = { date: dateKey, meetingsCount: 0, transcriptsCount: 0 };
+          }
+          timelineMap[dateKey].meetingsCount += 1;
+          if (m.transcript && m.transcript.trim().length > 0) {
+            timelineMap[dateKey].transcriptsCount += 1;
+          }
         });
-      }
-    });
 
-    const keyDecisionsBreakdown = Object.entries(decisionCategoriesMap).map(([category, count]) => ({
-      category,
-      count,
-    }));
+        const meetingsTimeline = Object.values(timelineMap);
 
-    logger.debug("Fetched dashboard stats & chart analytics", { userEmail: currentUserEmail });
+        // Action Items Status Distribution
+        const statusCounts: Record<string, number> = {
+          Open: 0,
+          "In Progress": 0,
+          Completed: 0,
+          Blocked: 0,
+          Pending: 0,
+        };
 
-    const payload = {
-      metrics: {
-        totalMeetings,
-        totalActionItems,
-        openActionItems,
-        completedActionItems,
-        overdueActionItems,
-        blockedActionItems,
-        savedTranscripts,
+        userActionItems.forEach((item) => {
+          const st = item.status || "Pending";
+          const matchedKey = Object.keys(statusCounts).find((k) => k.toLowerCase() === st.toLowerCase()) || "Open";
+          statusCounts[matchedKey] = (statusCounts[matchedKey] || 0) + 1;
+        });
+
+        const actionItemsStatusDistribution = Object.entries(statusCounts)
+          .filter(([_, value]) => value > 0)
+          .map(([name, value]) => ({ name, value }));
+
+        // Action Items Priority Distribution
+        const priorityCounts: Record<string, number> = {
+          Low: 0,
+          Medium: 0,
+          High: 0,
+          Urgent: 0,
+        };
+
+        userActionItems.forEach((item) => {
+          const pr = item.priority || "Medium";
+          const matchedKey = Object.keys(priorityCounts).find((k) => k.toLowerCase() === pr.toLowerCase()) || "Medium";
+          priorityCounts[matchedKey] = (priorityCounts[matchedKey] || 0) + 1;
+        });
+
+        const actionItemsPriorityDistribution = Object.entries(priorityCounts).map(([name, value]) => ({
+          name,
+          value,
+        }));
+
+        // Key Decisions Categories Breakdown
+        const decisionCategoriesMap: Record<string, number> = {};
+        userMeetings.forEach((m) => {
+          if (m.summary && Array.isArray(m.summary.keyDecisions)) {
+            m.summary.keyDecisions.forEach((kd) => {
+              const cat = kd.category || "General Decision";
+              decisionCategoriesMap[cat] = (decisionCategoriesMap[cat] || 0) + 1;
+            });
+          }
+        });
+
+        const keyDecisionsBreakdown = Object.entries(decisionCategoriesMap).map(([category, count]) => ({
+          category,
+          count,
+        }));
+
+        logger.debug("Fetched dashboard stats & chart analytics", { userEmail: currentUserEmail });
+
+        return {
+          metrics: {
+            totalMeetings,
+            totalActionItems,
+            openActionItems,
+            completedActionItems,
+            overdueActionItems,
+            blockedActionItems,
+            savedTranscripts,
+          },
+          recentMeetings,
+          charts: {
+            meetingsTimeline,
+            actionItemsStatusDistribution,
+            actionItemsPriorityDistribution,
+            keyDecisionsBreakdown,
+          },
+        };
       },
-      recentMeetings,
-      charts: {
-        meetingsTimeline,
-        actionItemsStatusDistribution,
-        actionItemsPriorityDistribution,
-        keyDecisionsBreakdown,
-      },
-    };
-
-    // Cache the result for 60 seconds
-    await cache.set(cacheKey, payload, 60 * 1000);
+      60 * 1000 // 60s TTL
+    );
 
     res.json(payload);
   } catch (error) {

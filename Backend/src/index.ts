@@ -4,12 +4,11 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import { generateDocs } from "./utils/docGenerator";
-// Run document generation to ensure Swagger, Postman collection, and Frontend ServiceIds are in sync
+// Run document generation to ensure Postman collection and Frontend ServiceIds are in sync
 generateDocs();
 
 import express, { Request, Response } from "express";
 import cors from "cors";
-import swaggerUi from "swagger-ui-express";
 import cookieParser from "cookie-parser";
 import { config, isDevelopment } from "./utils/config";
 import { logger } from "./utils/logger";
@@ -26,8 +25,6 @@ import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { ExpressAdapter } from "@bull-board/express";
 import { logQueue } from "./services/logQueue";
 import { jobQueue } from "./services/jobQueue";
-
-const swaggerDocument = require("./swagger.json");
 
 // Initialize job queue handlers
 initializeJobHandlers();
@@ -139,9 +136,6 @@ if (isDevelopment()) {
 // ROUTES
 // ============================================
 
-// Swagger API documentation
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-
 // Centralized Service API route
 app.use("/api/service", asyncHandler(apiRateLimiter), serviceRoutes);
 
@@ -162,7 +156,6 @@ app.get(
           registry: "GET /api/service/registry",
         },
       },
-      documentation: "/api-docs",
     });
   })
 );

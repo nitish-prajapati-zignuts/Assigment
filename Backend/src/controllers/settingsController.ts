@@ -44,40 +44,37 @@ export const getUserSettings = asyncHandler(async (req: AuthenticatedRequest, re
 
   const userId = await resolveUserId(req);
 
-  // Check cache first
-  const cacheKey = cacheKeys.settings(userId);
-  const cached = await cache.get(cacheKey);
-  if (cached) {
-    res.json(cached);
-    return;
-  }
+  const settings = await cache.getOrComputeWithHeader(
+    res,
+    cacheKeys.settings(userId),
+    async () => {
+      const existingSettings = await db.select().from(userSettings).where(eq(userSettings.userId, userId));
 
-  const existingSettings = await db.select().from(userSettings).where(eq(userSettings.userId, userId));
+      if (existingSettings.length > 0) {
+        return existingSettings[0];
+      }
 
-  if (existingSettings.length > 0) {
-    await cache.set(cacheKey, existingSettings[0], 5 * 60 * 1000);
-    res.json(existingSettings[0]);
-    return;
-  }
+      // Auto-create default user settings row
+      const defaultRow = {
+        userId,
+        summaryLength: "Medium",
+        template: "Standard",
+        customPrompt: DEFAULT_PROMPT,
+        autoExtractActionItems: true,
+        emailNotifications: true,
+        weeklyDigest: false,
+        slackWebhookUrl: "",
+        updatedAt: new Date(),
+      };
 
-  // Auto-create default user settings row
-  const defaultRow = {
-    userId,
-    summaryLength: "Medium",
-    template: "Standard",
-    customPrompt: DEFAULT_PROMPT,
-    autoExtractActionItems: true,
-    emailNotifications: true,
-    weeklyDigest: false,
-    slackWebhookUrl: "",
-    updatedAt: new Date(),
-  };
+      const inserted = await db.insert(userSettings).values(defaultRow).returning();
+      logger.info("Created default user settings record", { userId, userEmail });
+      return inserted[0];
+    },
+    5 * 60 * 1000
+  );
 
-  const inserted = await db.insert(userSettings).values(defaultRow).returning();
-  logger.info("Created default user settings record", { userId, userEmail });
-
-  await cache.set(cacheKey, inserted[0], 5 * 60 * 1000);
-  res.json(inserted[0]);
+  res.json(settings);
 });
 
 /**

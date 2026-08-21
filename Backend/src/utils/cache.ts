@@ -3,6 +3,7 @@
  * Provides fast, distributed and fallback in-memory caching for frequently accessed hot data.
  */
 
+import { Response } from "express";
 import { redisConnection } from "../services/logQueue";
 import { logger } from "./logger";
 
@@ -125,6 +126,24 @@ class Cache {
   }
 
   /**
+   * Centralized helper to get cached data or compute fresh data,
+   * automatically setting the X-Cache response header (HIT/MISS).
+   */
+  async getOrComputeWithHeader<T>(res: Response, key: string, compute: () => Promise<T>, ttlMs?: number): Promise<T> {
+    const cached = await this.get<T>(key);
+    if (cached !== null) {
+      res.setHeader("X-Cache", "HIT");
+      return cached;
+    }
+
+    res.setHeader("X-Cache", "MISS");
+    logger.debug("Cache COMPUTE", { key });
+    const value = await compute();
+    await this.set(key, value, ttlMs);
+    return value;
+  }
+
+  /**
    * Get cache statistics
    */
   getStats() {
@@ -169,4 +188,33 @@ export const invalidateCache = {
   all: () => {
     cache.clear();
   },
+};
+
+/**
+ * Express Cache Middleware for GET requests with X-Cache response header
+ */
+export const cacheMiddleware = (keyBuilder: (req: any) => string, ttlMs?: number) => {
+  return async (req: any, res: any, next: any) => {
+    if (req.method !== "GET") {
+      return next();
+    }
+
+    const key = keyBuilder(req);
+    const cached = await cache.get(key);
+
+    if (cached !== null) {
+      logger.debug("Serving from cache", { key });
+      res.setHeader("X-Cache", "HIT");
+      return res.json(cached);
+    }
+
+    res.setHeader("X-Cache", "MISS");
+    const originalJson = res.json.bind(res);
+    res.json = (data: any) => {
+      cache.set(key, data, ttlMs);
+      return originalJson(data);
+    };
+
+    next();
+  };
 };
