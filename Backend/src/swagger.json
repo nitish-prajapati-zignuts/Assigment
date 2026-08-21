@@ -22,7 +22,11 @@
     "schemas": {
       "RegisterInput": {
         "type": "object",
-        "required": ["name", "email", "password"],
+        "required": [
+          "name",
+          "email",
+          "password"
+        ],
         "properties": {
           "name": {
             "type": "string",
@@ -42,7 +46,10 @@
       },
       "LoginInput": {
         "type": "object",
-        "required": ["email", "password"],
+        "required": [
+          "email",
+          "password"
+        ],
         "properties": {
           "email": {
             "type": "string",
@@ -58,7 +65,10 @@
       },
       "MeetingInput": {
         "type": "object",
-        "required": ["title", "transcript"],
+        "required": [
+          "title",
+          "transcript"
+        ],
         "properties": {
           "title": {
             "type": "string",
@@ -81,7 +91,13 @@
       },
       "ActionItemInput": {
         "type": "object",
-        "required": ["task", "owner", "dueDate", "priority", "status"],
+        "required": [
+          "task",
+          "owner",
+          "dueDate",
+          "priority",
+          "status"
+        ],
         "properties": {
           "task": {
             "type": "string",
@@ -98,12 +114,21 @@
           },
           "priority": {
             "type": "string",
-            "enum": ["Low", "Medium", "High"],
+            "enum": [
+              "Low",
+              "Medium",
+              "High"
+            ],
             "example": "High"
           },
           "status": {
             "type": "string",
-            "enum": ["Pending", "In Progress", "Completed", "Blocked"],
+            "enum": [
+              "Pending",
+              "In Progress",
+              "Completed",
+              "Blocked"
+            ],
             "example": "In Progress"
           },
           "meetingId": {
@@ -112,407 +137,69 @@
           }
         }
       },
-      "AuthRegisterRequest": {
+      "ActionItemsCreateRequest": {
         "type": "object",
-        "required": ["serviceId", "payload"],
+        "required": [
+          "serviceId",
+          "payload"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["auth.register"]
+            "enum": [
+              "actionItems.create"
+            ]
           },
           "payload": {
-            "$ref": "#/components/schemas/RegisterInput"
+            "$ref": "#/components/schemas/ActionItemInput"
           }
         }
       },
-      "AuthLoginRequest": {
+      "ActionItemsDeleteRequest": {
         "type": "object",
-        "required": ["serviceId", "payload"],
+        "required": [
+          "serviceId",
+          "params"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["auth.login"]
-          },
-          "payload": {
-            "$ref": "#/components/schemas/LoginInput"
-          }
-        }
-      },
-      "AuthLogoutRequest": {
-        "type": "object",
-        "required": ["serviceId"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["auth.logout"]
-          }
-        }
-      },
-      "AuthMeRequest": {
-        "type": "object",
-        "required": ["serviceId"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["auth.me"]
-          }
-        }
-      },
-      "AuthUsersRequest": {
-        "type": "object",
-        "required": ["serviceId"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["auth.users"]
-          }
-        }
-      },
-      "AuthChangePasswordRequest": {
-        "type": "object",
-        "required": ["serviceId", "payload"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["auth.changePassword"]
-          },
-          "payload": {
-            "type": "object",
-            "description": "Payload structure"
-          }
-        }
-      },
-      "AuthGenerateMagicLinkRequest": {
-        "type": "object",
-        "required": ["serviceId", "payload"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["auth.generateMagicLink"]
-          },
-          "payload": {
-            "type": "object",
-            "description": "Payload structure"
-          }
-        }
-      },
-      "AuthResetPasswordWithTokenRequest": {
-        "type": "object",
-        "required": ["serviceId", "payload"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["auth.resetPasswordWithToken"]
-          },
-          "payload": {
-            "type": "object",
-            "description": "Payload structure"
-          }
-        }
-      },
-      "MeetingsListRequest": {
-        "type": "object",
-        "required": ["serviceId"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["meetings.list"]
-          },
-          "query": {
-            "type": "object",
-            "description": "Query filters/pagination parameters"
-          }
-        }
-      },
-      "MeetingsGetRequest": {
-        "type": "object",
-        "required": ["serviceId", "params"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["meetings.get"]
+            "enum": [
+              "actionItems.delete"
+            ]
           },
           "params": {
             "type": "object",
-            "required": ["id"],
+            "required": [
+              "id"
+            ],
             "properties": {
               "id": {
                 "type": "string",
                 "example": "65b9c1f2d3a4e5b6c7d8e9f0"
               }
             }
-          }
-        }
-      },
-      "MeetingsCreateRequest": {
-        "type": "object",
-        "required": ["serviceId", "payload"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["meetings.create"]
-          },
-          "payload": {
-            "$ref": "#/components/schemas/MeetingInput"
-          }
-        }
-      },
-      "MeetingsUpdateRequest": {
-        "type": "object",
-        "required": ["serviceId", "payload", "params"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["meetings.update"]
-          },
-          "payload": {
-            "$ref": "#/components/schemas/MeetingInput"
-          },
-          "params": {
-            "type": "object",
-            "required": ["id"],
-            "properties": {
-              "id": {
-                "type": "string",
-                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
-              }
-            }
-          }
-        }
-      },
-      "MeetingsDeleteRequest": {
-        "type": "object",
-        "required": ["serviceId", "params"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["meetings.delete"]
-          },
-          "params": {
-            "type": "object",
-            "required": ["id"],
-            "properties": {
-              "id": {
-                "type": "string",
-                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
-              }
-            }
-          }
-        }
-      },
-      "MeetingsSummarizeRequest": {
-        "type": "object",
-        "required": ["serviceId", "params"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["meetings.summarize"]
-          },
-          "params": {
-            "type": "object",
-            "required": ["id"],
-            "properties": {
-              "id": {
-                "type": "string",
-                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
-              }
-            }
-          }
-        }
-      },
-      "MeetingsChatRequest": {
-        "type": "object",
-        "required": ["serviceId", "payload", "params"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["meetings.chat"]
-          },
-          "payload": {
-            "type": "object",
-            "description": "Payload structure"
-          },
-          "params": {
-            "type": "object",
-            "required": ["id"],
-            "properties": {
-              "id": {
-                "type": "string",
-                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
-              }
-            }
-          }
-        }
-      },
-      "MeetingsPublishRequest": {
-        "type": "object",
-        "required": ["serviceId", "params"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["meetings.publish"]
-          },
-          "params": {
-            "type": "object",
-            "required": ["id"],
-            "properties": {
-              "id": {
-                "type": "string",
-                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
-              }
-            }
-          }
-        }
-      },
-      "MeetingsArchiveRequest": {
-        "type": "object",
-        "required": ["serviceId", "params"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["meetings.archive"]
-          },
-          "params": {
-            "type": "object",
-            "required": ["id"],
-            "properties": {
-              "id": {
-                "type": "string",
-                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
-              }
-            }
-          }
-        }
-      },
-      "MeetingsUnarchiveRequest": {
-        "type": "object",
-        "required": ["serviceId", "params"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["meetings.unarchive"]
-          },
-          "params": {
-            "type": "object",
-            "required": ["id"],
-            "properties": {
-              "id": {
-                "type": "string",
-                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
-              }
-            }
-          }
-        }
-      },
-      "MeetingsRestoreRequest": {
-        "type": "object",
-        "required": ["serviceId", "params"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["meetings.restore"]
-          },
-          "params": {
-            "type": "object",
-            "required": ["id"],
-            "properties": {
-              "id": {
-                "type": "string",
-                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
-              }
-            }
-          }
-        }
-      },
-      "MeetingsPinRequest": {
-        "type": "object",
-        "required": ["serviceId", "params"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["meetings.pin"]
-          },
-          "params": {
-            "type": "object",
-            "required": ["id"],
-            "properties": {
-              "id": {
-                "type": "string",
-                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
-              }
-            }
-          }
-        }
-      },
-      "MeetingsCloneRequest": {
-        "type": "object",
-        "required": ["serviceId", "payload"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["meetings.clone"]
-          },
-          "payload": {
-            "type": "object",
-            "description": "Payload structure"
-          }
-        }
-      },
-      "MeetingsPermanentDeleteRequest": {
-        "type": "object",
-        "required": ["serviceId", "params"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["meetings.permanentDelete"]
-          },
-          "params": {
-            "type": "object",
-            "required": ["id"],
-            "properties": {
-              "id": {
-                "type": "string",
-                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
-              }
-            }
-          }
-        }
-      },
-      "MeetingsPublicShareGetRequest": {
-        "type": "object",
-        "required": ["serviceId"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["meetings.publicShareGet"]
-          }
-        }
-      },
-      "ActionItemsListRequest": {
-        "type": "object",
-        "required": ["serviceId"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["actionItems.list"]
-          },
-          "query": {
-            "type": "object",
-            "description": "Query filters/pagination parameters"
           }
         }
       },
       "ActionItemsGetRequest": {
         "type": "object",
-        "required": ["serviceId", "params"],
+        "required": [
+          "serviceId",
+          "params"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["actionItems.get"]
+            "enum": [
+              "actionItems.get"
+            ]
           },
           "params": {
             "type": "object",
-            "required": ["id"],
+            "required": [
+              "id"
+            ],
             "properties": {
               "id": {
                 "type": "string",
@@ -524,15 +211,22 @@
       },
       "ActionItemsGetByMeetingRequest": {
         "type": "object",
-        "required": ["serviceId", "params"],
+        "required": [
+          "serviceId",
+          "params"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["actionItems.getByMeeting"]
+            "enum": [
+              "actionItems.getByMeeting"
+            ]
           },
           "params": {
             "type": "object",
-            "required": ["id"],
+            "required": [
+              "id"
+            ],
             "properties": {
               "id": {
                 "type": "string",
@@ -544,34 +238,49 @@
       },
       "ActionItemsLeaderboardRequest": {
         "type": "object",
-        "required": ["serviceId"],
+        "required": [
+          "serviceId"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["actionItems.leaderboard"]
+            "enum": [
+              "actionItems.leaderboard"
+            ]
           }
         }
       },
-      "ActionItemsCreateRequest": {
+      "ActionItemsListRequest": {
         "type": "object",
-        "required": ["serviceId", "payload"],
+        "required": [
+          "serviceId"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["actionItems.create"]
+            "enum": [
+              "actionItems.list"
+            ]
           },
-          "payload": {
-            "$ref": "#/components/schemas/ActionItemInput"
+          "query": {
+            "type": "object",
+            "description": "Query filters/pagination parameters"
           }
         }
       },
       "ActionItemsUpdateRequest": {
         "type": "object",
-        "required": ["serviceId", "payload", "params"],
+        "required": [
+          "serviceId",
+          "payload",
+          "params"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["actionItems.update"]
+            "enum": [
+              "actionItems.update"
+            ]
           },
           "payload": {
             "type": "object",
@@ -579,7 +288,9 @@
           },
           "params": {
             "type": "object",
-            "required": ["id"],
+            "required": [
+              "id"
+            ],
             "properties": {
               "id": {
                 "type": "string",
@@ -589,143 +300,680 @@
           }
         }
       },
-      "ActionItemsDeleteRequest": {
+      "AuthChangePasswordRequest": {
         "type": "object",
-        "required": ["serviceId", "params"],
+        "required": [
+          "serviceId",
+          "payload"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["actionItems.delete"]
+            "enum": [
+              "auth.changePassword"
+            ]
           },
-          "params": {
+          "payload": {
             "type": "object",
-            "required": ["id"],
-            "properties": {
-              "id": {
-                "type": "string",
-                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
-              }
-            }
+            "description": "Payload structure"
           }
         }
       },
-      "DashboardStatsRequest": {
+      "AuthGenerateMagicLinkRequest": {
         "type": "object",
-        "required": ["serviceId"],
+        "required": [
+          "serviceId",
+          "payload"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["dashboard.stats"]
-          }
-        }
-      },
-      "SettingsGetRequest": {
-        "type": "object",
-        "required": ["serviceId"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["settings.get"]
-          }
-        }
-      },
-      "SettingsUpdateRequest": {
-        "type": "object",
-        "required": ["serviceId"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["settings.update"]
-          }
-        }
-      },
-      "SettingsSessionsRequest": {
-        "type": "object",
-        "required": ["serviceId"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["settings.sessions"]
-          }
-        }
-      },
-      "NotificationsListRequest": {
-        "type": "object",
-        "required": ["serviceId"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["notifications.list"]
-          }
-        }
-      },
-      "NotificationsReadAllRequest": {
-        "type": "object",
-        "required": ["serviceId"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["notifications.readAll"]
-          }
-        }
-      },
-      "NotificationsClearRequest": {
-        "type": "object",
-        "required": ["serviceId"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["notifications.clear"]
-          }
-        }
-      },
-      "JobsGetRequest": {
-        "type": "object",
-        "required": ["serviceId", "params"],
-        "properties": {
-          "serviceId": {
-            "type": "string",
-            "enum": ["jobs.get"]
+            "enum": [
+              "auth.generateMagicLink"
+            ]
           },
-          "params": {
+          "payload": {
             "type": "object",
-            "required": ["id"],
-            "properties": {
-              "id": {
-                "type": "string",
-                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
-              }
-            }
+            "description": "Payload structure"
+          }
+        }
+      },
+      "AuthLoginRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "payload"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "auth.login"
+            ]
+          },
+          "payload": {
+            "$ref": "#/components/schemas/LoginInput"
+          }
+        }
+      },
+      "AuthLogoutRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "auth.logout"
+            ]
+          }
+        }
+      },
+      "AuthMeRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "auth.me"
+            ]
+          }
+        }
+      },
+      "AuthRegisterRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "payload"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "auth.register"
+            ]
+          },
+          "payload": {
+            "$ref": "#/components/schemas/RegisterInput"
+          }
+        }
+      },
+      "AuthResetPasswordWithTokenRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "payload"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "auth.resetPasswordWithToken"
+            ]
+          },
+          "payload": {
+            "type": "object",
+            "description": "Payload structure"
+          }
+        }
+      },
+      "AuthUsersRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "auth.users"
+            ]
           }
         }
       },
       "ChatGlobalRequest": {
         "type": "object",
-        "required": ["serviceId"],
+        "required": [
+          "serviceId"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["chat.global"]
+            "enum": [
+              "chat.global"
+            ]
           }
         }
       },
       "ChatSessionsRequest": {
         "type": "object",
-        "required": ["serviceId"],
+        "required": [
+          "serviceId"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["chat.sessions.get"]
+            "enum": [
+              "chat.sessions.list"
+            ]
+          }
+        }
+      },
+      "DashboardStatsRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "dashboard.stats"
+            ]
+          }
+        }
+      },
+      "JobsGetRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "jobs.get"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "MeetingsArchiveRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.archive"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "MeetingsChatRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "payload",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.chat"
+            ]
+          },
+          "payload": {
+            "type": "object",
+            "description": "Payload structure"
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "MeetingsCloneRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "payload"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.clone"
+            ]
+          },
+          "payload": {
+            "type": "object",
+            "description": "Payload structure"
+          }
+        }
+      },
+      "MeetingsCreateRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "payload"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.create"
+            ]
+          },
+          "payload": {
+            "$ref": "#/components/schemas/MeetingInput"
+          }
+        }
+      },
+      "MeetingsDeleteRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.delete"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "MeetingsGetRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.get"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "MeetingsListRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.list"
+            ]
+          },
+          "query": {
+            "type": "object",
+            "description": "Query filters/pagination parameters"
+          }
+        }
+      },
+      "MeetingsPermanentDeleteRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.permanentDelete"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "MeetingsPinRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.pin"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "MeetingsPublicShareGetRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.publicShareGet"
+            ]
+          }
+        }
+      },
+      "MeetingsPublishRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.publish"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "MeetingsRestoreRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.restore"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "MeetingsSummarizeRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.summarize"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "MeetingsUnarchiveRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.unarchive"
+            ]
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
+          }
+        }
+      },
+      "MeetingsUpdateRequest": {
+        "type": "object",
+        "required": [
+          "serviceId",
+          "payload",
+          "params"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "meetings.update"
+            ]
+          },
+          "payload": {
+            "$ref": "#/components/schemas/MeetingInput"
+          },
+          "params": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "example": "65b9c1f2d3a4e5b6c7d8e9f0"
+              }
+            }
           }
         }
       },
       "MemorySyncRequest": {
         "type": "object",
-        "required": ["serviceId"],
+        "required": [
+          "serviceId"
+        ],
         "properties": {
           "serviceId": {
             "type": "string",
-            "enum": ["memory.sync"]
+            "enum": [
+              "memory.sync"
+            ]
+          }
+        }
+      },
+      "NotificationsClearRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "notifications.clear"
+            ]
+          }
+        }
+      },
+      "NotificationsListRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "notifications.list"
+            ]
+          }
+        }
+      },
+      "NotificationsReadAllRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "notifications.readAll"
+            ]
+          }
+        }
+      },
+      "SettingsGetRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "settings.get"
+            ]
+          }
+        }
+      },
+      "SettingsSessionsRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "settings.sessions"
+            ]
+          }
+        }
+      },
+      "SettingsUpdateRequest": {
+        "type": "object",
+        "required": [
+          "serviceId"
+        ],
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "enum": [
+              "settings.update"
+            ]
           }
         }
       }
@@ -736,7 +984,9 @@
       "post": {
         "summary": "Centralized service dispatcher",
         "description": "Dispatches requests to internal services using serviceId.",
-        "tags": ["Centralized Service Router"],
+        "tags": [
+          "Centralized Service Router"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -749,76 +999,10 @@
               "schema": {
                 "oneOf": [
                   {
-                    "$ref": "#/components/schemas/AuthRegisterRequest"
+                    "$ref": "#/components/schemas/ActionItemsCreateRequest"
                   },
                   {
-                    "$ref": "#/components/schemas/AuthLoginRequest"
-                  },
-                  {
-                    "$ref": "#/components/schemas/AuthLogoutRequest"
-                  },
-                  {
-                    "$ref": "#/components/schemas/AuthMeRequest"
-                  },
-                  {
-                    "$ref": "#/components/schemas/AuthUsersRequest"
-                  },
-                  {
-                    "$ref": "#/components/schemas/AuthChangePasswordRequest"
-                  },
-                  {
-                    "$ref": "#/components/schemas/AuthGenerateMagicLinkRequest"
-                  },
-                  {
-                    "$ref": "#/components/schemas/AuthResetPasswordWithTokenRequest"
-                  },
-                  {
-                    "$ref": "#/components/schemas/MeetingsListRequest"
-                  },
-                  {
-                    "$ref": "#/components/schemas/MeetingsGetRequest"
-                  },
-                  {
-                    "$ref": "#/components/schemas/MeetingsCreateRequest"
-                  },
-                  {
-                    "$ref": "#/components/schemas/MeetingsUpdateRequest"
-                  },
-                  {
-                    "$ref": "#/components/schemas/MeetingsDeleteRequest"
-                  },
-                  {
-                    "$ref": "#/components/schemas/MeetingsSummarizeRequest"
-                  },
-                  {
-                    "$ref": "#/components/schemas/MeetingsChatRequest"
-                  },
-                  {
-                    "$ref": "#/components/schemas/MeetingsPublishRequest"
-                  },
-                  {
-                    "$ref": "#/components/schemas/MeetingsArchiveRequest"
-                  },
-                  {
-                    "$ref": "#/components/schemas/MeetingsUnarchiveRequest"
-                  },
-                  {
-                    "$ref": "#/components/schemas/MeetingsRestoreRequest"
-                  },
-                  {
-                    "$ref": "#/components/schemas/MeetingsPinRequest"
-                  },
-                  {
-                    "$ref": "#/components/schemas/MeetingsCloneRequest"
-                  },
-                  {
-                    "$ref": "#/components/schemas/MeetingsPermanentDeleteRequest"
-                  },
-                  {
-                    "$ref": "#/components/schemas/MeetingsPublicShareGetRequest"
-                  },
-                  {
-                    "$ref": "#/components/schemas/ActionItemsListRequest"
+                    "$ref": "#/components/schemas/ActionItemsDeleteRequest"
                   },
                   {
                     "$ref": "#/components/schemas/ActionItemsGetRequest"
@@ -830,37 +1014,34 @@
                     "$ref": "#/components/schemas/ActionItemsLeaderboardRequest"
                   },
                   {
-                    "$ref": "#/components/schemas/ActionItemsCreateRequest"
+                    "$ref": "#/components/schemas/ActionItemsListRequest"
                   },
                   {
                     "$ref": "#/components/schemas/ActionItemsUpdateRequest"
                   },
                   {
-                    "$ref": "#/components/schemas/ActionItemsDeleteRequest"
+                    "$ref": "#/components/schemas/AuthChangePasswordRequest"
                   },
                   {
-                    "$ref": "#/components/schemas/DashboardStatsRequest"
+                    "$ref": "#/components/schemas/AuthGenerateMagicLinkRequest"
                   },
                   {
-                    "$ref": "#/components/schemas/SettingsGetRequest"
+                    "$ref": "#/components/schemas/AuthLoginRequest"
                   },
                   {
-                    "$ref": "#/components/schemas/SettingsUpdateRequest"
+                    "$ref": "#/components/schemas/AuthLogoutRequest"
                   },
                   {
-                    "$ref": "#/components/schemas/SettingsSessionsRequest"
+                    "$ref": "#/components/schemas/AuthMeRequest"
                   },
                   {
-                    "$ref": "#/components/schemas/NotificationsListRequest"
+                    "$ref": "#/components/schemas/AuthRegisterRequest"
                   },
                   {
-                    "$ref": "#/components/schemas/NotificationsReadAllRequest"
+                    "$ref": "#/components/schemas/AuthResetPasswordWithTokenRequest"
                   },
                   {
-                    "$ref": "#/components/schemas/NotificationsClearRequest"
-                  },
-                  {
-                    "$ref": "#/components/schemas/JobsGetRequest"
+                    "$ref": "#/components/schemas/AuthUsersRequest"
                   },
                   {
                     "$ref": "#/components/schemas/ChatGlobalRequest"
@@ -872,7 +1053,76 @@
                     "$ref": "#/components/schemas/ChatSessionsRequest"
                   },
                   {
+                    "$ref": "#/components/schemas/DashboardStatsRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/JobsGetRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsArchiveRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsChatRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsCloneRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsCreateRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsDeleteRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsGetRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsListRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsPermanentDeleteRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsPinRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsPublicShareGetRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsPublishRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsRestoreRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsSummarizeRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsUnarchiveRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/MeetingsUpdateRequest"
+                  },
+                  {
                     "$ref": "#/components/schemas/MemorySyncRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/NotificationsClearRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/NotificationsListRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/NotificationsReadAllRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SettingsGetRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SettingsSessionsRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/SettingsUpdateRequest"
                   }
                 ]
               }
@@ -899,7 +1149,9 @@
       "get": {
         "summary": "Retrieve registered service definitions catalog",
         "description": "Lists all registered serviceIds, authentication requirements, and validation flags.",
-        "tags": ["Centralized Service Router"],
+        "tags": [
+          "Centralized Service Router"
+        ],
         "responses": {
           "200": {
             "description": "Successful retrieval of service registry catalog",

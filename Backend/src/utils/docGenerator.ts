@@ -95,77 +95,6 @@ const sampleBodies: Record<string, { payload?: any; params?: any; query?: any }>
 
 export function generateDocs(): void {
   try {
-    const serviceIds = Object.keys(serviceRegistry);
-
-    // 1. Generate serviceIds.ts
-    const meetings: Record<string, string> = {};
-    const actionItems: Record<string, string> = {};
-    const dashboard: Record<string, string> = {};
-    const settings: Record<string, string> = {};
-    const notifications: Record<string, string> = {};
-    const jobs: Record<string, string> = {};
-    const auth: Record<string, string> = {};
-
-    for (const id of serviceIds) {
-      const parts = id.split(".");
-      if (parts.length !== 2) continue;
-      const category = parts[0];
-      const rawAction = parts[1];
-
-      // Convert camelCase to SCREAMING_SNAKE_CASE
-      const action = rawAction.replace(/([A-Z])/g, "_$1").toUpperCase();
-
-      if (category === "auth") {
-        auth[action] = id;
-      } else if (category === "meetings") {
-        meetings[action] = id;
-      } else if (category === "actionItems") {
-        actionItems[action] = id;
-      } else if (category === "dashboard") {
-        dashboard[action] = id;
-      } else if (category === "settings") {
-        settings[action] = id;
-      } else if (category === "notifications") {
-        notifications[action] = id;
-      } else if (category === "jobs") {
-        jobs[action] = id;
-      }
-    }
-
-    const serviceIdsTemplate = `/**
- * Centralized Service ID constants (Auto-generated)
- */
-export const SERVICE_IDS = {
-  MEETINGS: ${JSON.stringify(meetings, null, 2)},
-  ACTION_ITEMS: ${JSON.stringify(actionItems, null, 2)},
-  DASHBOARD: ${JSON.stringify(dashboard, null, 2)},
-  SETTINGS: ${JSON.stringify(settings, null, 2)},
-  NOTIFICATIONS: ${JSON.stringify(notifications, null, 2)},
-  JOBS: ${JSON.stringify(jobs, null, 2)},
-  AUTH: ${JSON.stringify(auth, null, 2)},
-} as const;
-
-export type SERVICE_IDS_TYPE = typeof SERVICE_IDS;
-
-export type ServiceId =
-  | typeof SERVICE_IDS.MEETINGS[keyof typeof SERVICE_IDS.MEETINGS]
-  | typeof SERVICE_IDS.ACTION_ITEMS[keyof typeof SERVICE_IDS.ACTION_ITEMS]
-  | typeof SERVICE_IDS.DASHBOARD[keyof typeof SERVICE_IDS.DASHBOARD]
-  | typeof SERVICE_IDS.SETTINGS[keyof typeof SERVICE_IDS.SETTINGS]
-  | typeof SERVICE_IDS.NOTIFICATIONS[keyof typeof SERVICE_IDS.NOTIFICATIONS]
-  | typeof SERVICE_IDS.JOBS[keyof typeof SERVICE_IDS.JOBS]
-  | typeof SERVICE_IDS.AUTH[keyof typeof SERVICE_IDS.AUTH];
-`;
-
-    let frontendServiceIdsPath = path.join(__dirname, "../../../Frontend/src/lib/serviceIds.ts");
-    if (!fs.existsSync(path.dirname(frontendServiceIdsPath))) {
-      frontendServiceIdsPath = path.join(__dirname, "../../../../Frontend/src/lib/serviceIds.ts");
-    }
-    if (fs.existsSync(path.dirname(frontendServiceIdsPath))) {
-      fs.writeFileSync(frontendServiceIdsPath, serviceIdsTemplate);
-      console.log("[Docs Generator] Successfully updated Frontend serviceIds.ts");
-    }
-
     // 2. Generate Postman Collection
     const postmanItemsMap: Record<string, any[]> = {
       auth: [],
@@ -177,7 +106,8 @@ export type ServiceId =
       jobs: [],
     };
 
-    for (const [id, def] of Object.entries(serviceRegistry)) {
+    const registryEntries = Object.entries(serviceRegistry).sort((a, b) => a[0].localeCompare(b[0]));
+    for (const [id, def] of registryEntries) {
       const parts = id.split(".");
       const category = parts[0];
       const actionName = parts[1];
@@ -295,7 +225,7 @@ export type ServiceId =
 
     const oneOfReferences: any[] = [];
 
-    for (const [id, def] of Object.entries(serviceRegistry)) {
+    for (const [id, def] of registryEntries) {
       const parts = id.split(".");
       const category = parts[0];
       const rawAction = parts[1];
