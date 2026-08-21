@@ -157,7 +157,10 @@ export type ServiceId =
   | typeof SERVICE_IDS.AUTH[keyof typeof SERVICE_IDS.AUTH];
 `;
 
-    const frontendServiceIdsPath = path.join(__dirname, "../../../../Frontend/src/lib/serviceIds.ts");
+    let frontendServiceIdsPath = path.join(__dirname, "../../../Frontend/src/lib/serviceIds.ts");
+    if (!fs.existsSync(path.dirname(frontendServiceIdsPath))) {
+      frontendServiceIdsPath = path.join(__dirname, "../../../../Frontend/src/lib/serviceIds.ts");
+    }
     if (fs.existsSync(path.dirname(frontendServiceIdsPath))) {
       fs.writeFileSync(frontendServiceIdsPath, serviceIdsTemplate);
       console.log("[Docs Generator] Successfully updated Frontend serviceIds.ts");

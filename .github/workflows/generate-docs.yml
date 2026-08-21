@@ -1,0 +1,57 @@
+name: Generate & Update Swagger Docs
+
+on:
+  push:
+    branches:
+      - '**' # Trigger on all branches
+    paths-ignore:
+      # Ignore runs when only docs are updated to avoid unnecessary loops
+      - 'Backend/src/swagger.json'
+      - 'Backend/syncra_ai_postman_collection.json'
+      - 'Frontend/src/lib/serviceIds.ts'
+  workflow_dispatch: # Enable manual triggers
+
+permissions:
+  contents: write # Required for committing changes back to the repo
+
+jobs:
+  generate-docs:
+    name: Generate Swagger & Postman Docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.4.0
+        with:
+          # Checkout with full history to allow proper commit references
+          ref: ${{ github.head_ref || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.4.0
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Install Root Dependencies
+        run: npm ci
+
+      - name: Install Sub-Project Dependencies
+        run: npm run install:all
+
+      - name: Run Document Generator
+        env:
+          # Mock/Dummy environment variables so configuration parser doesn't crash during doc generation
+          NODE_ENV: development
+          DEVELOPMENT_DEPLOYMENT_URI: http://localhost:3000/
+          TEST_DEPLOYMENT_URI: http://localhost:3000/
+          PRODUCTION_DEPLOYMENT_URI: http://localhost:3000/
+          PORT: 4000
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+          JWT_SECRET: dummy_secret_key_for_testing_purposes_only_must_be_long_enough
+          RESEND_EMAIL_API: re_dummy_api_key
+        run: npm run docs:generate
+
+      - name: Commit and Push Changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: auto-generate swagger & postman API docs [skip ci]"
+          file_pattern: 'Backend/src/swagger.json Backend/syncra_ai_postman_collection.json Frontend/src/lib/serviceIds.ts'

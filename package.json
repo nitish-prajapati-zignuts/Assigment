@@ -6,6 +6,7 @@
     "dev": "concurrently -k -p \"[{name}]\" -n \"Backend,Frontend\" -c \"cyan,magenta\" \"npm run dev --prefix Backend\" \"npm run dev --prefix Frontend\"",
     "build": "npm run build --prefix Backend && npm run build --prefix Frontend",
     "install:all": "npm install --prefix Backend && npm install --prefix Frontend",
+    "docs:generate": "npm run docs:generate --prefix Backend",
     "lint": "(cd Frontend && npm run lint) && (cd Backend && npm run lint)",
     "lint:fix": "(cd Frontend && npm run lint:fix)",
     "format": "concurrently -n \"Backend,Frontend\" -c \"cyan,magenta\" \"npm run format --prefix Backend\" \"npm run format --prefix Frontend\"",
