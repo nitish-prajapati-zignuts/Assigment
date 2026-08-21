@@ -4,6 +4,8 @@
  * with different severity levels (debug, info, warn, error)
  */
 
+import util from "util";
+
 export type LogLevel = "debug" | "info" | "warn" | "error";
 
 interface LogEntry {
@@ -22,9 +24,59 @@ class Logger {
   private isDevelopment = process.env.NODE_ENV !== "production";
 
   private formatLog(entry: LogEntry): string {
+    const timestamp = new Date().toISOString();
+
+    if (this.isDevelopment) {
+      const reset = "\x1b[0m";
+      const gray = "\x1b[90m";
+      const bold = "\x1b[1m";
+      
+      let levelColor = "";
+      switch (entry.level) {
+        case "debug":
+          levelColor = "\x1b[36m"; // Cyan
+          break;
+        case "info":
+          levelColor = "\x1b[32m"; // Green
+          break;
+        case "warn":
+          levelColor = "\x1b[33m"; // Yellow
+          break;
+        case "error":
+          levelColor = "\x1b[31m"; // Red
+          break;
+      }
+
+      const levelStr = `${levelColor}${bold}[${entry.level.toUpperCase()}]${reset}`;
+      const tsStr = `${gray}[${timestamp}]${reset}`;
+      let logLine = `${tsStr} ${levelStr} ${entry.message}`;
+
+      if (entry.context && Object.keys(entry.context).length > 0) {
+        const contextStr = util.inspect(entry.context, {
+          colors: true,
+          depth: 3,
+          breakLength: 100,
+          compact: true,
+        });
+        logLine += ` ${gray}context:${reset} ${contextStr}`;
+      }
+
+      if (entry.error) {
+        const errorStr = util.inspect(entry.error, {
+          colors: true,
+          depth: 5,
+          breakLength: 80,
+          compact: false,
+        });
+        logLine += `\n${levelColor}${bold}[ERROR DETAILS]${reset}\n${errorStr}`;
+      }
+
+      return logLine;
+    }
+
     const formatted = {
       ...entry,
-      timestamp: new Date().toISOString(),
+      timestamp,
     };
     return JSON.stringify(formatted);
   }

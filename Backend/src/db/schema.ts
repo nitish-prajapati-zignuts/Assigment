@@ -365,3 +365,31 @@ export const chatMessages = pgTable(
 
 export type ChatMessageRecord = typeof chatMessages.$inferSelect;
 export type NewChatMessageRecord = typeof chatMessages.$inferInsert;
+
+/**
+ * Request Logs Table
+ * Stores logs of incoming HTTP requests for auditing and diagnostics
+ */
+export const requestLogs = pgTable(
+  "request_logs",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    method: text("method").notNull(),
+    path: text("path").notNull(),
+    status: integer("status").notNull(),
+    duration: text("duration"),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    userId: varchar("user_id", { length: 255 }).references(() => users.id, { onDelete: "set null" }),
+    serviceId: text("service_id"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (table) => [
+    index("request_logs_created_at_idx").on(table.createdAt),
+    index("request_logs_user_id_idx").on(table.userId),
+    index("request_logs_service_id_idx").on(table.serviceId),
+  ]
+);
+
+export type RequestLogRecord = typeof requestLogs.$inferSelect;
+export type NewRequestLogRecord = typeof requestLogs.$inferInsert;

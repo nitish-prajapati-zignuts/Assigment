@@ -6,6 +6,8 @@
 import xss from "xss";
 import { Request, Response, NextFunction } from "express";
 import { logger } from "../utils/logger";
+import { db } from "../db";
+import { requestLogs } from "../db/schema";
 
 /**
  * Security Headers Middleware
@@ -47,21 +49,47 @@ export const securityHeaders = (req: Request, res: Response, next: NextFunction)
  */
 export const requestLogger = (req: Request, res: Response, next: NextFunction) => {
   const startTime = Date.now();
+  // Capture serviceId before req.body can be mutated by route controllers
+  const serviceId = req.body?.serviceId || null;
 
   // Capture response
   const originalSend = res.send;
   res.send = function (data: any) {
     const duration = Date.now() - startTime;
+    const durationStr = `${duration}ms`;
+    const method = req.method;
+    const path = req.originalUrl;
+    const status = res.statusCode;
+    const ip = req.ip || "";
+    const userAgent = req.get("user-agent") || "";
+    const userId = (req as any).user?.userId || null;
 
-    logger.info(`${req.method} ${req.path}`, {
-      method: req.method,
-      path: req.path,
-      status: res.statusCode,
-      duration: `${duration}ms`,
-      ip: req.ip,
-      userAgent: req.get("user-agent"),
-      userId: (req as any).user?.userId,
+    logger.info(`${method} ${path}`, {
+      method,
+      path,
+      status,
+      duration: durationStr,
+      ip,
+      userAgent,
+      userId,
+      ...(serviceId && { serviceId }),
     });
+
+    // Write request log to database asynchronously
+    db.insert(requestLogs)
+      .values({
+        method,
+        path,
+        status,
+        duration: durationStr,
+        ipAddress: ip,
+        userAgent,
+        userId,
+        serviceId,
+      })
+      .catch((err) => {
+        logger.error("Failed to write request log to database", err);
+      });
 
     return originalSend.call(this, data);
   };
