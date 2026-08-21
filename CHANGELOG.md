@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/compare/v1.8.0...v1.9.0) (2026-08-21)
+
+
+### Features
+
+* implement landing page components and integrate them into the home page ([d433cac](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/commit/d433cac7e084cfd84cbf595717a049353440ed1b))
+
 # [1.8.0](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/compare/v1.7.0...v1.8.0) (2026-08-21)
 
 
