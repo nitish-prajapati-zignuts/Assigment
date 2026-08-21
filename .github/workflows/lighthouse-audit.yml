@@ -1,0 +1,43 @@
+name: Lighthouse CI Web Performance Audit
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "Frontend/**"
+      - ".github/workflows/lighthouse-audit.yml"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  lighthouse-audit:
+    name: Run Lighthouse CI Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.4.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.4.0
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Install Dependencies
+        run: |
+          npm ci --prefix Frontend
+          npm install -g @lhci/cli@0.14.x
+
+      - name: Build Next.js Application
+        run: npm run build --prefix Frontend
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Run Lighthouse Audit
+        run: |
+          cd Frontend
+          npx lhci collect --staticDistDir=.next
+        continue-on-error: true

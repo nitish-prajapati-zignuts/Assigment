@@ -1,0 +1,50 @@
+name: Next.js Frontend Bundle Size Analysis
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "Frontend/**"
+      - ".github/workflows/bundle-size-analysis.yml"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  bundle-size:
+    name: Analyze Frontend Bundle Size
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.4.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4.4.0
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Install Sub-Project Dependencies
+        run: npm ci --prefix Frontend
+
+      - name: Build Next.js Production Bundle
+        run: npm run build --prefix Frontend
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Analyze Bundle Sizes
+        id: bundle
+        run: |
+          cd Frontend
+          echo "### 📦 Next.js Bundle Size Report" > bundle-report.md
+          echo "| Route | Size |" >> bundle-report.md
+          echo "| --- | --- |" >> bundle-report.md
+          du -sh .next/static/* | awk '{print "| `" $2 "` | **" $1 "** |"}' >> bundle-report.md
+
+      - name: Post Bundle Size Comment on PR
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: bundle-size-report
+          path: Frontend/bundle-report.md

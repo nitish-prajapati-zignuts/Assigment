@@ -1,0 +1,41 @@
+name: PR Title Conventional Commits Check
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+
+permissions:
+  pull-requests: read
+  statuses: write
+
+jobs:
+  lint-pr-title:
+    name: Validate PR Title Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR Title
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+          requireScope: false
+          subjectPattern: ^(?![A-Z]).+$
+          subjectPatternError: |
+            The subject in the PR title must start with a lowercase letter.
+            Example: feat(api): add centralized cache hit headers
