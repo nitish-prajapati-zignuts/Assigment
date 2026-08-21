@@ -23,6 +23,28 @@ interface LogEntry {
 class Logger {
   private isDevelopment = process.env.NODE_ENV !== "production";
 
+  private sanitizeLogString(value: string): string {
+    return value.replace(/[\r\n]+/g, " ").replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
+  }
+
+  private sanitizeLogValue(value: unknown): unknown {
+    if (typeof value === "string") {
+      return this.sanitizeLogString(value);
+    }
+
+    if (Array.isArray(value)) {
+      return value.map((item) => this.sanitizeLogValue(item));
+    }
+
+    if (value && typeof value === "object") {
+      return Object.fromEntries(
+        Object.entries(value as Record<string, unknown>).map(([k, v]) => [k, this.sanitizeLogValue(v)])
+      );
+    }
+
+    return value;
+  }
+
   private formatLog(entry: LogEntry): string {
     const timestamp = new Date().toISOString();
 
@@ -85,13 +107,13 @@ class Logger {
     const entry: LogEntry = {
       timestamp: new Date().toISOString(),
       level,
-      message,
-      ...(context && { context }),
+      message: this.sanitizeLogString(message),
+      ...(context && { context: this.sanitizeLogValue(context) as Record<string, unknown> }),
       ...(error && {
         error: {
-          message: error.message,
-          stack: this.isDevelopment ? error.stack : undefined,
-          code: (error as any).code,
+          message: this.sanitizeLogString(error.message),
+          stack: this.isDevelopment && error.stack ? this.sanitizeLogString(error.stack) : undefined,
+          code: (error as any).code ? this.sanitizeLogString(String((error as any).code)) : undefined,
         },
       }),
     };
