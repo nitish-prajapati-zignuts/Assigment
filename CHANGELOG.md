@@ -1,3 +1,10 @@
+# [1.11.0](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/compare/v1.10.0...v1.11.0) (2026-08-21)
+
+
+### Features
+
+* implement chat sessions, request logging, and memory embeddings with improved database schema and performance-optimized action item filtering ([69d66fa](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/commit/69d66fa459f2ecb72b21faa0b9c3ebd243a0e650))
+
 # [1.10.0](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/compare/v1.9.0...v1.10.0) (2026-08-21)
 
 
