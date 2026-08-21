@@ -58,7 +58,7 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
     const duration = Date.now() - startTime;
     const durationStr = `${duration}ms`;
     const method = req.method;
-    const path = req.originalUrl;
+    const path = req.originalUrl.replace(/[\r\n]+/g, " ").replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "");
     const status = res.statusCode;
     const ip = req.ip || "";
     const userAgent = req.get("user-agent") || "";
