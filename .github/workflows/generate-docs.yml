@@ -1,4 +1,4 @@
-name: Generate & Update Swagger Docs
+name: "Generate & Update Swagger Docs"
 
 on:
   push:
