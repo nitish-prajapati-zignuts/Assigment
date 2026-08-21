@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/compare/v1.7.0...v1.8.0) (2026-08-21)
+
+
+### Features
+
+* implement password reset and magic link authentication flows with associated email service ([b69bba8](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/commit/b69bba812e845591f26ca4a135a8573eb9645d3b))
+
 # [1.7.0](https://github.com/nitishprajapati5/AI-Based-Meeting-Transcript/compare/v1.6.0...v1.7.0) (2026-08-21)
 
 
